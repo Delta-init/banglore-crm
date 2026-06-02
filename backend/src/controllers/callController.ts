@@ -36,7 +36,7 @@ export const recordingUpload = multer({
   },
 }).single("recording");
 
-const PROD_URL       = process.env.CRM_API_URL    ?? "https://api-crm.deltainstitutions.com";
+const PROD_URL       = process.env.CRM_API_URL    ?? "https://api-crm-banglore.deltainstitutions.com";
 const THREECX_BASE   = process.env.THREECX_URL    ?? "https://deltainstitutions.3cx.ae:5002";
 const THREECX_CLIENT = process.env.THREECX_CLIENT_ID  ?? "deltaleads";
 const THREECX_SECRET = process.env.THREECX_API_KEY    ?? "";
