@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material3 seed: Indigo/Blue -->
+    <color name="md_theme_primary">#1565C0</color>
+    <color name="md_theme_on_primary">#FFFFFF</color>
+    <color name="md_theme_primary_container">#D6E4FF</color>
+    <color name="md_theme_on_primary_container">#001845</color>
+    <color name="md_theme_surface">#FAFAFA</color>
+    <color name="md_theme_on_surface">#1A1C1E</color>
+    <color name="md_theme_surface_variant">#E0E2EC</color>
+</resources>

@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ── Network (CRM sync) ────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- ── Core permissions ──────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!-- ── InCallService / Companion permissions ──────────────────────────── -->
+    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+
+    <!--
+        CALL_COMPANION_APP (API 29+): Lets the app act as a Call Companion —
+        receives InCallService events WITHOUT being the default dialer.
+        This is the recommended mode: the phone app handles call UI normally,
+        and our InCallService quietly records.
+    -->
+    <uses-permission android:name="android.permission.CALL_COMPANION_APP" />
+
+    <!-- ── Contacts ──────────────────────────────────────────────────────────── -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- ── Storage (Android ≤ 9 only) ────────────────────────────────────── -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <application
+        android:name=".App"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.CallRecorder">
+
+        <!-- ── Main Activity ──────────────────────────────────────────────── -->
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ── Incoming Call Activity ─────────────────────────────────────────
+             Shown when this app is the default dialer and a call is ringing.
+             Displayed over the lock screen so the user can answer immediately.
+        ──────────────────────────────────────────────────────────────────── -->
+        <activity
+            android:name=".ui.IncomingCallActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleInstance" />
+
+        <!-- ── Dialer Activity ─────────────────────────────────────────────
+             Required for default dialer eligibility.
+             Handles outgoing call intents (DIAL/CALL) when we are default dialer.
+        ──────────────────────────────────────────────────────────────────── -->
+        <activity
+            android:name=".ui.DialerActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:excludeFromRecents="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tel" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tel" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.CALL_PRIVILEGED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="tel" />
+            </intent-filter>
+
+        </activity>
+
+        <!-- ── Foreground Recording Service ──────────────────────────────── -->
+        <service
+            android:name=".service.CallRecordingService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
+        <!-- ── InCallService ───────────────────────────────────────────────
+             IN_CALL_SERVICE_UI = false → we are a recording companion, NOT a
+             full phone app. The regular phone app handles all call UI.
+             The system binds to us for call events so we can record.
+
+             Works in two modes:
+             • Companion App (recommended): user grants CALL_COMPANION_APP
+               permission in Settings → no need to be default dialer.
+             • Default Dialer: user explicitly set this app as default dialer.
+               IncomingCallActivity handles the answer/decline screen.
+        ──────────────────────────────────────────────────────────────────── -->
+        <service
+            android:name=".service.CallRecorderInCallService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_INCALL_SERVICE">
+            <meta-data
+                android:name="android.telecom.IN_CALL_SERVICE_UI"
+                android:value="false" />
+            <intent-filter>
+                <action android:name="android.telecom.InCallService" />
+            </intent-filter>
+        </service>
+
+        <!-- ── Phone State Receiver (Layer 1 + 2) ────────────────────────── -->
+        <receiver
+            android:name=".service.CallStateReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ── Boot Receiver ─────────────────────────────────────────────── -->
+        <receiver
+            android:name=".service.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>

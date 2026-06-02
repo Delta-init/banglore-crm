@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["--cwd", "/Users/mhdabshar/delta/deltainstitutions/crm/delta", "run", "dev"],
+      "port": 3001
+    }
+  ]
+}

@@ -1,0 +1,586 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:2:1-164:12
+INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:2:1-164:12
+INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:2:1-164:12
+INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:2:1-164:12
+MERGED from [androidx.databinding:viewbinding:8.5.2] /Users/mhdabshar/.gradle/caches/8.9/transforms/270dbcf56d8d4b46d890f61019024742/transformed/viewbinding-8.5.2/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-common:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/eecb2f9f862062bacf36e6eb61fa184c/transformed/navigation-common-2.8.4/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-common-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/da4c65ca3f4b1611beddeb3b2b7868ba/transformed/navigation-common-ktx-2.8.4/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-runtime:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/fb9d203e2d94308a035ca3f9b0bf31bb/transformed/navigation-runtime-2.8.4/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-runtime-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec503ab4b86dcc39116b775d0331d3f/transformed/navigation-runtime-ktx-2.8.4/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-fragment:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/267889203ee1e958a61827dac406d893/transformed/navigation-fragment-2.8.4/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.navigation:navigation-fragment-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/ed4a5c3e1ff797a41581fb163b133b3c/transformed/navigation-fragment-ktx-2.8.4/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-ui-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/9d8583da76d47c961530847fbd07053c/transformed/navigation-ui-ktx-2.8.4/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.navigation:navigation-ui:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/35ec2f56a78cf05da344fceecd2da85b/transformed/navigation-ui-2.8.4/AndroidManifest.xml:17:1-22:12
+MERGED from [com.google.android.material:material:1.12.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/0cad66dab612847dc5bb5d9ee18228d5/transformed/material-1.12.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/dca6a4fbab437c7faef37e9e8bd14cdc/transformed/constraintlayout-2.1.4/AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.appcompat:appcompat-resources:1.7.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2665194a0783e468d221db85227d3483/transformed/appcompat-resources-1.7.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.preference:preference-ktx:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/fb78b3e2d3b6292d059dfbbeeef3f433/transformed/preference-ktx-1.2.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.preference:preference:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2b92415f11e6209da9f84354954bcd71/transformed/preference-1.2.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.appcompat:appcompat:1.7.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/7ab9d2380cca719c6a072c4bc5552353/transformed/appcompat-1.7.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/0ad2fd93bdd3947d85ebc12411507371/transformed/viewpager2-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.fragment:fragment:1.8.5] /Users/mhdabshar/.gradle/caches/8.9/transforms/1a5aa06777f3661d4d7491dbfe1dbf43/transformed/fragment-1.8.5/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.fragment:fragment-ktx:1.8.5] /Users/mhdabshar/.gradle/caches/8.9/transforms/14b79ef2be165ff557d2a56dcb070633/transformed/fragment-ktx-1.8.5/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.activity:activity:1.9.3] /Users/mhdabshar/.gradle/caches/8.9/transforms/c9aae25afae8c663cdcc4f06fc060f8e/transformed/activity-1.9.3/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.activity:activity-ktx:1.9.3] /Users/mhdabshar/.gradle/caches/8.9/transforms/e0681afcc6975cfd517c750fcec5689f/transformed/activity-ktx-1.9.3/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/26e2d300b48893e45d5572a326778911/transformed/emoji2-views-helper-1.3.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5b7753d6d3a32e599b000ca1110160b6/transformed/drawerlayout-1.1.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/cccade62a097204d8e1208b6720ef736/transformed/coordinatorlayout-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/e254eb7dfc2cb10c98b75028dcbe191d/transformed/slidingpanelayout-1.2.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.transition:transition:1.5.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/9509d97d1cd7bc6503a68a33e08f5f1e/transformed/transition-1.5.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/ef6e789d80157bc0afb60314769b0956/transformed/dynamicanimation-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/4ed12cf564d12b7fd9732f36670a3245/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/bfc688fcaf64cafbffae54896a5188da/transformed/vectordrawable-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/8e7e3e3fd5aa0add11ddf5e2fa29818a/transformed/recyclerview-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/4d3ef7eb9fe498d3b41a3665f9af2847/transformed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.customview:customview:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/fffa720dffef6e27ff3a71cadb09204c/transformed/customview-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/6eda4609cd1d9a14cb55cb9c03d34268/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/cc31c03b0014e37a433e3c6fcd173b09/transformed/loader-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/ba2aa5cc0e345011c30f337bb8e8fe89/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/a089403c6e84a0534f7e970be90cc3e9/transformed/savedstate-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/5bac6adeb138e84726d4a99f5e4b1485/transformed/lifecycle-runtime-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/ac4977c1fc03e49d74d3e8111c0d15a3/transformed/lifecycle-viewmodel-2.8.7/AndroidManifest.xml:2:1-5:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/ce013a85338209206c87e90b4ac4d934/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/bcc69afbf2ab1f659023beb8d17898dc/transformed/lifecycle-livedata-core-2.8.7/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/c11adc9c70a7feef413708a7cecc3c2b/transformed/lifecycle-runtime-ktx-release/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/9433b6424af619b315f719c62171a791/transformed/lifecycle-livedata-2.8.7/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/092b3784517954176463ae78f55d33d4/transformed/lifecycle-livedata-core-ktx-2.8.7/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-ktx:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/db739ceaf87235d12bb9fe1ffd757325/transformed/lifecycle-livedata-ktx-2.8.7/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/b2926f3db4ec5400b952ba74649b44db/transformed/lifecycle-viewmodel-ktx-2.8.7/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-service:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/814b51bae771d041655a1a3e84c93689/transformed/lifecycle-service-2.8.7/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/2e01fe31647eec60bc7b9326839290ba/transformed/lifecycle-viewmodel-savedstate-2.8.7/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core-ktx:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/8361f13ac523a1a6ae204118933fea9a/transformed/core-ktx-1.13.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:17:1-31:12
+MERGED from [androidx.room:room-ktx:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/46b2bc2f2dc1f570b3c541d03d36244d/transformed/room-ktx-2.6.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.sqlite:sqlite-framework:2.4.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/3cfa9c52d56b37d3a629e7ec59e73354/transformed/sqlite-framework-2.4.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.sqlite:sqlite:2.4.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/43eb2b2d65fcf6307a83832764ab5125/transformed/sqlite-2.4.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/d8fa90bbebbb0738adc033ba1583aa9b/transformed/annotation-experimental-1.4.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/efa6ed55d9d0b15202d707c31538e887/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/98f26aa5db8fe4b56c19cd27251601d9/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:17:1-55:12
+MERGED from [androidx.cardview:cardview:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/b98bafae9a4765aef835473ba76dd014/transformed/cardview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/24cedea07a81c00c7218593539cfa037/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/3d051cd3b9c8be874529b0e90adab15b/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/6b52c62689b81ed45e78c58942106ea1/transformed/startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.tracing:tracing:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/6e8fb15e7adff07a6f9422d774cfdab9/transformed/tracing-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/e38af40dada6c09897b6b5571fa67285/transformed/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/9eb5366e8727478f3fe9c8c6c6458504/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/478103af85449f761f4acc9f0e160159/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
+	package
+		INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml
+	android:versionCode
+		INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.INTERNET
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:5:5-67
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:5:22-64
+uses-permission#android.permission.RECORD_AUDIO
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:8:5-71
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:8:22-68
+uses-permission#android.permission.READ_PHONE_STATE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:9:5-75
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:9:22-72
+uses-permission#android.permission.READ_CALL_LOG
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:10:5-72
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:10:22-69
+uses-permission#android.permission.PROCESS_OUTGOING_CALLS
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:11:5-81
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:11:22-78
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:12:5-77
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:12:22-74
+uses-permission#android.permission.FOREGROUND_SERVICE_MICROPHONE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:13:5-88
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:13:22-85
+uses-permission#android.permission.RECEIVE_BOOT_COMPLETED
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:14:5-81
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:14:22-78
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:15:5-77
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:15:22-74
+uses-permission#android.permission.VIBRATE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:16:5-66
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:16:22-63
+uses-permission#android.permission.CALL_PHONE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:17:5-69
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:17:22-66
+uses-permission#android.permission.MANAGE_OWN_CALLS
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:20:5-75
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:20:22-72
+uses-permission#android.permission.CALL_COMPANION_APP
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:28:5-77
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:28:22-74
+uses-permission#android.permission.READ_CONTACTS
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:31:5-72
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:31:22-69
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:34:5-36:38
+	android:maxSdkVersion
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:36:9-35
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:35:9-65
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:37:5-39:38
+	android:maxSdkVersion
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:39:9-35
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:38:9-64
+application
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:41:5-163:19
+INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:41:5-163:19
+MERGED from [com.google.android.material:material:1.12.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/0cad66dab612847dc5bb5d9ee18228d5/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
+MERGED from [com.google.android.material:material:1.12.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/0cad66dab612847dc5bb5d9ee18228d5/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/dca6a4fbab437c7faef37e9e8bd14cdc/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/dca6a4fbab437c7faef37e9e8bd14cdc/transformed/constraintlayout-2.1.4/AndroidManifest.xml:9:5-20
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:24:5-31:19
+MERGED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:24:5-31:19
+MERGED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:23:5-29:19
+MERGED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:23:5-29:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/efa6ed55d9d0b15202d707c31538e887/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/efa6ed55d9d0b15202d707c31538e887/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/6b52c62689b81ed45e78c58942106ea1/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/6b52c62689b81ed45e78c58942106ea1/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+	android:extractNativeLibs
+		INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+	android:supportsRtl
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:47:9-35
+	android:label
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:45:9-41
+	android:roundIcon
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:46:9-54
+	android:icon
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:44:9-43
+	android:allowBackup
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:43:9-35
+	android:theme
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:48:9-50
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:42:9-28
+activity#com.callrecorder.ui.MainActivity
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:51:9-59:20
+	android:windowSoftInputMode
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:54:13-55
+	android:exported
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:53:13-36
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:52:13-44
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:55:13-58:29
+action#android.intent.action.MAIN
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:56:17-69
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:56:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:57:17-77
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:57:27-74
+activity#com.callrecorder.ui.IncomingCallActivity
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:65:9-71:51
+	android:turnScreenOn
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:70:13-40
+	android:excludeFromRecents
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:68:13-46
+	android:launchMode
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:71:13-48
+	android:exported
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:67:13-37
+	android:showOnLockScreen
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:69:13-44
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:66:13-52
+activity#com.callrecorder.ui.DialerActivity
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:77:9-108:20
+	android:label
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:80:13-45
+	android:excludeFromRecents
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:81:13-46
+	android:exported
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:79:13-36
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:78:13-46
+intent-filter#action:name:android.intent.action.DIAL+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:scheme:tel
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:83:13-88:29
+action#android.intent.action.DIAL
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:84:17-69
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:84:25-66
+category#android.intent.category.DEFAULT
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:85:17-76
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:85:27-73
+category#android.intent.category.BROWSABLE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:86:17-78
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:86:27-75
+data
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:87:17-46
+	android:scheme
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:87:23-43
+intent-filter#action:name:android.intent.action.DIAL+category:name:android.intent.category.DEFAULT
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:90:13-93:29
+intent-filter#action:name:android.intent.action.VIEW+category:name:android.intent.category.BROWSABLE+category:name:android.intent.category.DEFAULT+data:scheme:tel
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:95:13-100:29
+action#android.intent.action.VIEW
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:96:17-69
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:96:25-66
+intent-filter#action:name:android.intent.action.CALL_PRIVILEGED+category:name:android.intent.category.DEFAULT+data:scheme:tel
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:102:13-106:29
+action#android.intent.action.CALL_PRIVILEGED
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:103:17-80
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:103:25-77
+service#com.callrecorder.service.CallRecordingService
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:111:9-115:58
+	android:enabled
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:113:13-35
+	android:exported
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:114:13-37
+	android:foregroundServiceType
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:115:13-55
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:112:13-57
+service#com.callrecorder.service.CallRecorderInCallService
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:128:9-139:19
+	android:enabled
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:130:13-35
+	android:exported
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:131:13-36
+	android:permission
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:132:13-72
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:129:13-62
+meta-data#android.telecom.IN_CALL_SERVICE_UI
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:133:13-135:41
+	android:value
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:135:17-38
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:134:17-66
+intent-filter#action:name:android.telecom.InCallService
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:136:13-138:29
+action#android.telecom.InCallService
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:137:17-72
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:137:25-69
+receiver#com.callrecorder.service.CallStateReceiver
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:142:9-150:20
+	android:enabled
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:144:13-35
+	android:exported
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:145:13-36
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:143:13-54
+intent-filter#action:name:android.intent.action.NEW_OUTGOING_CALL+action:name:android.intent.action.PHONE_STATE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:146:13-149:29
+action#android.intent.action.PHONE_STATE
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:147:17-76
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:147:25-73
+action#android.intent.action.NEW_OUTGOING_CALL
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:148:17-82
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:148:25-79
+receiver#com.callrecorder.service.BootReceiver
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:153:9-161:20
+	android:enabled
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:155:13-35
+	android:exported
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:156:13-36
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:154:13-49
+intent-filter#action:name:android.intent.action.BOOT_COMPLETED+action:name:android.intent.action.QUICKBOOT_POWERON
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:157:13-160:29
+action#android.intent.action.BOOT_COMPLETED
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:158:17-79
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:158:25-76
+action#android.intent.action.QUICKBOOT_POWERON
+ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:159:17-82
+	android:name
+		ADDED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml:159:25-79
+uses-sdk
+INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml
+INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml
+MERGED from [androidx.databinding:viewbinding:8.5.2] /Users/mhdabshar/.gradle/caches/8.9/transforms/270dbcf56d8d4b46d890f61019024742/transformed/viewbinding-8.5.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.databinding:viewbinding:8.5.2] /Users/mhdabshar/.gradle/caches/8.9/transforms/270dbcf56d8d4b46d890f61019024742/transformed/viewbinding-8.5.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-common:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/eecb2f9f862062bacf36e6eb61fa184c/transformed/navigation-common-2.8.4/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-common:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/eecb2f9f862062bacf36e6eb61fa184c/transformed/navigation-common-2.8.4/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-common-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/da4c65ca3f4b1611beddeb3b2b7868ba/transformed/navigation-common-ktx-2.8.4/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-common-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/da4c65ca3f4b1611beddeb3b2b7868ba/transformed/navigation-common-ktx-2.8.4/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-runtime:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/fb9d203e2d94308a035ca3f9b0bf31bb/transformed/navigation-runtime-2.8.4/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-runtime:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/fb9d203e2d94308a035ca3f9b0bf31bb/transformed/navigation-runtime-2.8.4/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-runtime-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec503ab4b86dcc39116b775d0331d3f/transformed/navigation-runtime-ktx-2.8.4/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-runtime-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec503ab4b86dcc39116b775d0331d3f/transformed/navigation-runtime-ktx-2.8.4/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-fragment:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/267889203ee1e958a61827dac406d893/transformed/navigation-fragment-2.8.4/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-fragment:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/267889203ee1e958a61827dac406d893/transformed/navigation-fragment-2.8.4/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-fragment-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/ed4a5c3e1ff797a41581fb163b133b3c/transformed/navigation-fragment-ktx-2.8.4/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-fragment-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/ed4a5c3e1ff797a41581fb163b133b3c/transformed/navigation-fragment-ktx-2.8.4/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-ui-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/9d8583da76d47c961530847fbd07053c/transformed/navigation-ui-ktx-2.8.4/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-ui-ktx:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/9d8583da76d47c961530847fbd07053c/transformed/navigation-ui-ktx-2.8.4/AndroidManifest.xml:5:5-44
+MERGED from [androidx.navigation:navigation-ui:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/35ec2f56a78cf05da344fceecd2da85b/transformed/navigation-ui-2.8.4/AndroidManifest.xml:20:5-44
+MERGED from [androidx.navigation:navigation-ui:2.8.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/35ec2f56a78cf05da344fceecd2da85b/transformed/navigation-ui-2.8.4/AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.material:material:1.12.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/0cad66dab612847dc5bb5d9ee18228d5/transformed/material-1.12.0/AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.material:material:1.12.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/0cad66dab612847dc5bb5d9ee18228d5/transformed/material-1.12.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/dca6a4fbab437c7faef37e9e8bd14cdc/transformed/constraintlayout-2.1.4/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] /Users/mhdabshar/.gradle/caches/8.9/transforms/dca6a4fbab437c7faef37e9e8bd14cdc/transformed/constraintlayout-2.1.4/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.appcompat:appcompat-resources:1.7.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2665194a0783e468d221db85227d3483/transformed/appcompat-resources-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.7.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2665194a0783e468d221db85227d3483/transformed/appcompat-resources-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.preference:preference-ktx:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/fb78b3e2d3b6292d059dfbbeeef3f433/transformed/preference-ktx-1.2.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.preference:preference-ktx:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/fb78b3e2d3b6292d059dfbbeeef3f433/transformed/preference-ktx-1.2.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.preference:preference:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2b92415f11e6209da9f84354954bcd71/transformed/preference-1.2.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.preference:preference:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2b92415f11e6209da9f84354954bcd71/transformed/preference-1.2.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.appcompat:appcompat:1.7.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/7ab9d2380cca719c6a072c4bc5552353/transformed/appcompat-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.appcompat:appcompat:1.7.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/7ab9d2380cca719c6a072c4bc5552353/transformed/appcompat-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/0ad2fd93bdd3947d85ebc12411507371/transformed/viewpager2-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/0ad2fd93bdd3947d85ebc12411507371/transformed/viewpager2-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.8.5] /Users/mhdabshar/.gradle/caches/8.9/transforms/1a5aa06777f3661d4d7491dbfe1dbf43/transformed/fragment-1.8.5/AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment:1.8.5] /Users/mhdabshar/.gradle/caches/8.9/transforms/1a5aa06777f3661d4d7491dbfe1dbf43/transformed/fragment-1.8.5/AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment-ktx:1.8.5] /Users/mhdabshar/.gradle/caches/8.9/transforms/14b79ef2be165ff557d2a56dcb070633/transformed/fragment-ktx-1.8.5/AndroidManifest.xml:5:5-44
+MERGED from [androidx.fragment:fragment-ktx:1.8.5] /Users/mhdabshar/.gradle/caches/8.9/transforms/14b79ef2be165ff557d2a56dcb070633/transformed/fragment-ktx-1.8.5/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity:1.9.3] /Users/mhdabshar/.gradle/caches/8.9/transforms/c9aae25afae8c663cdcc4f06fc060f8e/transformed/activity-1.9.3/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.9.3] /Users/mhdabshar/.gradle/caches/8.9/transforms/c9aae25afae8c663cdcc4f06fc060f8e/transformed/activity-1.9.3/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity-ktx:1.9.3] /Users/mhdabshar/.gradle/caches/8.9/transforms/e0681afcc6975cfd517c750fcec5689f/transformed/activity-ktx-1.9.3/AndroidManifest.xml:5:5-44
+MERGED from [androidx.activity:activity-ktx:1.9.3] /Users/mhdabshar/.gradle/caches/8.9/transforms/e0681afcc6975cfd517c750fcec5689f/transformed/activity-ktx-1.9.3/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/26e2d300b48893e45d5572a326778911/transformed/emoji2-views-helper-1.3.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/26e2d300b48893e45d5572a326778911/transformed/emoji2-views-helper-1.3.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5b7753d6d3a32e599b000ca1110160b6/transformed/drawerlayout-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5b7753d6d3a32e599b000ca1110160b6/transformed/drawerlayout-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/cccade62a097204d8e1208b6720ef736/transformed/coordinatorlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/cccade62a097204d8e1208b6720ef736/transformed/coordinatorlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/e254eb7dfc2cb10c98b75028dcbe191d/transformed/slidingpanelayout-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.slidingpanelayout:slidingpanelayout:1.2.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/e254eb7dfc2cb10c98b75028dcbe191d/transformed/slidingpanelayout-1.2.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.transition:transition:1.5.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/9509d97d1cd7bc6503a68a33e08f5f1e/transformed/transition-1.5.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.transition:transition:1.5.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/9509d97d1cd7bc6503a68a33e08f5f1e/transformed/transition-1.5.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/ef6e789d80157bc0afb60314769b0956/transformed/dynamicanimation-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/ef6e789d80157bc0afb60314769b0956/transformed/dynamicanimation-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/4ed12cf564d12b7fd9732f36670a3245/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/4ed12cf564d12b7fd9732f36670a3245/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/bfc688fcaf64cafbffae54896a5188da/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/bfc688fcaf64cafbffae54896a5188da/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/8e7e3e3fd5aa0add11ddf5e2fa29818a/transformed/recyclerview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/8e7e3e3fd5aa0add11ddf5e2fa29818a/transformed/recyclerview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/4d3ef7eb9fe498d3b41a3665f9af2847/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/4d3ef7eb9fe498d3b41a3665f9af2847/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.customview:customview:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/fffa720dffef6e27ff3a71cadb09204c/transformed/customview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.1.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/fffa720dffef6e27ff3a71cadb09204c/transformed/customview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/6eda4609cd1d9a14cb55cb9c03d34268/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/6eda4609cd1d9a14cb55cb9c03d34268/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/cc31c03b0014e37a433e3c6fcd173b09/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/cc31c03b0014e37a433e3c6fcd173b09/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/ba2aa5cc0e345011c30f337bb8e8fe89/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/ba2aa5cc0e345011c30f337bb8e8fe89/transformed/savedstate-ktx-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/a089403c6e84a0534f7e970be90cc3e9/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/a089403c6e84a0534f7e970be90cc3e9/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/5bac6adeb138e84726d4a99f5e4b1485/transformed/lifecycle-runtime-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-android:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/5bac6adeb138e84726d4a99f5e4b1485/transformed/lifecycle-runtime-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/ac4977c1fc03e49d74d3e8111c0d15a3/transformed/lifecycle-viewmodel-2.8.7/AndroidManifest.xml:4:5-43
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/ac4977c1fc03e49d74d3e8111c0d15a3/transformed/lifecycle-viewmodel-2.8.7/AndroidManifest.xml:4:5-43
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/ce013a85338209206c87e90b4ac4d934/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-android:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/ce013a85338209206c87e90b4ac4d934/transformed/lifecycle-viewmodel-release/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/bcc69afbf2ab1f659023beb8d17898dc/transformed/lifecycle-livedata-core-2.8.7/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/bcc69afbf2ab1f659023beb8d17898dc/transformed/lifecycle-livedata-core-2.8.7/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/c11adc9c70a7feef413708a7cecc3c2b/transformed/lifecycle-runtime-ktx-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime-ktx-android:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/c11adc9c70a7feef413708a7cecc3c2b/transformed/lifecycle-runtime-ktx-release/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/9433b6424af619b315f719c62171a791/transformed/lifecycle-livedata-2.8.7/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/9433b6424af619b315f719c62171a791/transformed/lifecycle-livedata-2.8.7/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/092b3784517954176463ae78f55d33d4/transformed/lifecycle-livedata-core-ktx-2.8.7/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core-ktx:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/092b3784517954176463ae78f55d33d4/transformed/lifecycle-livedata-core-ktx-2.8.7/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-ktx:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/db739ceaf87235d12bb9fe1ffd757325/transformed/lifecycle-livedata-ktx-2.8.7/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-ktx:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/db739ceaf87235d12bb9fe1ffd757325/transformed/lifecycle-livedata-ktx-2.8.7/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/b2926f3db4ec5400b952ba74649b44db/transformed/lifecycle-viewmodel-ktx-2.8.7/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/b2926f3db4ec5400b952ba74649b44db/transformed/lifecycle-viewmodel-ktx-2.8.7/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-service:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/814b51bae771d041655a1a3e84c93689/transformed/lifecycle-service-2.8.7/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-service:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/814b51bae771d041655a1a3e84c93689/transformed/lifecycle-service-2.8.7/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/2e01fe31647eec60bc7b9326839290ba/transformed/lifecycle-viewmodel-savedstate-2.8.7/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/2e01fe31647eec60bc7b9326839290ba/transformed/lifecycle-viewmodel-savedstate-2.8.7/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/8361f13ac523a1a6ae204118933fea9a/transformed/core-ktx-1.13.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/8361f13ac523a1a6ae204118933fea9a/transformed/core-ktx-1.13.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.room:room-ktx:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/46b2bc2f2dc1f570b3c541d03d36244d/transformed/room-ktx-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.room:room-ktx:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/46b2bc2f2dc1f570b3c541d03d36244d/transformed/room-ktx-2.6.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.sqlite:sqlite-framework:2.4.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/3cfa9c52d56b37d3a629e7ec59e73354/transformed/sqlite-framework-2.4.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.sqlite:sqlite-framework:2.4.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/3cfa9c52d56b37d3a629e7ec59e73354/transformed/sqlite-framework-2.4.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.sqlite:sqlite:2.4.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/43eb2b2d65fcf6307a83832764ab5125/transformed/sqlite-2.4.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.sqlite:sqlite:2.4.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/43eb2b2d65fcf6307a83832764ab5125/transformed/sqlite-2.4.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/d8fa90bbebbb0738adc033ba1583aa9b/transformed/annotation-experimental-1.4.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/d8fa90bbebbb0738adc033ba1583aa9b/transformed/annotation-experimental-1.4.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/efa6ed55d9d0b15202d707c31538e887/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/efa6ed55d9d0b15202d707c31538e887/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/98f26aa5db8fe4b56c19cd27251601d9/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/98f26aa5db8fe4b56c19cd27251601d9/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/b98bafae9a4765aef835473ba76dd014/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/b98bafae9a4765aef835473ba76dd014/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/24cedea07a81c00c7218593539cfa037/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/24cedea07a81c00c7218593539cfa037/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/3d051cd3b9c8be874529b0e90adab15b/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/3d051cd3b9c8be874529b0e90adab15b/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/6b52c62689b81ed45e78c58942106ea1/transformed/startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/6b52c62689b81ed45e78c58942106ea1/transformed/startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.tracing:tracing:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/6e8fb15e7adff07a6f9422d774cfdab9/transformed/tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.tracing:tracing:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/6e8fb15e7adff07a6f9422d774cfdab9/transformed/tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/e38af40dada6c09897b6b5571fa67285/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/e38af40dada6c09897b6b5571fa67285/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/9eb5366e8727478f3fe9c8c6c6458504/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/9eb5366e8727478f3fe9c8c6c6458504/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/478103af85449f761f4acc9f0e160159/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/478103af85449f761f4acc9f0e160159/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+	android:targetSdkVersion
+		INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/src/main/AndroidManifest.xml
+provider#androidx.startup.InitializationProvider
+ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/6b52c62689b81ed45e78c58942106ea1/transformed/startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+MERGED from [androidx.startup:startup-runtime:1.1.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/6b52c62689b81ed45e78c58942106ea1/transformed/startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+	tools:node
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:28:13-31
+	android:authorities
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+	android:exported
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+meta-data#androidx.emoji2.text.EmojiCompatInitializer
+ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/1ce2fc94fb709318a3823b764b309539/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+uses-library#androidx.window.extensions
+ADDED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:25:9-27:40
+	android:required
+		ADDED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:26:13-54
+uses-library#androidx.window.sidecar
+ADDED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:28:9-30:40
+	android:required
+		ADDED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:30:13-37
+	android:name
+		ADDED from [androidx.window:window:1.0.0] /Users/mhdabshar/.gradle/caches/8.9/transforms/2951162e621d6e7fcdb7fb9d8588e6b5/transformed/window-1.0.0/AndroidManifest.xml:29:13-51
+permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+permission#com.callrecorder.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+uses-permission#com.callrecorder.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/2ec93a413b7085db4fe7c277001c61da/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+meta-data#androidx.lifecycle.ProcessLifecycleInitializer
+ADDED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.8.7] /Users/mhdabshar/.gradle/caches/8.9/transforms/28a5ad0955714cd3a5728c26bc64fc3f/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:30:17-78
+service#androidx.room.MultiInstanceInvalidationService
+ADDED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:24:9-28:63
+	android:exported
+		ADDED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:27:13-37
+	tools:ignore
+		ADDED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:28:13-60
+	android:directBootAware
+		ADDED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:26:13-43
+	android:name
+		ADDED from [androidx.room:room-runtime:2.6.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/5fb1dae7a0491320b56745c9aec3419d/transformed/room-runtime-2.6.1/AndroidManifest.xml:25:13-74
+meta-data#androidx.profileinstaller.ProfileInstallerInitializer
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+receiver#androidx.profileinstaller.ProfileInstallReceiver
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+	android:enabled
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+	android:exported
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+	android:permission
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+	android:directBootAware
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+intent-filter#action:name:androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+action#androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+intent-filter#action:name:androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+action#androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+intent-filter#action:name:androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+action#androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+intent-filter#action:name:androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+action#androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /Users/mhdabshar/.gradle/caches/8.9/transforms/73d91e6b855f5d4d6f2f34c89c64566c/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92

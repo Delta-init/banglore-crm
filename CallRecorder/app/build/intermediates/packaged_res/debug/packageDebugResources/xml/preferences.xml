@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- ── Recording ─────────────────────────────────────────────────────── -->
+    <PreferenceCategory android:title="Recording">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="auto_record_enabled"
+            android:title="Auto-Record All Calls"
+            android:summary="Automatically record every inbound and outbound call" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="false"
+            android:key="force_speaker_mode"
+            android:title="Force Speaker Mode (Both Sides)"
+            android:summary="Routes call audio to speaker so microphone captures both voices. Most reliable for both-sides recording on Android 9+." />
+
+    </PreferenceCategory>
+
+    <!-- ── InCallService Access ───────────────────────────────────────────── -->
+    <PreferenceCategory android:title="Premium Recording Access">
+
+        <Preference
+            android:key="grant_companion_access"
+            android:title="Grant Call Recording Access"
+            android:summary="Opens Special App Access settings to allow this app to see and record calls via InCallService — without replacing your phone app."
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="set_default_dialer"
+            android:title="Set as Default Dialer"
+            android:summary="Alternative to Companion Access. Gives deepest audio access. Requires this app to handle your incoming call screen."
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="restore_default_dialer"
+            android:title="⚠️ Switch Back to System Phone App"
+            android:summary="If you set this app as default dialer and calls aren't working, tap here to restore your original phone app."
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <!-- ── Logs ──────────────────────────────────────────────────────────── -->
+    <PreferenceCategory android:title="Debug">
+
+        <Preference
+            android:key="view_logs"
+            android:title="View Recording Logs"
+            android:summary="See what the app is recording, which audio source it used, and any errors"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="clear_logs"
+            android:title="Clear Logs"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <!-- ── Storage ───────────────────────────────────────────────────────── -->
+    <PreferenceCategory android:title="Storage">
+
+        <Preference
+            android:key="clear_all_recordings"
+            android:title="Clear All Recordings"
+            android:summary="Permanently delete all recordings and audio files"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <!-- ── CRM Sync ──────────────────────────────────────────────────────── -->
+    <PreferenceCategory android:title="CRM Sync">
+
+        <Preference
+            android:key="crm_base_url"
+            android:title="CRM API URL"
+            android:summary="Not configured"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="crm_api_key"
+            android:title="CRM API Key"
+            android:summary="Not configured"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="agent_extension"
+            android:title="My Extension"
+            android:summary="Not configured"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

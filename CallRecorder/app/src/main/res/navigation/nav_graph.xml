@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/recordingsFragment">
+
+    <fragment
+        android:id="@+id/recordingsFragment"
+        android:name="com.callrecorder.ui.recordings.RecordingsFragment"
+        android:label="Recordings" />
+
+    <fragment
+        android:id="@+id/callsFragment"
+        android:name="com.callrecorder.ui.calls.RecentCallsFragment"
+        android:label="Calls" />
+
+    <fragment
+        android:id="@+id/contactsFragment"
+        android:name="com.callrecorder.ui.contacts.ContactsFragment"
+        android:label="Contacts" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.callrecorder.ui.settings.SettingsFragment"
+        android:label="Settings" />
+
+</navigation>

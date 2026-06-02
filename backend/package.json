@@ -1,0 +1,43 @@
+{
+  "name": "crm-backend",
+  "version": "1.0.0",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "seed": "bun src/seeds/superAdmin.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "bun test tests/ --timeout 15000",
+    "test:teams": "bun test tests/teams/ --timeout 15000",
+    "test:verbose": "bun test tests/ --timeout 15000 --reporter=verbose"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@types/pdfkit": "^0.17.5",
+    "@types/web-push": "^3.6.4",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.1",
+    "morgan": "^1.10.0",
+    "multer": "^2.1.1",
+    "pdfkit": "^0.18.0",
+    "socket.io": "^4.8.3",
+    "web-push": "^3.6.7",
+    "xlsx": "^0.18.5",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/morgan": "^1.9.9",
+    "@types/multer": "^2.1.0",
+    "typescript": "^5.4.5"
+  }
+}

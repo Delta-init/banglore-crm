@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Single dial pad key — included 12 times in activity_dialer.xml.
+  DialerActivity sets the text and click listener for each key by ID.
+-->
+<com.google.android.material.button.MaterialButton
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:layout_columnWeight="1"
+    android:layout_rowWeight="1"
+    android:layout_margin="6dp"
+    android:textSize="22sp"
+    android:textStyle="bold"
+    style="@style/Widget.Material3.Button.OutlinedButton"
+    app:cornerRadius="32dp" />

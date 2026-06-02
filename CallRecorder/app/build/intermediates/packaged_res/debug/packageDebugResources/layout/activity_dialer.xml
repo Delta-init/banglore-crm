@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface">
+
+    <!-- ── Number display ─────────────────────────────────────────────────── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="24dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="32dp"
+        android:paddingBottom="16dp">
+
+        <TextView
+            android:id="@+id/tvDialNumber"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:hint="Enter number"
+            android:letterSpacing="0.05"
+            android:textAppearance="?attr/textAppearanceHeadline4" />
+
+        <!-- Backspace button -->
+        <ImageButton
+            android:id="@+id/btnBackspace"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_input_delete"
+            android:contentDescription="Delete"
+            android:visibility="invisible" />
+
+    </LinearLayout>
+
+    <!-- Subtitle (shows "Recording active", errors, etc.) -->
+    <TextView
+        android:id="@+id/tvSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:paddingBottom="8dp"
+        android:text="🔴 Call Recorder active"
+        android:textColor="?attr/colorPrimary"
+        android:textAppearance="?attr/textAppearanceCaption" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:background="?attr/colorOutline"
+        android:alpha="0.3" />
+
+    <!-- ── Dial pad ────────────────────────────────────────────────────────── -->
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:columnCount="3"
+        android:rowCount="4"
+        android:padding="16dp">
+
+        <!-- Row 1: 1, 2, 3 -->
+        <include layout="@layout/dial_key" android:id="@+id/key1" />
+        <include layout="@layout/dial_key" android:id="@+id/key2" />
+        <include layout="@layout/dial_key" android:id="@+id/key3" />
+
+        <!-- Row 2: 4, 5, 6 -->
+        <include layout="@layout/dial_key" android:id="@+id/key4" />
+        <include layout="@layout/dial_key" android:id="@+id/key5" />
+        <include layout="@layout/dial_key" android:id="@+id/key6" />
+
+        <!-- Row 3: 7, 8, 9 -->
+        <include layout="@layout/dial_key" android:id="@+id/key7" />
+        <include layout="@layout/dial_key" android:id="@+id/key8" />
+        <include layout="@layout/dial_key" android:id="@+id/key9" />
+
+        <!-- Row 4: *, 0, # -->
+        <include layout="@layout/dial_key" android:id="@+id/keyStar" />
+        <include layout="@layout/dial_key" android:id="@+id/key0" />
+        <include layout="@layout/dial_key" android:id="@+id/keyHash" />
+
+    </GridLayout>
+
+    <!-- ── Call button ─────────────────────────────────────────────────────── -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingBottom="32dp"
+        android:paddingTop="8dp">
+
+        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+            android:id="@+id/btnForward"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  Call  "
+            android:textSize="16sp"
+            app:icon="@android:drawable/ic_menu_call"
+            app:backgroundTint="#2E7D32"
+            app:tint="@android:color/white"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+
+</LinearLayout>
