@@ -1,4 +1,4 @@
-# 🚀 Feature Registry — Carlton CRM Frontend
+# 🚀 Feature Registry — DELTA BANGLORE CRM Frontend
 
 > Every feature built in this app must be documented here.
 > **Before building a feature**: check if it exists or is partially built.

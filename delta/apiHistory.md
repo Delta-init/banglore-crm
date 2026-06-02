@@ -1,4 +1,4 @@
-# 🌐 API History & Reference — Carlton CRM Frontend
+# 🌐 API History & Reference — DELTA BANGLORE CRM Frontend
 
 > Complete map of every API endpoint used in this app.
 > For each endpoint: which hook calls it, which components use that hook, which pages render those components.

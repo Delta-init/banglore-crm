@@ -1,4 +1,4 @@
-# Carlton CRM — Middleware History
+# DELTA BANGLORE CRM — Middleware History
 
 This file documents the full middleware stack, every individual middleware, the complete route permission matrix, and access control rules.
 

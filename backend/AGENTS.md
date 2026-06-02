@@ -1,4 +1,4 @@
-# Carlton CRM — Backend Agent Rulebook
+# DELTA BANGLORE CRM — Backend Agent Rulebook
 
 ## Stack
 - **Runtime**: Bun

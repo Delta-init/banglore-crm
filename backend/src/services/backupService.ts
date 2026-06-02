@@ -106,7 +106,7 @@ export async function runBackup(): Promise<void> {
 
   // Send header message
   await sendMessageToTelegram(
-    `📦 <b>Carlton CRM Backup</b>\n🕐 ${timestamp}\n\nStarting backup of ${COLLECTIONS.length} collections...`
+    `📦 <b>BANGLORE DELTA CRM Backup</b>\n🕐 ${timestamp}\n\nStarting backup of ${COLLECTIONS.length} collections...`
   );
 
   // Export + send each collection

@@ -1,4 +1,4 @@
-# ❌ Mistakes Log — Carlton CRM Frontend
+# ❌ Mistakes Log — DELTA BANGLORE CRM Frontend
 
 > Every bug, wrong approach, or bad pattern found and fixed must be logged here.
 > **Before writing code**, scan this file for patterns relevant to your current task.

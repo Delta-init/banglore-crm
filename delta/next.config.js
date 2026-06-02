@@ -20,7 +20,7 @@ export default nextConfig
 //         urlPattern: /^https:\/\/.*\/api\/.*/i,
 //         handler: "NetworkFirst",
 //         options: {
-//           cacheName: "carlton-api-cache",
+//           cacheName: "DELTA BANGLORE-api-cache",
 //           expiration: { maxEntries: 100, maxAgeSeconds: 60 },
 //           networkTimeoutSeconds: 10,
 //         },
@@ -30,7 +30,7 @@ export default nextConfig
 //         urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico|woff2?)$/i,
 //         handler: "CacheFirst",
 //         options: {
-//           cacheName: "carlton-static-assets",
+//           cacheName: "DELTA BANGLORE-static-assets",
 //           expiration: { maxEntries: 64, maxAgeSeconds: 30 * 24 * 60 * 60 },
 //         },
 //       },

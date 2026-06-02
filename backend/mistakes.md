@@ -1,4 +1,4 @@
-# Carlton CRM — Backend Bugs & Fixes
+# DELTA BANGLORE CRM — Backend Bugs & Fixes
 
 This file documents every real bug found and fixed in this project. Read this before writing similar code. Every entry shows the root cause, the fix, and the rule to follow.
 

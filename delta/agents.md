@@ -1,4 +1,4 @@
-# 🤖 Frontend Agent Rules & Behavior — Carlton CRM
+# 🤖 Frontend Agent Rules & Behavior — DELTA BANGLORE CRM
 
 > This file defines how the AI agent thinks, codes, designs, and evolves when working on this Next.js frontend.
 > **Read this file completely before touching any frontend file. All rules are mandatory.**

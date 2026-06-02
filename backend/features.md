@@ -1,4 +1,4 @@
-# Carlton CRM — Backend Features
+# DELTA BANGLORE CRM — Backend Features
 
 This file documents every backend feature. Read this before implementing anything to understand scope, middleware chains, and related features.
 

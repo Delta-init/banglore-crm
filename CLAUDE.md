@@ -1,10 +1,10 @@
-# Carlton CRM — Master Agent Rulebook
+# DELTA BANGLORE CRM — Master Agent Rulebook
 
 
 
 > **Read this file completely at the start of every session before touching any code.**
 > This file is the single source of truth for how the agent behaves in this project.
-> Full universal rules live in `AGENT_BOOTSTRAP.md` — this file extends them for Carlton CRM specifically.
+> Full universal rules live in `AGENT_BOOTSTRAP.md` — this file extends them for DELTA BANGLORE CRM specifically.
 
 ---
 
@@ -212,7 +212,7 @@ describe("[Feature]", () => {
 
 ---
 
-## 🏗 CARLTON CRM — Project Context
+## 🏗 DELTA BANGLORE CRM — Project Context
 
 ### Stack
 | Layer | Technology |
@@ -619,7 +619,7 @@ On first session, create `.vscode/` with:
 
 ## 🧠 MEMORY SYSTEM
 
-Memory lives at: `~/.claude/projects/-Users-mhdabshar-delta-carlton-crm/memory/`
+Memory lives at: `~/.claude/projects/-Users-mhdabshar-delta-DELTA BANGLORE-crm/memory/`
 
 | File | Contents |
 |------|---------|
@@ -627,7 +627,7 @@ Memory lives at: `~/.claude/projects/-Users-mhdabshar-delta-carlton-crm/memory/`
 | `user_profile.md` | Developer, full-stack, IST timezone |
 | `feedback_confirm_before_code.md` | Summarise + ask before writing code |
 | `feedback_testing_subagent.md` | 4-case sub-agent testing after every change |
-| `project_overview.md` | Full Carlton CRM stack, ports, collections |
+| `project_overview.md` | Full DELTA BANGLORE CRM stack, ports, collections |
 | `project_docs_system.md` | All MD files and their purposes |
 
 Save a memory when:

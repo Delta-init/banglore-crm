@@ -42,7 +42,6 @@ async function fireBrowserNotification(title: string, body: string) {
         icon: "/icons/icon-192x192.png",
         badge: "/icons/icon-72x72.png",
         tag: "recording-saved",       // replaces previous notification of same tag
-        renotify: true,
       });
     } catch {
       // ServiceWorker not available — silent fail

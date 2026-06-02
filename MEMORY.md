@@ -1,4 +1,4 @@
-# Carlton CRM — Full Project Memory
+# DELTA BANGLORE CRM — Full Project Memory
 
 > Complete history, architecture, endpoints, components, hooks, and feature log.
 > Last updated: 2026-03-28
@@ -29,7 +29,7 @@
 
 ## 1. Project Overview
 
-Carlton CRM is a full-stack Customer Relationship Management system for a sales team.
+DELTA BANGLORE CRM is a full-stack Customer Relationship Management system for a sales team.
 It manages leads, users, teams, courses, reports, reminders, and AI-assisted lead conversations.
 
 **Key capabilities:**
@@ -204,10 +204,10 @@ SUPER_ADMIN_NAME=Super Admin
 SUPER_ADMIN_EMAIL=superadmin@crm.com
 SUPER_ADMIN_PASSWORD=SuperAdmin@123
 CLIENT_URL=http://localhost:3000
-SHEETS_API_KEY=carlton_sheets_key_...
+SHEETS_API_KEY=DELTA BANGLORE_sheets_key_...
 VAPID_PUBLIC_KEY=...
 VAPID_PRIVATE_KEY=...
-VAPID_SUBJECT=mailto:admin@carltoncrm.com
+VAPID_SUBJECT=mailto:admin@DELTA BANGLOREcrm.com
 ANTHROPIC_API_KEY=sk-ant-...   ← Required for AI Memory feature
 ```
 
@@ -995,7 +995,7 @@ Frontend `hasPermission(module, action)`:
     "filesystem": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem",
-               "/Users/mhdabshar/delta/carlton/crm"]
+               "/Users/mhdabshar/delta/DELTA BANGLORE/crm"]
     }
   }
 }

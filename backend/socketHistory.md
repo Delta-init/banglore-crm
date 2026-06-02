@@ -1,4 +1,4 @@
-# Carlton CRM — Socket.io & Web Push History
+# DELTA BANGLORE CRM — Socket.io & Web Push History
 
 This file documents all real-time communication: Socket.io events, rooms, helper functions, and the Web Push (VAPID) notification system.
 
@@ -268,7 +268,7 @@ Web Push is the other notification path alongside Socket.io. Used when the user'
 ### VAPID Configuration
 ```typescript
 webpush.setVapidDetails(
-  'mailto:admin@carltoncrm.com',
+  'mailto:admin@DELTA BANGLOREcrm.com',
   process.env.VAPID_PUBLIC_KEY!,
   process.env.VAPID_PRIVATE_KEY!
 );

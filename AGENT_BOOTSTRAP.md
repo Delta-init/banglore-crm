@@ -1,7 +1,7 @@
 # AGENT BOOTSTRAP — Universal Rules
 
 > Drop into any project. Read fully before every session. All rules are mandatory.
-> Carlton CRM specifics → `CLAUDE.md` | Templates & full detail → `AGENT_BOOTSTRAP_DETAIL.md`
+> DELTA BANGLORE CRM specifics → `CLAUDE.md` | Templates & full detail → `AGENT_BOOTSTRAP_DETAIL.md`
 
 ---
 

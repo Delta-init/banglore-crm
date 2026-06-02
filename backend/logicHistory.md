@@ -1,4 +1,4 @@
-# Carlton CRM — Backend Logic History
+# DELTA BANGLORE CRM — Backend Logic History
 
 This file documents every key business logic implementation in the backend. Read this before implementing any algorithm to avoid reimplementing existing logic.
 

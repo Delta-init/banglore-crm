@@ -57,7 +57,7 @@ async function buildLeadPrompt(leadId: string): Promise<string> {
     ? `${inr(totalPaid)} / ${inr(courseAmount)} (${((totalPaid / courseAmount) * 100).toFixed(1)}% paid)`
     : totalPaid > 0 ? `${inr(totalPaid)} total paid` : "No payments yet";
 
-  return `You are an AI sales assistant for Carlton CRM. Help the sales rep manage this specific lead.
+  return `You are an AI sales assistant for DELTA BANGLORE CRM. Help the sales rep manage this specific lead.
 
 ## Lead Details
 - **Name**: ${lead.name}
@@ -117,14 +117,14 @@ async function buildTeamPrompt(teamId: string): Promise<string> {
 
   const memberList = Array.isArray(team.members)
     ? team.members.map((m: unknown) => {
-        if (!m || typeof m !== "object" || !("name" in m)) return "";
-        const typed = m as { _id: { toString(): string }; name: string; designation?: string };
-        const ms = memberStats.find((s) => s._id?.toString() === typed._id.toString());
-        return `  - ${typed.name}${typed.designation ? ` (${typed.designation})` : ""}: ${ms?.total ?? 0} leads, ${ms?.closed ?? 0} closed, ${ms?.booking ?? 0} bookings`;
-      }).join("\n")
+      if (!m || typeof m !== "object" || !("name" in m)) return "";
+      const typed = m as { _id: { toString(): string }; name: string; designation?: string };
+      const ms = memberStats.find((s) => s._id?.toString() === typed._id.toString());
+      return `  - ${typed.name}${typed.designation ? ` (${typed.designation})` : ""}: ${ms?.total ?? 0} leads, ${ms?.closed ?? 0} closed, ${ms?.booking ?? 0} bookings`;
+    }).join("\n")
     : "None";
 
-  return `You are an AI assistant for Carlton CRM helping a team leader manage their team.
+  return `You are an AI assistant for DELTA BANGLORE CRM helping a team leader manage their team.
 
 ## Team: ${team.name}
 ${team.description ? `Description: ${team.description}` : ""}
@@ -189,7 +189,7 @@ async function buildReportPrompt(): Promise<string> {
     { $project: { name: "$team.name", count: 1 } },
   ]);
 
-  return `You are an AI analytics assistant for Carlton CRM. Help users understand their sales data and reports.
+  return `You are an AI analytics assistant for DELTA BANGLORE CRM. Help users understand their sales data and reports.
 
 ## Overall Lead Statistics (All Time, Total: ${total})
 ${Object.entries(allStats).map(([s, c]) => `  - ${s}: ${c} (${total > 0 ? ((c / total) * 100).toFixed(1) : 0}%)`).join("\n") || "  No data."}

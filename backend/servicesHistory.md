@@ -1,4 +1,4 @@
-# Carlton CRM — Backend Services History
+# DELTA BANGLORE CRM — Backend Services History
 
 This file documents every service in `backend/src/services/`. Read this before writing any new service method to avoid duplication.
 

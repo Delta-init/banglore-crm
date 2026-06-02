@@ -1,4 +1,4 @@
-# 🧩 Components History & Registry — Carlton CRM
+# 🧩 Components History & Registry — DELTA BANGLORE CRM
 
 > Every global/shared component must be logged here.
 > **Before creating a new component**: search this file first (Ctrl+F).
