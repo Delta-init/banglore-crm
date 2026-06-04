@@ -207,23 +207,43 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         // ── Recording overlay ──────────────────────────────────────────────
-        findPreference<SwitchPreferenceCompat>("show_recording_overlay")?.apply {
-            isChecked = PrefsHelper.isShowOverlay(requireContext())
-            setOnPreferenceChangeListener { _, newValue ->
-                PrefsHelper.setShowOverlay(requireContext(), newValue as Boolean)
-                true
-            }
-        }
+        val overlaySwitch = findPreference<SwitchPreferenceCompat>("show_recording_overlay")
+        val overlayGrant  = findPreference<Preference>("grant_overlay_permission")
 
-        findPreference<Preference>("grant_overlay_permission")?.apply {
-            updateOverlaySummary(this)
-            setOnPreferenceClickListener {
-                if (!RecordingOverlayManager.canShow(requireContext())) {
-                    handleOverlayPermissionRequest()
-                } else {
-                    snack("✅ Overlay permission already granted")
+        if (isRestrictedManufacturer() && !RecordingOverlayManager.canShow(requireContext())) {
+            // MIUI / ColorOS block overlay for sideloaded apps — disable the switch,
+            // replace the grant button with the ADB workaround.
+            overlaySwitch?.apply {
+                isEnabled = false
+                summary   = "⚠️ Not available on ${Build.MANUFACTURER} without ADB — " +
+                            "recording still works perfectly without it"
+            }
+            overlayGrant?.apply {
+                title   = "How to enable on ${Build.MANUFACTURER}"
+                summary = "Tap for ADB workaround (one-time setup)"
+                setOnPreferenceClickListener {
+                    showAdbWorkaroundDialog()
+                    true
                 }
-                true
+            }
+        } else {
+            overlaySwitch?.apply {
+                isChecked = PrefsHelper.isShowOverlay(requireContext())
+                setOnPreferenceChangeListener { _, newValue ->
+                    PrefsHelper.setShowOverlay(requireContext(), newValue as Boolean)
+                    true
+                }
+            }
+            overlayGrant?.apply {
+                updateOverlaySummary(this)
+                setOnPreferenceClickListener {
+                    if (!RecordingOverlayManager.canShow(requireContext())) {
+                        handleOverlayPermissionRequest()
+                    } else {
+                        snack("✅ Overlay permission already granted")
+                    }
+                    true
+                }
             }
         }
 
@@ -287,6 +307,29 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
             true
         }
+    }
+
+    private fun showAdbWorkaroundDialog() {
+        val pkg = requireContext().packageName
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Enable Overlay via ADB")
+            .setMessage(
+                "${Build.MANUFACTURER} blocks this permission for sideloaded apps.\n\n" +
+                "One-time fix — run this on your PC:\n\n" +
+                "1️⃣  Enable USB Debugging:\n" +
+                "     Settings → About Phone\n" +
+                "     Tap MIUI Version 7 times\n" +
+                "     Additional Settings → Developer Options\n" +
+                "     USB Debugging → ON\n\n" +
+                "2️⃣  Connect phone to PC via USB\n\n" +
+                "3️⃣  Run in terminal / cmd:\n\n" +
+                "     adb shell appops set $pkg\n" +
+                "     SYSTEM_ALERT_WINDOW allow\n\n" +
+                "4️⃣  Restart the app — badge will work ✅\n\n" +
+                "💡 Recording works perfectly without this."
+            )
+            .setPositiveButton("OK", null)
+            .show()
     }
 
     private fun getInstalledVersionName(): String = try {
