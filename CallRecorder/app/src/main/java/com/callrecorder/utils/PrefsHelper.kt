@@ -7,6 +7,10 @@ object PrefsHelper {
 
     const val PREFS_NAME = "call_recorder_prefs"   // public — used by SettingsFragment
 
+    // ── Pre-configured defaults (app works out-of-the-box, no manual setup needed) ──
+    private const val DEFAULT_CRM_URL = "https://api-crm-banglore.deltainstitutions.com"
+    private const val DEFAULT_API_KEY = "delta_call_recorder_key_change_in_production"
+
     private const val KEY_AUTO_RECORD           = "auto_record_enabled"
     private const val KEY_USE_VOICE_CALL_SOURCE = "use_voice_call_source"
     private const val KEY_FORCE_SPEAKER_MODE    = "force_speaker_mode"
@@ -51,14 +55,13 @@ object PrefsHelper {
         prefs(context).edit { putBoolean(KEY_FORCE_SPEAKER_MODE, enabled) }
 
     fun getCrmBaseUrl(context: Context): String =
-        prefs(context).getString(KEY_CRM_BASE_URL, "https://api-crm-banglore.deltainstitutions.com")
-            ?: "https://api-crm-banglore.deltainstitutions.com"
+        prefs(context).getString(KEY_CRM_BASE_URL, DEFAULT_CRM_URL) ?: DEFAULT_CRM_URL
 
     fun setCrmBaseUrl(context: Context, url: String) =
         prefs(context).edit { putString(KEY_CRM_BASE_URL, url) }
 
     fun getCrmApiKey(context: Context): String =
-        prefs(context).getString(KEY_CRM_API_KEY, "") ?: ""
+        prefs(context).getString(KEY_CRM_API_KEY, DEFAULT_API_KEY) ?: DEFAULT_API_KEY
 
     fun setCrmApiKey(context: Context, key: String) =
         prefs(context).edit { putString(KEY_CRM_API_KEY, key) }
