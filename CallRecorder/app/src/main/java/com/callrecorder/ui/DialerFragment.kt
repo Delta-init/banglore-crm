@@ -9,7 +9,6 @@ import android.telecom.TelecomManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -32,9 +31,9 @@ class DialerFragment : Fragment(R.layout.fragment_dialer) {
 
     // Views — resolved in onViewCreated via findViewById (avoids ViewBinding
     // include-layout typing issues with MaterialButton)
-    private lateinit var tvNumber:   TextView
-    private lateinit var btnBackspace: ImageButton
-    private lateinit var btnCall:    ExtendedFloatingActionButton
+    private lateinit var tvNumber:    TextView
+    private lateinit var btnBackspace: MaterialButton      // ⌫ always visible in row 5
+    private lateinit var btnCall:     ExtendedFloatingActionButton
 
     // ── Request CALL_PHONE if not yet granted ─────────────────────────────────
 
@@ -125,7 +124,8 @@ class DialerFragment : Fragment(R.layout.fragment_dialer) {
 
     private fun refreshDisplay() {
         tvNumber.text = typed.toString()
-        btnBackspace.visibility = if (typed.isEmpty()) View.INVISIBLE else View.VISIBLE
+        // Backspace is always visible — dim it when nothing to delete
+        btnBackspace.alpha = if (typed.isEmpty()) 0.3f else 1.0f
     }
 
     // ── Call placement ────────────────────────────────────────────────────────
