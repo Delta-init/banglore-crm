@@ -110,4 +110,15 @@
 
     </PreferenceCategory>
 
+    <!-- ── App Update ─────────────────────────────────────────────────────── -->
+    <PreferenceCategory android:title="App Update">
+
+        <Preference
+            android:key="check_for_update"
+            android:title="Check for Update"
+            android:summary="Manually check if a newer version is available"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>

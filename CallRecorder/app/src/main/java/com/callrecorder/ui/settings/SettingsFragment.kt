@@ -9,6 +9,7 @@ import android.telecom.TelecomManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -21,9 +22,12 @@ import com.callrecorder.R
 import com.callrecorder.service.RecordingOverlayManager
 import com.callrecorder.ui.recordings.RecordingsViewModel
 import com.callrecorder.utils.AppLogger
+import com.callrecorder.utils.AppUpdateChecker
 import com.callrecorder.utils.PrefsHelper
+import com.callrecorder.utils.UpdateDialogManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
@@ -46,10 +50,76 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     private fun updateOverlaySummary(pref: Preference) {
-        pref.summary = if (RecordingOverlayManager.canShow(requireContext()))
-            "✅ Permission granted — badge will appear during calls"
-        else
-            "Tap to grant — required to show the recording badge over other apps"
+        pref.summary = when {
+            RecordingOverlayManager.canShow(requireContext()) ->
+                "✅ Permission granted — badge will appear during calls"
+            isRestrictedManufacturer() ->
+                "⚠️ Blocked by ${Build.MANUFACTURER} security policy — tap for workaround"
+            else ->
+                "Tap to grant — required to show the recording badge over other apps"
+        }
+    }
+
+    /**
+     * Some manufacturers (Xiaomi/MIUI, Oppo/ColorOS, Vivo/FuntouchOS) block
+     * SYSTEM_ALERT_WINDOW for sideloaded apps and show "App was denied access".
+     * Detect this early and show a helpful ADB workaround instead.
+     */
+    private fun isRestrictedManufacturer(): Boolean {
+        val brand = Build.BRAND.lowercase()
+        val manufacturer = Build.MANUFACTURER.lowercase()
+        return listOf("xiaomi", "redmi", "poco", "oppo", "realme", "vivo", "iqoo")
+            .any { it in brand || it in manufacturer }
+    }
+
+    private fun handleOverlayPermissionRequest() {
+        if (isRestrictedManufacturer()) {
+            // These devices block overlay for sideloaded apps — show ADB workaround
+            showOverlayBlockedDialog()
+            return
+        }
+
+        // Standard Android — open system overlay settings page
+        try {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:${requireContext().packageName}")
+            )
+            startActivity(intent)
+        } catch (e: Exception) {
+            showOverlayBlockedDialog()
+        }
+    }
+
+    private fun showOverlayBlockedDialog() {
+        val manufacturer = Build.MANUFACTURER
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("⚠️ Blocked by $manufacturer")
+            .setMessage(
+                "$manufacturer blocks this permission for apps installed outside the Play Store.\n\n" +
+                "The recording badge (🔴 REC) is optional — all call recording still works without it.\n\n" +
+                "If you really need the badge, enable it via ADB:\n\n" +
+                "1. Enable USB Debugging on your phone\n" +
+                "2. Connect to PC and run:\n\n" +
+                "adb shell appops set com.callrecorder\n" +
+                "SYSTEM_ALERT_WINDOW allow\n\n" +
+                "3. Restart the app"
+            )
+            .setPositiveButton("OK", null)
+            .setNeutralButton("Try Anyway") { _, _ ->
+                // Still try — some MIUI versions allow it via settings
+                try {
+                    startActivity(
+                        Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:${requireContext().packageName}")
+                        )
+                    )
+                } catch (e: Exception) {
+                    snack("Could not open overlay settings on this device")
+                }
+            }
+            .show()
     }
 
     private fun setupPreferences() {
@@ -149,11 +219,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             updateOverlaySummary(this)
             setOnPreferenceClickListener {
                 if (!RecordingOverlayManager.canShow(requireContext())) {
-                    val intent = Intent(
-                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:${requireContext().packageName}")
-                    )
-                    startActivity(intent)
+                    handleOverlayPermissionRequest()
                 } else {
                     snack("✅ Overlay permission already granted")
                 }
@@ -189,7 +255,44 @@ class SettingsFragment : PreferenceFragmentCompat() {
             getter    = { PrefsHelper.getAgentExtension(requireContext()) },
             setter    = { v -> PrefsHelper.setAgentExtension(requireContext(), v) },
         )
+
+        // ── Check for update ───────────────────────────────────────────────
+        findPreference<Preference>("check_for_update")?.setOnPreferenceClickListener {
+            val apiKey = PrefsHelper.getCrmApiKey(requireContext()).trim()
+            val baseUrl = PrefsHelper.getCrmBaseUrl(requireContext()).trim()
+
+            if (apiKey.isBlank() || baseUrl.isBlank()) {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("CRM Not Configured")
+                    .setMessage(
+                        "To check for updates you need to configure CRM Sync first.\n\n" +
+                        "Go to Settings → CRM Sync and enter:\n" +
+                        "• CRM API URL\n" +
+                        "• CRM API Key\n\n" +
+                        "Ask your admin for these values."
+                    )
+                    .setPositiveButton("OK", null)
+                    .show()
+                return@setOnPreferenceClickListener true
+            }
+
+            snack("Checking for updates…")
+            viewLifecycleOwner.lifecycleScope.launch {
+                val update = AppUpdateChecker.check(requireContext())
+                if (update != null) {
+                    UpdateDialogManager.show(requireActivity(), update)
+                } else {
+                    snack("✅ You're on the latest version (v${getInstalledVersionName()})")
+                }
+            }
+            true
+        }
     }
+
+    private fun getInstalledVersionName(): String = try {
+        requireContext().packageManager
+            .getPackageInfo(requireContext().packageName, 0).versionName ?: "?"
+    } catch (e: Exception) { "?" }
 
     // ── CRM preference helper — shows an input dialog, saves to PrefsHelper ──
 
