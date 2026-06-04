@@ -7,14 +7,18 @@ import android.os.Bundle
 import android.telecom.TelecomManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.callrecorder.R
 import com.callrecorder.databinding.ActivityMainBinding
+import com.callrecorder.utils.AppUpdateChecker
 import com.callrecorder.utils.PermissionHelper
+import com.callrecorder.utils.UpdateDialogManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,6 +43,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setupNavigation()
         checkPermissions()
+        checkForUpdate()   // silent background version check
+    }
+
+    // ── Auto-update check ─────────────────────────────────────────────────────
+
+    private fun checkForUpdate() {
+        lifecycleScope.launch {
+            val update = AppUpdateChecker.check(this@MainActivity)
+            if (update != null) {
+                // Back on main thread (lifecycleScope dispatches to Main by default)
+                UpdateDialogManager.show(this@MainActivity, update)
+            }
+        }
     }
 
     private fun setupNavigation() {
