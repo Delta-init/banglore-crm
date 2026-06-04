@@ -50,76 +50,33 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     private fun updateOverlaySummary(pref: Preference) {
-        pref.summary = when {
-            RecordingOverlayManager.canShow(requireContext()) ->
-                "✅ Permission granted — badge will appear during calls"
-            isRestrictedManufacturer() ->
-                "⚠️ Blocked by ${Build.MANUFACTURER} security policy — tap for workaround"
-            else ->
-                "Tap to grant — required to show the recording badge over other apps"
-        }
+        pref.summary = if (RecordingOverlayManager.canShow(requireContext()))
+            "✅ Permission granted — badge will appear during calls"
+        else
+            "Tap to grant — required to show the recording badge over other apps"
     }
 
-    /**
-     * Some manufacturers (Xiaomi/MIUI, Oppo/ColorOS, Vivo/FuntouchOS) block
-     * SYSTEM_ALERT_WINDOW for sideloaded apps and show "App was denied access".
-     * Detect this early and show a helpful ADB workaround instead.
-     */
-    private fun isRestrictedManufacturer(): Boolean {
-        val brand = Build.BRAND.lowercase()
-        val manufacturer = Build.MANUFACTURER.lowercase()
-        return listOf("xiaomi", "redmi", "poco", "oppo", "realme", "vivo", "iqoo")
-            .any { it in brand || it in manufacturer }
-    }
-
-    private fun handleOverlayPermissionRequest() {
-        if (isRestrictedManufacturer()) {
-            // These devices block overlay for sideloaded apps — show ADB workaround
-            showOverlayBlockedDialog()
-            return
-        }
-
-        // Standard Android — open system overlay settings page
+    /** Opens the system overlay permission page directly — no manufacturer blocking. */
+    private fun openOverlaySettings() {
         try {
-            val intent = Intent(
-                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:${requireContext().packageName}")
+            startActivity(
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:${requireContext().packageName}")
+                )
             )
-            startActivity(intent)
         } catch (e: Exception) {
-            showOverlayBlockedDialog()
-        }
-    }
-
-    private fun showOverlayBlockedDialog() {
-        val manufacturer = Build.MANUFACTURER
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("⚠️ Blocked by $manufacturer")
-            .setMessage(
-                "$manufacturer blocks this permission for apps installed outside the Play Store.\n\n" +
-                "The recording badge (🔴 REC) is optional — all call recording still works without it.\n\n" +
-                "If you really need the badge, enable it via ADB:\n\n" +
-                "1. Enable USB Debugging on your phone\n" +
-                "2. Connect to PC and run:\n\n" +
-                "adb shell appops set com.callrecorder\n" +
-                "SYSTEM_ALERT_WINDOW allow\n\n" +
-                "3. Restart the app"
-            )
-            .setPositiveButton("OK", null)
-            .setNeutralButton("Try Anyway") { _, _ ->
-                // Still try — some MIUI versions allow it via settings
-                try {
-                    startActivity(
-                        Intent(
-                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:${requireContext().packageName}")
-                        )
-                    )
-                } catch (e: Exception) {
-                    snack("Could not open overlay settings on this device")
-                }
+            // Fallback: open app's full permission page
+            try {
+                startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.parse("package:${requireContext().packageName}")
+                    }
+                )
+            } catch (e2: Exception) {
+                snack("Go to Settings → Apps → Call Recorder → Permissions → Display over other apps")
             }
-            .show()
+        }
     }
 
     private fun setupPreferences() {
@@ -207,43 +164,23 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         // ── Recording overlay ──────────────────────────────────────────────
-        val overlaySwitch = findPreference<SwitchPreferenceCompat>("show_recording_overlay")
-        val overlayGrant  = findPreference<Preference>("grant_overlay_permission")
+        findPreference<SwitchPreferenceCompat>("show_recording_overlay")?.apply {
+            isChecked = PrefsHelper.isShowOverlay(requireContext())
+            setOnPreferenceChangeListener { _, newValue ->
+                PrefsHelper.setShowOverlay(requireContext(), newValue as Boolean)
+                true
+            }
+        }
 
-        if (isRestrictedManufacturer() && !RecordingOverlayManager.canShow(requireContext())) {
-            // MIUI / ColorOS block overlay for sideloaded apps — disable the switch,
-            // replace the grant button with the ADB workaround.
-            overlaySwitch?.apply {
-                isEnabled = false
-                summary   = "⚠️ Not available on ${Build.MANUFACTURER} without ADB — " +
-                            "recording still works perfectly without it"
-            }
-            overlayGrant?.apply {
-                title   = "How to enable on ${Build.MANUFACTURER}"
-                summary = "Tap for ADB workaround (one-time setup)"
-                setOnPreferenceClickListener {
-                    showAdbWorkaroundDialog()
-                    true
+        findPreference<Preference>("grant_overlay_permission")?.apply {
+            updateOverlaySummary(this)
+            setOnPreferenceClickListener {
+                if (!RecordingOverlayManager.canShow(requireContext())) {
+                    openOverlaySettings()
+                } else {
+                    snack("✅ Overlay permission already granted")
                 }
-            }
-        } else {
-            overlaySwitch?.apply {
-                isChecked = PrefsHelper.isShowOverlay(requireContext())
-                setOnPreferenceChangeListener { _, newValue ->
-                    PrefsHelper.setShowOverlay(requireContext(), newValue as Boolean)
-                    true
-                }
-            }
-            overlayGrant?.apply {
-                updateOverlaySummary(this)
-                setOnPreferenceClickListener {
-                    if (!RecordingOverlayManager.canShow(requireContext())) {
-                        handleOverlayPermissionRequest()
-                    } else {
-                        snack("✅ Overlay permission already granted")
-                    }
-                    true
-                }
+                true
             }
         }
 
@@ -307,29 +244,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
             true
         }
-    }
-
-    private fun showAdbWorkaroundDialog() {
-        val pkg = requireContext().packageName
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Enable Overlay via ADB")
-            .setMessage(
-                "${Build.MANUFACTURER} blocks this permission for sideloaded apps.\n\n" +
-                "One-time fix — run this on your PC:\n\n" +
-                "1️⃣  Enable USB Debugging:\n" +
-                "     Settings → About Phone\n" +
-                "     Tap MIUI Version 7 times\n" +
-                "     Additional Settings → Developer Options\n" +
-                "     USB Debugging → ON\n\n" +
-                "2️⃣  Connect phone to PC via USB\n\n" +
-                "3️⃣  Run in terminal / cmd:\n\n" +
-                "     adb shell appops set $pkg\n" +
-                "     SYSTEM_ALERT_WINDOW allow\n\n" +
-                "4️⃣  Restart the app — badge will work ✅\n\n" +
-                "💡 Recording works perfectly without this."
-            )
-            .setPositiveButton("OK", null)
-            .show()
     }
 
     private fun getInstalledVersionName(): String = try {
