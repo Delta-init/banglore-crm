@@ -77,9 +77,11 @@ class DialerFragment : Fragment(R.layout.fragment_dialer) {
         )
         keys.forEach { (id, digit) ->
             view.findViewById<MaterialButton>(id)?.apply {
-                setOnClickListener { append(digit) }
+                // ⚠️ Must use this@DialerFragment.append — inside apply{}, plain
+                // append() resolves to TextView.append() and writes onto the button label.
+                setOnClickListener { this@DialerFragment.append(digit) }
                 setOnLongClickListener {
-                    if (digit == "0") { append("+"); true } else false
+                    if (digit == "0") { this@DialerFragment.append("+"); true } else false
                 }
             }
         }

@@ -21,17 +21,18 @@ import { sendSuccess } from "../utils/response.js";
  */
 
 // ── Update these whenever you ship a new APK ─────────────────────────────────
-const LATEST_VERSION_CODE = 1;            // must match versionCode in build.gradle
-const LATEST_VERSION_NAME = "1.0";       // human-readable label shown in dialog
+const LATEST_VERSION_CODE = 2;            // must match versionCode in build.gradle
+const LATEST_VERSION_NAME = "1.1";       // human-readable label shown in dialog
 const DOWNLOAD_URL        =
-  "https://github.com/Delta-init/banglore-crm/releases/download/v1.0/call-recorder-v1.0.apk";
+  "https://github.com/Delta-init/banglore-crm/releases/download/v1.1/call-recorder-v1.1.apk";
 const CHANGELOG           =
-  "• Auto-update support added\n" +
+  "• Dialer fixed — digits now go to the number display correctly\n" +
+  "• Auto-update popup added\n" +
   "• Recording overlay badge (Truecaller-style)\n" +
   "• CRM sync — call log + audio uploaded automatically\n" +
   "• Improved recording quality on Android 9+";
 const FORCE_UPDATE        = false;        // true = hide "Later", user MUST update
-const RELEASE_DATE        = "2026-06-03";
+const RELEASE_DATE        = "2026-06-04";
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
