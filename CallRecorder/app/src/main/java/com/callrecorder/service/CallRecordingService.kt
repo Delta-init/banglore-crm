@@ -116,19 +116,39 @@ class CallRecordingService : LifecycleService() {
             return
         }
 
-        currentPhoneNumber = phoneNumber
+        // Final safety net: if phone is still blank, try the number saved by DialerFragment.
+        // This catches any path (InCallService, BroadcastReceiver) that couldn't resolve it.
+        val resolvedPhone = phoneNumber.ifBlank {
+            PrefsHelper.getLastDialedNumber(this).also { fallback ->
+                if (fallback.isNotBlank())
+                    AppLogger.i(this, TAG, "startRecording: phone was blank, resolved from PrefsHelper: $fallback")
+                else
+                    AppLogger.w(this, TAG, "startRecording: phone number unknown for this call")
+            }
+        }
+
+        currentPhoneNumber = resolvedPhone
         currentCallType    = callType
-        currentFilePath    = StorageHelper.createRecordingFilePath(this, phoneNumber)
+        currentFilePath    = StorageHelper.createRecordingFilePath(this, resolvedPhone)
         recordingStartTime = System.currentTimeMillis()
 
         // ✅ Call startForeground immediately — Android requires it within 5 s
-        startForeground(NOTIF_ID, buildNotification(phoneNumber))
+        startForeground(NOTIF_ID, buildNotification(resolvedPhone))
+
+        // Show recording overlay badge immediately, then update with contact name
+        RecordingOverlayManager.show(this, resolvedPhone, null)
 
         AppLogger.i(this, TAG,
-            "startRecording [$callType] $phoneNumber  →  ${currentFilePath.substringAfterLast('/')}")
+            "startRecording [$callType] $resolvedPhone  →  ${currentFilePath.substringAfterLast('/')}")
 
         // Launch the actual recording work in a background coroutine
         serviceScope.launch {
+            // Async contact name lookup → update overlay label
+            val contactName = ContactHelper.getContactName(this@CallRecordingService, resolvedPhone)
+            if (!contactName.isNullOrBlank()) {
+                RecordingOverlayManager.update(this@CallRecordingService, resolvedPhone, contactName)
+            }
+
             val started = activateRecording(callType)
             if (!started) {
                 AppLogger.e(this@CallRecordingService, TAG,
@@ -323,6 +343,7 @@ class CallRecordingService : LifecycleService() {
     // ── Recording stop ────────────────────────────────────────────────────────
 
     private fun stopRecording() {
+        RecordingOverlayManager.hide()
         restoreAudioMode()
 
         val recorder = mediaRecorder ?: run {
@@ -341,18 +362,38 @@ class CallRecordingService : LifecycleService() {
             mediaRecorder = null
         }
 
-        val filePath    = currentFilePath
-        val phone       = currentPhoneNumber
-        val type        = currentCallType
-        val wallClock   = System.currentTimeMillis() - recordingStartTime
+        val filePath      = currentFilePath
+        val phone         = currentPhoneNumber
+        val type          = currentCallType
+        val stopTimeMs    = System.currentTimeMillis()
+        // wallClock is only valid if startRecording() ran in this service instance
+        val wallClock     = if (recordingStartTime > 0L) stopTimeMs - recordingStartTime else 0L
 
         serviceScope.launch {
-            // Give the file system a moment to flush
-            delay(400)
+            // Wait for the OS to finish writing the audio file
+            delay(500)
 
             val fileSize = StorageHelper.getFileSize(filePath)
-            val duration = StorageHelper.getFileDuration(filePath)
-                .takeIf { it > 0L } ?: wallClock
+
+            // Try file metadata first (most accurate).
+            // If not available yet, retry once after a short wait.
+            var fileDuration = StorageHelper.getFileDuration(filePath)
+            if (fileDuration <= 0L && fileSize > 1_024L) {
+                delay(600)
+                fileDuration = StorageHelper.getFileDuration(filePath)
+            }
+
+            // Clamp wallClock to a sane range (1 s – 2 h) to avoid bad values
+            val safeWallClock = wallClock.takeIf { it in 1_000L..7_200_000L } ?: 0L
+
+            val duration = when {
+                fileDuration > 0L  -> fileDuration   // best — actual audio length
+                safeWallClock > 0L -> safeWallClock  // good — call wall-clock
+                else               -> 0L             // unknown — log as 0
+            }
+
+            AppLogger.i(this@CallRecordingService, TAG,
+                "Duration: file=${fileDuration}ms  wall=${wallClock}ms  used=${duration}ms")
 
             if (fileSize > 1_024L) {   // > 1 KB = real recording
                 val contactName = ContactHelper.getContactName(this@CallRecordingService, phone)

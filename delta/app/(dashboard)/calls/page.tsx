@@ -18,6 +18,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useRecentCalls, fmtDuration, fmtCallTime, type RecentCallLog } from "@/hooks/useCalls";
 import { ClickToCall } from "@/components/leads/ClickToCall";
+import { useAuthStore } from "@/lib/store/authStore";
+import { Lock } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -95,7 +97,7 @@ function StatCard({
 
 // ─── Table Row ────────────────────────────────────────────────────────────────
 
-function CallRow({ call, index }: { call: RecentCallLog; index: number }) {
+function CallRow({ call, index, canAccessRecordings }: { call: RecentCallLog; index: number; canAccessRecordings: boolean }) {
   const leadName = call.leadId?.name ?? call.contactName ?? "Unknown";
   const leadId   = call.leadId?._id ?? null;
   const phone    = call.phoneNumber;
@@ -175,10 +177,19 @@ function CallRow({ call, index }: { call: RecentCallLog; index: number }) {
         </div>
       </td>
 
-      {/* Recording */}
+      {/* Recording — restricted to Super Admin / reports.view */}
       <td className="px-4 py-3">
         {call.recordingUrl
-          ? <RecordingPlayer url={call.recordingUrl} />
+          ? canAccessRecordings
+            ? <RecordingPlayer url={call.recordingUrl} />
+            : (
+              <span
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground cursor-not-allowed select-none"
+                title="Only Super Admin can access recordings"
+              >
+                <Lock className="h-3 w-3" /> Restricted
+              </span>
+            )
           : <span className="text-[11px] text-muted-foreground/40">—</span>
         }
       </td>
@@ -205,6 +216,8 @@ function CallRow({ call, index }: { call: RecentCallLog; index: number }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CallsPage() {
+  const { hasPermission } = useAuthStore();
+  const canAccessRecordings = hasPermission("reports", "view");
   const [search,    setSearch]    = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [dirFilter,  setDirFilter]  = useState<string>("all");
@@ -445,7 +458,7 @@ export default function CallsPage() {
                   <tbody>
                     <AnimatePresence>
                       {calls.map((call, i) => (
-                        <CallRow key={call._id} call={call} index={i} />
+                        <CallRow key={call._id} call={call} index={i} canAccessRecordings={canAccessRecordings} />
                       ))}
                     </AnimatePresence>
                   </tbody>

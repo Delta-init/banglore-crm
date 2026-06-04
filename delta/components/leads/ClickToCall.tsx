@@ -35,9 +35,11 @@ function isAndroid(): boolean {
 function buildCallUrl(phone: string): string {
   if (isAndroid()) {
     // intent://<phone>#Intent;scheme=tel;action=DIAL;package=com.callrecorder;end
-    // DialerActivity handles android.intent.action.DIAL + scheme "tel"
+    // DO NOT use encodeURIComponent — it turns "+" into "%2B" which breaks Chrome's
+    // intent URL parser and causes it to fall back to the system dialer.
+    // After cleanPhone() the number only contains digits and "+", which are safe here.
     return (
-      `intent://${encodeURIComponent(phone)}` +
+      `intent://${phone}` +
       `#Intent;scheme=tel;action=android.intent.action.DIAL` +
       `;package=${CALL_RECORDER_PACKAGE};end`
     );

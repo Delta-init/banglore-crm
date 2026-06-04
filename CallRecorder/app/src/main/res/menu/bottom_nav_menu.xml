@@ -11,6 +11,12 @@
         android:icon="@drawable/ic_call"
         android:title="@string/tab_calls" />
 
+    <!-- Centre item — most prominent -->
+    <item
+        android:id="@+id/dialerFragment"
+        android:icon="@drawable/ic_dialpad"
+        android:title="@string/tab_dialer" />
+
     <item
         android:id="@+id/contactsFragment"
         android:icon="@drawable/ic_contacts"

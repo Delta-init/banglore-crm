@@ -8,6 +8,7 @@ import android.util.Log
 import com.callrecorder.utils.AppLogger
 import com.callrecorder.utils.PrefsHelper
 
+
 /**
  * ════════════════════════════════════════════════════════════════════
  *  Call State Receiver — both incoming and outgoing calls
@@ -82,10 +83,12 @@ class CallStateReceiver : BroadcastReceiver() {
                                 num to "incoming"
                             }
                             wasIdle -> {
-                                // IDLE → OFFHOOK = outgoing call placed
-                                // Number may come from ACTION_NEW_OUTGOING_CALL (fired earlier)
-                                val num = lastOutgoingNumber
-                                    .takeIf { it.isNotBlank() } ?: number
+                                // IDLE → OFFHOOK = outgoing call placed.
+                                // On Android 10+, ACTION_NEW_OUTGOING_CALL is deprecated and may
+                                // not fire — fall back to the number saved by DialerFragment.
+                                val num = lastOutgoingNumber.takeIf { it.isNotBlank() }
+                                    ?: number.takeIf { it.isNotBlank() }
+                                    ?: PrefsHelper.getLastDialedNumber(context)
                                 AppLogger.i(context, TAG, "Outgoing placed: $num")
                                 num to "outgoing"
                             }

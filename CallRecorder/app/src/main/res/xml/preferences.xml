@@ -69,6 +69,24 @@
 
     </PreferenceCategory>
 
+    <!-- ── Recording Overlay ────────────────────────────────────────────── -->
+    <PreferenceCategory android:title="Recording Overlay">
+
+        <SwitchPreferenceCompat
+            android:defaultValue="true"
+            android:key="show_recording_overlay"
+            android:title="Show Recording Badge"
+            android:summary="Show a floating badge while a call is being recorded (like Truecaller)"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            android:key="grant_overlay_permission"
+            android:title="Grant Overlay Permission"
+            android:summary="Required to show the badge over other apps"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
     <!-- ── CRM Sync ──────────────────────────────────────────────────────── -->
     <PreferenceCategory android:title="CRM Sync">
 

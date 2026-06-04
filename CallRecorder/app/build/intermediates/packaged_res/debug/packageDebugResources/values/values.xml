@@ -11,7 +11,8 @@
     <string name="recording_in_progress">Recording call…</string>
     <string name="tab_calls">Calls</string>
     <string name="tab_contacts">Contacts</string>
-    <string name="tab_recordings">Rec</string>
+    <string name="tab_dialer">Dialer</string>
+    <string name="tab_recordings">Recordings</string>
     <string name="tab_settings">Settings</string>
     <style name="Theme.CallRecorder" parent="Theme.Material3.DayNight.NoActionBar">
         

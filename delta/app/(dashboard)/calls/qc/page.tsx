@@ -208,7 +208,17 @@ function QcCard({ call, index }: { call: RecentCallLog; index: number }) {
         <div className="flex items-center gap-2 shrink-0">
           {call.recordingUrl && (
             <div onClick={(e) => e.stopPropagation()}>
-              <RecordingPlayer url={call.recordingUrl} />
+              {canAccessRecordings
+                ? <RecordingPlayer url={call.recordingUrl} />
+                : (
+                  <span
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[11px] text-muted-foreground cursor-not-allowed"
+                    title="Only Super Admin can access recordings"
+                  >
+                    <Lock className="h-3 w-3" /> Restricted
+                  </span>
+                )
+              }
             </div>
           )}
           <div onClick={(e) => e.stopPropagation()}>
@@ -305,6 +315,8 @@ function QcCard({ call, index }: { call: RecentCallLog; index: number }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function QcPage() {
+  const { hasPermission } = useAuthStore();
+  const canAccessRecordings = hasPermission("reports", "view");
   const [statusFilter, setStatusFilter] = useState<"pending" | "reviewed" | "flagged" | "all">("pending");
   const { data, isLoading, isFetching, refetch } = useQcQueue(statusFilter);
   const calls = data?.calls ?? [];

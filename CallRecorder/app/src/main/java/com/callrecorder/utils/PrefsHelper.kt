@@ -16,6 +16,10 @@ object PrefsHelper {
     const val KEY_CRM_API_KEY     = "crm_api_key"
     const val KEY_AGENT_EXTENSION = "agent_extension"
 
+    // ── Dialer / overlay ───────────────────────────────────────────────────────
+    private const val KEY_LAST_DIALED   = "last_dialed_number"
+    private const val KEY_SHOW_OVERLAY  = "show_recording_overlay"
+
     // ── Auto-record ───────────────────────────────────────────────────────────
 
     fun isAutoRecordEnabled(context: Context): Boolean =
@@ -47,7 +51,8 @@ object PrefsHelper {
         prefs(context).edit { putBoolean(KEY_FORCE_SPEAKER_MODE, enabled) }
 
     fun getCrmBaseUrl(context: Context): String =
-        prefs(context).getString(KEY_CRM_BASE_URL, "") ?: ""
+        prefs(context).getString(KEY_CRM_BASE_URL, "https://api-crm-banglore.deltainstitutions.com")
+            ?: "https://api-crm-banglore.deltainstitutions.com"
 
     fun setCrmBaseUrl(context: Context, url: String) =
         prefs(context).edit { putString(KEY_CRM_BASE_URL, url) }
@@ -63,6 +68,22 @@ object PrefsHelper {
 
     fun setAgentExtension(context: Context, ext: String) =
         prefs(context).edit { putString(KEY_AGENT_EXTENSION, ext) }
+
+    // ── Dialer ────────────────────────────────────────────────────────────────
+
+    fun getLastDialedNumber(context: Context): String =
+        prefs(context).getString(KEY_LAST_DIALED, "") ?: ""
+
+    fun setLastDialedNumber(context: Context, number: String) =
+        prefs(context).edit { putString(KEY_LAST_DIALED, number) }
+
+    // ── Overlay ───────────────────────────────────────────────────────────────
+
+    fun isShowOverlay(context: Context): Boolean =
+        prefs(context).getBoolean(KEY_SHOW_OVERLAY, true)   // on by default
+
+    fun setShowOverlay(context: Context, enabled: Boolean) =
+        prefs(context).edit { putBoolean(KEY_SHOW_OVERLAY, enabled) }
 
     // ── Helper ────────────────────────────────────────────────────────────────
 

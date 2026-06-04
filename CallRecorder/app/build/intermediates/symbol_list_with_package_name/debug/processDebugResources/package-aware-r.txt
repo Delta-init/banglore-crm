@@ -3106,6 +3106,8 @@ drawable avd_show_password
 drawable bg_chip
 drawable bg_circle_primary
 drawable bg_drag_handle
+drawable bg_overlay_recording
+drawable bg_rec_dot
 drawable btn_checkbox_checked_mtrl
 drawable btn_checkbox_checked_to_unchecked_mtrl_animation
 drawable btn_checkbox_unchecked_mtrl
@@ -3131,6 +3133,7 @@ drawable ic_call_decline_low
 drawable ic_clear_black_24
 drawable ic_clock_black_24dp
 drawable ic_contacts
+drawable ic_dialpad
 drawable ic_keyboard_black_24dp
 drawable ic_launcher_background
 drawable ic_launcher_foreground
@@ -3288,6 +3291,7 @@ id action_menu_presenter
 id action_mode_bar
 id action_mode_bar_stub
 id action_mode_close_button
+id action_settingsFragment_to_logsFragment
 id action_text
 id actions
 id activity_chooser_view_content
@@ -3393,6 +3397,7 @@ id design_menu_item_action_area
 id design_menu_item_action_area_stub
 id design_menu_item_text
 id design_navigation_view
+id dialerFragment
 id dialog_button
 id dimensions
 id direct
@@ -3507,6 +3512,7 @@ id linear
 id listMode
 id list_item
 id locale
+id logsFragment
 id ltr
 id m3_side_sheet
 id marquee
@@ -3609,6 +3615,7 @@ id open_search_view_toolbar
 id open_search_view_toolbar_container
 id outline
 id outward
+id overlayRoot
 id overshoot
 id packed
 id parallax
@@ -3633,6 +3640,7 @@ id progress_circular
 id progress_horizontal
 id radio
 id ratio
+id recDot
 id recordingsFragment
 id rectangles
 id recyclerView
@@ -3777,8 +3785,11 @@ id tvInitial
 id tvLogs
 id tvName
 id tvNumber
+id tvOverlayContact
 id tvPhone
 id tvSubtitle
+id tvUpdateChangelog
+id tvUpdateVersion
 id tv_call_type
 id tv_current_position
 id tv_date
@@ -3951,8 +3962,10 @@ layout design_text_input_end_icon
 layout design_text_input_start_icon
 layout dial_key
 layout dialog_add_edit_contact
+layout dialog_update
 layout expand_button
 layout fragment_contacts
+layout fragment_dialer
 layout fragment_logs
 layout fragment_recent_calls
 layout fragment_recordings
@@ -4019,6 +4032,7 @@ layout notification_template_custom_big
 layout notification_template_icon_group
 layout notification_template_part_chronometer
 layout notification_template_part_time
+layout overlay_recording
 layout preference
 layout preference_category
 layout preference_category_material
@@ -4222,6 +4236,7 @@ string status_bar_notification_info_overflow
 string summary_collapsed_preference_list
 string tab_calls
 string tab_contacts
+string tab_dialer
 string tab_recordings
 string tab_settings
 string v7_preference_off

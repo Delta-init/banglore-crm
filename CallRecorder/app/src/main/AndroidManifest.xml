@@ -4,6 +4,9 @@
     <!-- ── Network (CRM sync) ────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- ── Overlay (recording badge shown over other apps) ───────────────── -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <!-- ── Core permissions ──────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />

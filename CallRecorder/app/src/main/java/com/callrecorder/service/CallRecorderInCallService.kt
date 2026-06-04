@@ -57,9 +57,8 @@ class CallRecorderInCallService : InCallService() {
                     Call.STATE_ACTIVE -> {
                         if (!PrefsHelper.isAutoRecordEnabled(this@CallRecorderInCallService)) return
 
-                        val phoneNumber = call.details?.handle?.schemeSpecificPart
-                            ?.removePrefix("+") ?: ""
-                        val callType = resolveCallType(call)
+                        val phoneNumber = resolvePhoneNumber(call)
+                        val callType   = resolveCallType(call)
 
                         AppLogger.i(
                             this@CallRecorderInCallService, TAG,
@@ -94,8 +93,9 @@ class CallRecorderInCallService : InCallService() {
             }
             Call.STATE_ACTIVE -> {
                 if (PrefsHelper.isAutoRecordEnabled(this)) {
-                    val number = call.details?.handle?.schemeSpecificPart?.removePrefix("+") ?: ""
-                    CallRecordingService.startRecording(this, number, resolveCallType(call))
+                    CallRecordingService.startRecording(
+                        this, resolvePhoneNumber(call), resolveCallType(call)
+                    )
                 }
             }
         }
@@ -126,6 +126,33 @@ class CallRecorderInCallService : InCallService() {
         val tm = getSystemService(android.telecom.TelecomManager::class.java)
         tm?.defaultDialerPackage == packageName
     } catch (e: Exception) { false }
+
+    /**
+     * Extract the phone number from a Call object, keeping the full E.164 format
+     * (+971501234567). Falls back to the number saved by DialerFragment if the
+     * call handle is null (common on some OEMs for outgoing calls).
+     */
+    private fun resolvePhoneNumber(call: Call): String {
+        val fromHandle = call.details?.handle?.schemeSpecificPart
+            ?.trim()
+            ?.let { raw ->
+                // Remove "tel:" prefix if the OS includes it in schemeSpecificPart
+                if (raw.startsWith("tel:", ignoreCase = true)) raw.substring(4) else raw
+            }
+            ?.ifBlank { null }
+
+        if (!fromHandle.isNullOrBlank()) return fromHandle
+
+        // Fallback: number saved by DialerFragment just before TelecomManager.placeCall()
+        val fromPrefs = PrefsHelper.getLastDialedNumber(this)
+        if (fromPrefs.isNotBlank()) {
+            AppLogger.i(this, TAG, "resolvePhoneNumber: handle null, using PrefsHelper: $fromPrefs")
+            return fromPrefs
+        }
+
+        AppLogger.w(this, TAG, "resolvePhoneNumber: phone unknown — call handle is null and no saved dialed number")
+        return ""
+    }
 
     private fun resolveCallType(call: Call): String =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

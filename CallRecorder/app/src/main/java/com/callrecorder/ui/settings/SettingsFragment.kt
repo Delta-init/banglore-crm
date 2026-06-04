@@ -9,13 +9,16 @@ import android.telecom.TelecomManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
+import android.net.Uri
 import android.text.InputType
 import android.widget.EditText
 import android.widget.LinearLayout
 import com.callrecorder.R
+import com.callrecorder.service.RecordingOverlayManager
 import com.callrecorder.ui.recordings.RecordingsViewModel
 import com.callrecorder.utils.AppLogger
 import com.callrecorder.utils.PrefsHelper
@@ -38,6 +41,15 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onResume() {
         super.onResume()
         updateDefaultDialerPref()
+        // Refresh overlay permission summary when returning from system settings
+        findPreference<Preference>("grant_overlay_permission")?.let { updateOverlaySummary(it) }
+    }
+
+    private fun updateOverlaySummary(pref: Preference) {
+        pref.summary = if (RecordingOverlayManager.canShow(requireContext()))
+            "✅ Permission granted — badge will appear during calls"
+        else
+            "Tap to grant — required to show the recording badge over other apps"
     }
 
     private fun setupPreferences() {
@@ -102,7 +114,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         // ── View logs ─────────────────────────────────────────────────────
         findPreference<Preference>("view_logs")?.setOnPreferenceClickListener {
-            showLogs()
+            findNavController().navigate(R.id.action_settingsFragment_to_logsFragment)
             true
         }
 
@@ -124,11 +136,36 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
+        // ── Recording overlay ──────────────────────────────────────────────
+        findPreference<SwitchPreferenceCompat>("show_recording_overlay")?.apply {
+            isChecked = PrefsHelper.isShowOverlay(requireContext())
+            setOnPreferenceChangeListener { _, newValue ->
+                PrefsHelper.setShowOverlay(requireContext(), newValue as Boolean)
+                true
+            }
+        }
+
+        findPreference<Preference>("grant_overlay_permission")?.apply {
+            updateOverlaySummary(this)
+            setOnPreferenceClickListener {
+                if (!RecordingOverlayManager.canShow(requireContext())) {
+                    val intent = Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:${requireContext().packageName}")
+                    )
+                    startActivity(intent)
+                } else {
+                    snack("✅ Overlay permission already granted")
+                }
+                true
+            }
+        }
+
         // ── CRM Sync ───────────────────────────────────────────────────────
         setupCrmPref(
             key       = PrefsHelper.KEY_CRM_BASE_URL,
             title     = "CRM API URL",
-            hint      = "https://api-crm.deltainstitutions.com",
+            hint      = "https://api-crm-banglore.deltainstitutions.com",
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
             maskValue = false,
             getter    = { PrefsHelper.getCrmBaseUrl(requireContext()) },
@@ -306,25 +343,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 "Alternative to Companion Access. Gives deepest audio access. Requires this app to handle your incoming call screen."
 
         findPreference<Preference>("restore_default_dialer")?.isVisible = isCurrentDefaultDialer()
-    }
-
-    // ── Log viewer ────────────────────────────────────────────────────────────
-
-    private fun showLogs() {
-        val lines = AppLogger.getLines(requireContext())
-        val text  = if (lines.isEmpty()) "No logs yet. Make a call first." else lines.joinToString("\n")
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Recording Logs")
-            .setMessage(text)
-            .setPositiveButton("Close", null)
-            .setNeutralButton("Copy") { _, _ ->
-                val clipboard = requireContext()
-                    .getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Call Recorder Logs", text))
-                snack("Logs copied to clipboard")
-            }
-            .show()
     }
 
     private fun snack(msg: String) =

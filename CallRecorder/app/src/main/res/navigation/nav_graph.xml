@@ -15,6 +15,11 @@
         android:label="Calls" />
 
     <fragment
+        android:id="@+id/dialerFragment"
+        android:name="com.callrecorder.ui.DialerFragment"
+        android:label="Dialer" />
+
+    <fragment
         android:id="@+id/contactsFragment"
         android:name="com.callrecorder.ui.contacts.ContactsFragment"
         android:label="Contacts" />
@@ -22,6 +27,15 @@
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.callrecorder.ui.settings.SettingsFragment"
-        android:label="Settings" />
+        android:label="Settings">
+        <action
+            android:id="@+id/action_settingsFragment_to_logsFragment"
+            app:destination="@id/logsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/logsFragment"
+        android:name="com.callrecorder.ui.logs.LogsFragment"
+        android:label="Recording Activity" />
 
 </navigation>

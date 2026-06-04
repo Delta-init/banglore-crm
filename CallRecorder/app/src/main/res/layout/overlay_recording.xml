@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Floating recording banner — shown at the top-centre over all apps.
+  Requires SYSTEM_ALERT_WINDOW permission.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlayRoot"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_overlay_recording"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:gravity="center_horizontal"
+    android:elevation="20dp"
+    android:minWidth="200dp">
+
+    <!-- Top row: pulsing dot + "● Recording" -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <View
+            android:id="@+id/recDot"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/bg_rec_dot" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  Recording"
+            android:textColor="#FF5555"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.05" />
+
+    </LinearLayout>
+
+    <!-- Contact name / phone number -->
+    <TextView
+        android:id="@+id/tvOverlayContact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="#DDDDDD"
+        android:textSize="11sp"
+        android:maxWidth="220dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:gravity="center" />
+
+</LinearLayout>

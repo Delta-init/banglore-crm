@@ -4,8 +4,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Phone, PhoneIncoming, PhoneOutgoing, PhoneMissed,
-  Clock, Play, Pause, RefreshCw, PhoneCall, Info,
+  Clock, Play, Pause, RefreshCw, PhoneCall, Info, Lock,
 } from "lucide-react";
+import { useAuthStore } from "@/lib/store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -104,7 +105,18 @@ function CallRow({ call, index }: { call: CallLog; index: number }) {
           </span>
         </div>
 
-        {call.recordingUrl && <RecordingPlayer url={call.recordingUrl} />}
+        {call.recordingUrl && (
+          canAccessRecordings
+            ? <RecordingPlayer url={call.recordingUrl} />
+            : (
+              <span
+                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-[10px] text-muted-foreground cursor-not-allowed"
+                title="Only Super Admin can access recordings"
+              >
+                <Lock className="h-2.5 w-2.5" /> Restricted
+              </span>
+            )
+        )}
       </div>
     </motion.div>
   );
@@ -119,6 +131,8 @@ interface CallsPanelProps {
 }
 
 export function CallsPanel({ leadId, phone, leadName }: CallsPanelProps) {
+  const { hasPermission } = useAuthStore();
+  const canAccessRecordings = hasPermission("reports", "view");
   const { data, isLoading, error, refetch, isFetching } = useLeadCalls(leadId);
 
   const calls = data?.calls ?? [];

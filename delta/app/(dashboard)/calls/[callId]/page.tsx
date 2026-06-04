@@ -20,6 +20,8 @@ import {
   useCallById, useUpdateQc, fmtDuration, fmtCallTime,
   type RecentCallLog,
 } from "@/hooks/useCalls";
+import { useAuthStore } from "@/lib/store/authStore";
+import { Lock } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -132,6 +134,8 @@ function DetailSkeleton() {
 
 export default function CallDetailPage({ params }: { params: { callId: string } }) {
   const { callId } = params;
+  const { hasPermission } = useAuthStore();
+  const canAccessRecordings = hasPermission("reports", "view");
   const { data: call, isLoading, error } = useCallById(callId);
   const { mutate: updateQc, isPending } = useUpdateQc();
 
@@ -300,12 +304,22 @@ export default function CallDetailPage({ params }: { params: { callId: string } 
               </CardHeader>
               <CardContent className="px-4 pb-4">
                 {call.recordingUrl ? (
-                  <audio
-                    controls
-                    src={call.recordingUrl}
-                    className="w-full h-10 rounded-lg"
-                    onError={() => toast.error("Recording unavailable")}
-                  />
+                  canAccessRecordings ? (
+                    <audio
+                      controls
+                      src={call.recordingUrl}
+                      className="w-full h-10 rounded-lg"
+                      onError={() => toast.error("Recording unavailable")}
+                    />
+                  ) : (
+                    <div className="flex items-center gap-3 py-4 text-muted-foreground rounded-lg border border-border bg-muted/30 px-4">
+                      <Lock className="h-5 w-5 shrink-0 text-amber-500" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Recording Restricted</p>
+                        <p className="text-xs text-muted-foreground">Only Super Admin can listen to call recordings</p>
+                      </div>
+                    </div>
+                  )
                 ) : (
                   <div className="flex items-center gap-3 py-4 text-muted-foreground">
                     <MicOff className="h-5 w-5 shrink-0" />

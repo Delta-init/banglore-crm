@@ -185,7 +185,7 @@ export default function SettingsPage() {
                 CRM API Endpoint (used in 3CX XML)
               </p>
               {[
-                { label: "Base URL",        value: "https://api-crm.deltainstitutions.com/api/v1/calls/" },
+                { label: "Base URL",        value: "https://api-crm-banglore.deltainstitutions.com/api/v1/calls/" },
                 { label: "Contact Lookup",  value: "GET /contact-lookup?phonenumber=[Number]" },
                 { label: "Contact Search",  value: "GET /contact-search?search_string=[SearchQuery]" },
                 { label: "Journal (POST)",  value: "POST /journal" },
@@ -244,7 +244,7 @@ export default function SettingsPage() {
                   size="sm"
                   className="gap-2"
                   onClick={() => {
-                    window.open("https://api-crm.deltainstitutions.com/api/v1/calls/3cx-template", "_blank");
+                    window.open("https://api-crm-banglore.deltainstitutions.com/api/v1/calls/3cx-template", "_blank");
                     toast.success("3CX XML template downloading…");
                   }}
                 >
@@ -258,7 +258,7 @@ export default function SettingsPage() {
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    navigator.clipboard.writeText("https://api-crm.deltainstitutions.com/api/v1/calls/");
+                    navigator.clipboard.writeText("https://api-crm-banglore.deltainstitutions.com/api/v1/calls/");
                     toast.success("API base URL copied!");
                   }}
                 >

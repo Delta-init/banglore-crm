@@ -18,6 +18,7 @@ object PermissionHelper {
         add(Manifest.permission.READ_PHONE_STATE)
         add(Manifest.permission.READ_CALL_LOG)
         add(Manifest.permission.READ_CONTACTS)
+        add(Manifest.permission.CALL_PHONE)    // needed for dialer tab
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             add(Manifest.permission.POST_NOTIFICATIONS)
         }
