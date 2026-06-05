@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, Play, Pause, CheckCircle2, Flag, Clock,
   PhoneCall, PhoneIncoming, PhoneOutgoing, PhoneMissed,
-  User, RefreshCw, ChevronDown, MessageSquare, Shield, ArrowRight,
+  User, RefreshCw, ChevronDown, MessageSquare, Shield, ArrowRight, Lock,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -17,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/lib/store/authStore";
 import {
   useQcQueue, useUpdateQc, fmtDuration, fmtCallTime,
   type RecentCallLog,
@@ -125,6 +126,9 @@ function QcCard({ call, index }: { call: RecentCallLog; index: number }) {
   const [rating,    setRating]    = useState(call.qcRating ?? 0);
   const [notes,     setNotes]     = useState(call.qcNotes ?? "");
   const [status,    setStatus]    = useState<"pending" | "reviewed" | "flagged">(call.qcStatus ?? "pending");
+
+  const { hasPermission }      = useAuthStore();
+  const canAccessRecordings    = hasPermission("reports", "view");
 
   const { mutate: updateQc, isPending } = useUpdateQc();
 

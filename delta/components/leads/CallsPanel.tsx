@@ -63,6 +63,9 @@ function RecordingPlayer({ url }: { url: string }) {
 // ─── Single Call Row ──────────────────────────────────────────────────────────
 
 function CallRow({ call, index }: { call: CallLog; index: number }) {
+  const { hasPermission }   = useAuthStore();
+  const canAccessRecordings = hasPermission("reports", "view");
+
   return (
     <motion.div
       key={call.id}
