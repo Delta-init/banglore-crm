@@ -237,13 +237,13 @@ export const getLeaderboard = async (
     // ── Lazy import to avoid circular deps ───────────────────────────────────
     const { User } = await import("../models/User.js");
 
-    // Run all three aggregations in parallel
-    const [users, closingsAgg, paymentAgg, callDurAgg] = await Promise.all([
+    // Run all aggregations in parallel
+    const [users, closingsAgg, paymentAgg, callDurAgg, statusAgg] = await Promise.all([
 
       // All active users
-      User.find({}).select("_id name email extension").lean(),
+      User.find({ status: "active" }).select("_id name email extension").lean(),
 
-      // Closings per user this month — leads moved to closing status
+      // Closings per user this month
       Lead.aggregate([
         {
           $match: {
@@ -255,7 +255,7 @@ export const getLeaderboard = async (
         { $group: { _id: "$assignedTo", closings: { $sum: 1 } } },
       ]),
 
-      // Payment amounts per user this month (unwind payments subdoc)
+      // Payment amounts per user this month
       Lead.aggregate([
         { $match: { assignedTo: { $exists: true, $ne: null }, "payments.0": { $exists: true } } },
         { $unwind: "$payments" },
@@ -263,7 +263,7 @@ export const getLeaderboard = async (
         { $group: { _id: "$assignedTo", closingAmount: { $sum: "$payments.amount" } } },
       ]),
 
-      // Total answered call seconds per agent extension this month
+      // Total call seconds per agent extension this month
       CallLog.aggregate([
         {
           $match: {
@@ -275,30 +275,46 @@ export const getLeaderboard = async (
         },
         { $group: { _id: "$agentExtension", totalSecs: { $sum: "$callDuration" } } },
       ]),
+
+      // All-time lead status counts per assigned user
+      Lead.aggregate([
+        { $match: { assignedTo: { $exists: true, $ne: null } } },
+        { $group: { _id: { user: "$assignedTo", status: "$status" }, count: { $sum: 1 } } },
+      ]),
     ]);
 
     // Build lookup maps
-    const closingsMap  = new Map<string, number>(
+    const closingsMap = new Map<string, number>(
       (closingsAgg as { _id: unknown; closings: number }[])
         .map((x) => [String(x._id), x.closings]),
     );
-    const paymentMap   = new Map<string, number>(
+    const paymentMap = new Map<string, number>(
       (paymentAgg as { _id: unknown; closingAmount: number }[])
         .map((x) => [String(x._id), x.closingAmount]),
     );
-    const callDurMap   = new Map<string, number>(
+    const callDurMap = new Map<string, number>(
       (callDurAgg as { _id: string; totalSecs: number }[])
         .map((x) => [x._id, x.totalSecs]),
     );
 
-    // Combine into one entry per user
+    // Build status counts map: userId → { status → count }
+    const statusCountsMap = new Map<string, Record<string, number>>();
+    for (const row of statusAgg as { _id: { user: unknown; status: string }; count: number }[]) {
+      const uid = String(row._id.user);
+      if (!statusCountsMap.has(uid)) statusCountsMap.set(uid, {});
+      statusCountsMap.get(uid)![row._id.status] = row.count;
+    }
+
+    // Combine into one entry per user — ALL users shown, even 0-activity ones
     const entries = (users as { _id: unknown; name: string; email: string; extension?: string }[])
       .map((user) => {
         const uid              = String(user._id);
-        const closings         = closingsMap.get(uid)                        ?? 0;
-        const closingAmount    = paymentMap.get(uid)                         ?? 0;
-        const callDurationSecs = callDurMap.get(user.extension ?? "___")     ?? 0;
+        const closings         = closingsMap.get(uid)                    ?? 0;
+        const closingAmount    = paymentMap.get(uid)                     ?? 0;
+        const callDurationSecs = callDurMap.get(user.extension ?? "___") ?? 0;
         const callDurationMins = Math.round(callDurationSecs / 60);
+        const statusCounts     = statusCountsMap.get(uid)                ?? {};
+        const totalLeads       = Object.values(statusCounts).reduce((s, n) => s + n, 0);
 
         return {
           userId:          uid,
@@ -310,10 +326,11 @@ export const getLeaderboard = async (
           callDurationMins,
           callDurationSecs,
           callDurationHit: callDurationMins >= 100,
+          // All-time lead status breakdown
+          totalLeads,
+          leadCounts:      statusCounts,
         };
-      })
-      // Remove users with zero activity so the board isn't cluttered
-      .filter((e) => e.closings > 0 || e.closingAmount > 0 || e.callDurationMins > 0);
+      });
 
     // Sort: closings → amount → call duration
     entries.sort((a, b) => {

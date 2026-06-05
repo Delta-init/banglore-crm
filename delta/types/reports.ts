@@ -290,7 +290,9 @@ export interface LeaderboardEntry {
   closingAmount:    number;
   callDurationMins: number;
   callDurationSecs: number;
-  callDurationHit:  boolean;   // true when ≥ 100 mins
+  callDurationHit:  boolean;          // true when ≥ 100 mins
+  totalLeads:       number;           // all-time assigned leads
+  leadCounts:       Record<string, number>; // status → count
 }
 
 export interface LeaderboardData {

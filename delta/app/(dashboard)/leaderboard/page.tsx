@@ -5,7 +5,7 @@ import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion"
 import {
   Trophy, Crown, Medal, Flame, Clock, TrendingUp, TrendingDown,
   Minus, Maximize2, Minimize2, RefreshCw, ChevronLeft, ChevronRight,
-  Phone, IndianRupee, Target, Zap,
+  Phone, IndianRupee, Target, Zap, Share2,
 } from "lucide-react";
 import { useLeaderboard } from "@/hooks/useReports";
 import type { LeaderboardEntry } from "@/types/reports";
@@ -16,6 +16,17 @@ import { Button } from "@/components/ui/button";
 
 const REFETCH_INTERVAL_MS = 30_000;
 const CALL_TARGET_MINS    = 100;
+
+const STATUS_CHIP_CONFIG = [
+  { key: "new",           label: "New",       color: "bg-blue-500/10 text-blue-400 border-blue-500/20"     },
+  { key: "followup",      label: "Followup",  color: "bg-violet-500/10 text-violet-400 border-violet-500/20" },
+  { key: "callback",      label: "Callback",  color: "bg-amber-500/10 text-amber-400 border-amber-500/20"  },
+  { key: "cnc",           label: "CNC",       color: "bg-orange-500/10 text-orange-400 border-orange-500/20"},
+  { key: "not_connected", label: "Off",       color: "bg-slate-500/10 text-slate-400 border-slate-500/20"  },
+  { key: "closed",        label: "Closed",    color: "bg-green-500/10 text-green-400 border-green-500/20"  },
+  { key: "lost",          label: "Lost",      color: "bg-red-500/10 text-red-400 border-red-500/20"        },
+  { key: "assigned",      label: "Assigned",  color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20"     },
+] as const;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -307,6 +318,34 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
           </div>
         </div>
       </div>
+
+      {/* ── Lead status chips ─────────────────────────────────────────────── */}
+      {entry.totalLeads > 0 && (
+        <div className="mt-2.5 flex flex-wrap gap-1.5 pl-[52px]">
+          {STATUS_CHIP_CONFIG.map(({ key, label, color }) => {
+            const count = entry.leadCounts?.[key] ?? 0;
+            if (count === 0) return null;
+            return (
+              <motion.span
+                key={key}
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.05 }}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border",
+                  color,
+                )}
+              >
+                <span>{count}</span>
+                <span className="opacity-80">{label}</span>
+              </motion.span>
+            );
+          })}
+          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-muted/60 text-muted-foreground border border-border">
+            {entry.totalLeads} total
+          </span>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -451,6 +490,21 @@ export default function LeaderboardPage() {
               ? <Minimize2 className="h-3.5 w-3.5" />
               : <Maximize2 className="h-3.5 w-3.5" />
             }
+          </Button>
+
+          {/* Public link */}
+          <Button
+            variant="outline" size="sm"
+            className="h-8 gap-1.5 text-xs"
+            onClick={() => {
+              const url = `${window.location.origin}/public/leaderboard`;
+              navigator.clipboard?.writeText(url);
+              window.open(url, "_blank");
+            }}
+            title="Open public leaderboard (shareable link)"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            Public Link
           </Button>
         </div>
       </div>

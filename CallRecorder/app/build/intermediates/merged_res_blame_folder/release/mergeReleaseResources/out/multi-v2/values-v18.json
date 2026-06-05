@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.callrecorder.app-mergeReleaseResources-53:/values-v18/values-v18.xml",
+            "map": [
+                {
+                    "source": "/Users/mhdabshar/.gradle/caches/8.9/transforms/7ab9d2380cca719c6a072c4bc5552353/transformed/appcompat-1.7.0/res/values-v18/values-v18.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "48",
+                        "endOffsets": "99"
+                    }
+                }
+            ]
+        }
+    ]
+}

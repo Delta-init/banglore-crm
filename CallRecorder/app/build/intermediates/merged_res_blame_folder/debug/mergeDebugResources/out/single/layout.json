@@ -4,12 +4,20 @@
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/item_contact.xml"
     },
     {
+        "merged": "com.callrecorder.app-mergeDebugResources-54:/layout/fragment_dialer.xml",
+        "source": "com.callrecorder.app-main-57:/layout/fragment_dialer.xml"
+    },
+    {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeDebugResources-54:/layout/activity_incoming_call.xml",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/activity_incoming_call.xml"
     },
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeDebugResources-54:/layout/item_call_log.xml",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/item_call_log.xml"
+    },
+    {
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeDebugResources-54:/layout/dialog_update.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/dialog_update.xml"
     },
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeDebugResources-54:/layout/activity_dialer.xml",
@@ -34,10 +42,6 @@
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeDebugResources-54:/layout/fragment_recordings.xml",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/fragment_recordings.xml"
-    },
-    {
-        "merged": "com.callrecorder.app-mergeDebugResources-54:/layout/dialog_update.xml",
-        "source": "com.callrecorder.app-main-57:/layout/dialog_update.xml"
     },
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeDebugResources-54:/layout/overlay_recording.xml",

@@ -13,6 +13,7 @@ import aiRoutes from "./aiRoutes.js";
 import studentRoutes from "./studentRoutes.js";
 import callRoutes from "./callRoutes.js";
 import appRoutes from "./appRoutes.js";
+import publicRoutes from "./publicRoutes.js";
 
 const router = Router();
 
@@ -30,6 +31,7 @@ router.use("/ai",       aiRoutes);
 router.use("/students", studentRoutes);
 router.use("/calls",    callRoutes);
 router.use("/app",      appRoutes);       // CallRecorder auto-update
+router.use("/public",   publicRoutes);    // Public routes — no auth required
 
 // Health check
 router.get("/health", (_req, res) => {
