@@ -330,12 +330,18 @@ export const getLeaderboard = async (
           totalLeads,
           leadCounts:      statusCounts,
         };
-      });
+      })
+      // Only show users who have at least 1 assigned lead
+      .filter((e) => e.totalLeads > 0);
 
-    // Sort: closings → amount → call duration
+    // Sort: closings → total leads → callback → followup → call duration
     entries.sort((a, b) => {
-      if (b.closings !== a.closings)         return b.closings         - a.closings;
-      if (b.closingAmount !== a.closingAmount) return b.closingAmount - a.closingAmount;
+      if (b.closings         !== a.closings)         return b.closings         - a.closings;
+      if (b.totalLeads       !== a.totalLeads)       return b.totalLeads       - a.totalLeads;
+      if ((b.leadCounts.callback ?? 0) !== (a.leadCounts.callback ?? 0))
+        return (b.leadCounts.callback ?? 0) - (a.leadCounts.callback ?? 0);
+      if ((b.leadCounts.followup ?? 0) !== (a.leadCounts.followup ?? 0))
+        return (b.leadCounts.followup ?? 0) - (a.leadCounts.followup ?? 0);
       return b.callDurationMins - a.callDurationMins;
     });
 
