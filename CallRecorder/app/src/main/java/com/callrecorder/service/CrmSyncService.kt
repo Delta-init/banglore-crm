@@ -18,26 +18,34 @@ import java.util.concurrent.TimeUnit
 
 /**
  * ════════════════════════════════════════════════════════════════════
- *  CrmSyncService — uploads call log + recording to the CRM backend
+ *  CrmSyncService — logs every call to the CRM backend
  * ════════════════════════════════════════════════════════════════════
  *
- *  Called from CallRecordingService after every completed recording.
- *  Sends a single multipart POST to:
+ *  Two entry points:
+ *
+ *  1. sync()           — called after a CONNECTED call with a recording file.
+ *                        Uploads the audio file + metadata as multipart POST.
+ *                        Falls back to logCallEvent() if the file is missing/tiny.
+ *
+ *  2. logCallEvent()   — called for ANY call event (missed, not-answered,
+ *                        recording failed, etc.).  Sends only metadata — no file.
+ *                        The backend accepts calls without a recording file.
+ *
+ *  Both methods send to:
  *    POST <crmBaseUrl>/api/v1/calls/upload-recording
  *
  *  Headers:
- *    x-api-key: <CALL_RECORDER_API_KEY from CRM Settings>
+ *    x-api-key: <CALL_RECORDER_API_KEY>
  *
  *  Fields:
- *    recording        — .m4a audio file
  *    phone_number     — lead's phone
- *    call_type        — "incoming" | "outgoing" | "unknown"
- *    duration         — call duration in SECONDS
+ *    call_type        — "incoming" | "outgoing" | "missed" | "notanswered"
+ *    duration         — call duration in SECONDS (0 for missed/not-answered)
  *    call_date        — ISO 8601 UTC timestamp
  *    agent_extension  — agent's extension number
+ *    recording        — audio file [OPTIONAL — only in sync()]
  *
  *  Never throws — all errors are logged only.
- *  Configure in CallRecorder Settings → CRM Sync.
  * ════════════════════════════════════════════════════════════════════
  */
 object CrmSyncService {
@@ -50,42 +58,56 @@ object CrmSyncService {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    /**
-     * Post call log + recording file to the CRM.
-     *
-     * Must be called from a coroutine (uses Dispatchers.IO internally).
-     * Silently skips if CRM URL or API key is not configured.
-     *
-     * @return true  = successfully synced to CRM
-     *         false = skipped (not configured) or network/server error
-     */
-    suspend fun sync(context: Context, recording: RecordingEntity): Boolean {
-        val baseUrl   = PrefsHelper.getCrmBaseUrl(context).trimEnd('/')
-        val apiKey    = PrefsHelper.getCrmApiKey(context).trim()
-        val extension = PrefsHelper.getAgentExtension(context).trim()
+    // ── Pre-flight check ──────────────────────────────────────────────────────
 
-        // ── Pre-flight checks ─────────────────────────────────────────────────
+    private fun readyOrNull(context: Context): Pair<String, String>? {
+        val baseUrl = PrefsHelper.getCrmBaseUrl(context).trimEnd('/')
+        val apiKey  = PrefsHelper.getCrmApiKey(context).trim()
         if (baseUrl.isBlank()) {
             AppLogger.w(context, TAG, "CRM sync skipped — CRM URL not set (Settings → CRM Sync)")
-            return false
+            return null
         }
         if (apiKey.isBlank()) {
             AppLogger.w(context, TAG, "CRM sync skipped — CRM API key not set (Settings → CRM Sync)")
-            return false
+            return null
         }
+        return baseUrl to apiKey
+    }
+
+    // ── sync() — connected call WITH recording file ───────────────────────────
+
+    /**
+     * Upload recording file + call metadata to the CRM.
+     * If the file is missing or too small, falls back to logCallEvent().
+     *
+     * @return true = successfully logged to CRM
+     */
+    suspend fun sync(context: Context, recording: RecordingEntity): Boolean {
+        val (baseUrl, apiKey) = readyOrNull(context) ?: return false
+        val extension = PrefsHelper.getAgentExtension(context).trim()
 
         val file = File(recording.filePath)
-        if (!file.exists() || file.length() == 0L) {
-            AppLogger.w(context, TAG, "CRM sync skipped — file missing: ${recording.filePath}")
-            return false
-        }
-
         val durationSecs = recording.duration / 1000L
         val callDateIso  = Instant.ofEpochMilli(recording.createdAt).toString()
 
+        // If recording file is missing or empty, log as metadata-only
+        if (!file.exists() || file.length() < 1024L) {
+            AppLogger.w(
+                context, TAG,
+                "Recording file missing/tiny (${file.length()}B) — logging call without file"
+            )
+            return logCallEvent(
+                context      = context,
+                phoneNumber  = recording.phoneNumber,
+                callType     = recording.callType,
+                durationSecs = durationSecs,
+                callDateIso  = callDateIso,
+            )
+        }
+
         AppLogger.i(
             context, TAG,
-            "Syncing to CRM: ${recording.phoneNumber} " +
+            "Syncing to CRM with recording: ${recording.phoneNumber} " +
             "(${recording.callType}, ${durationSecs}s, ${file.length() / 1024}KB)"
         )
 
@@ -123,8 +145,78 @@ object CrmSyncService {
                 }
             }
         } catch (e: Exception) {
-            // Network error, timeout, etc. — non-fatal, just log
             AppLogger.e(context, TAG, "CRM sync error: ${e.javaClass.simpleName}: ${e.message}")
+            false
+        }
+    }
+
+    // ── logCallEvent() — any call WITHOUT a recording file ───────────────────
+
+    /**
+     * Logs a call event to the CRM without uploading a recording file.
+     *
+     * Use for:
+     *   • Missed / not-answered calls        (callType = "missed" | "notanswered")
+     *   • Connected calls where recording failed (callType = "incoming" | "outgoing")
+     *
+     * @param phoneNumber  Raw phone number (may include + and country code)
+     * @param callType     "incoming" | "outgoing" | "missed" | "notanswered"
+     * @param durationSecs Call duration in SECONDS. 0 for missed/not-answered.
+     * @param callDateIso  ISO 8601 UTC timestamp (defaults to now)
+     *
+     * @return true = successfully logged to CRM
+     */
+    suspend fun logCallEvent(
+        context:      Context,
+        phoneNumber:  String,
+        callType:     String,
+        durationSecs: Long   = 0L,
+        callDateIso:  String = Instant.now().toString(),
+    ): Boolean {
+        val (baseUrl, apiKey) = readyOrNull(context) ?: return false
+        val extension = PrefsHelper.getAgentExtension(context).trim()
+
+        if (phoneNumber.isBlank()) {
+            AppLogger.w(context, TAG, "logCallEvent skipped — phone number is blank")
+            return false
+        }
+
+        AppLogger.i(
+            context, TAG,
+            "Logging call event to CRM: $phoneNumber ($callType, ${durationSecs}s)"
+        )
+
+        return try {
+            withContext(Dispatchers.IO) {
+                // Metadata-only — no recording part
+                val body = MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("phone_number",    phoneNumber)
+                    .addFormDataPart("call_type",       callType)
+                    .addFormDataPart("duration",        durationSecs.toString())
+                    .addFormDataPart("call_date",       callDateIso)
+                    .addFormDataPart("agent_extension", extension)
+                    .build()
+
+                val request = Request.Builder()
+                    .url("$baseUrl/api/v1/calls/upload-recording")
+                    .header("x-api-key", apiKey)
+                    .post(body)
+                    .build()
+
+                val response     = client.newCall(request).execute()
+                val responseBody = response.body?.string() ?: ""
+
+                if (response.isSuccessful) {
+                    AppLogger.i(context, TAG, "Call event logged ✅ HTTP ${response.code}: $responseBody")
+                    true
+                } else {
+                    AppLogger.e(context, TAG, "Call event log failed HTTP ${response.code}: $responseBody")
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            AppLogger.e(context, TAG, "logCallEvent error: ${e.javaClass.simpleName}: ${e.message}")
             false
         }
     }

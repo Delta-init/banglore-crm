@@ -821,14 +821,15 @@ export const getCallById = async (
 // ─── POST /api/v1/calls/upload-recording  (device API key — called by CallRecorder app) ──
 //
 // Accepts multipart/form-data with:
-//   recording        — audio file (.m4a / .mp4 / .aac / .wav)
+//   recording        — audio file (.m4a / .mp4 / .aac / .wav)  [OPTIONAL]
 //   phone_number     — lead's phone number
-//   call_type        — "incoming" | "outgoing" | "unknown"
-//   duration         — call duration in SECONDS
+//   call_type        — "incoming" | "outgoing" | "missed" | "notanswered" | "unknown"
+//   duration         — call duration in SECONDS (0 for missed/not-answered)
 //   call_date        — ISO timestamp string
-//   agent_extension  — agent's 3CX extension (optional)
+//   agent_extension  — agent's extension (optional)
 //
-// Saves file → creates CallLog → returns { call_log_id, recording_url }
+// recording is OPTIONAL — every call is logged regardless of whether recording succeeded.
+// Saves file (if present) → creates CallLog → returns { call_log_id, recording_url }
 
 export const uploadRecording = async (
   req: Request & { file?: Express.Multer.File },
@@ -844,20 +845,21 @@ export const uploadRecording = async (
       agent_extension = "",
     } = req.body as Record<string, string>;
 
-    // ── Recording file ─────────────────────────────────────────────────────
-    if (!req.file) {
-      sendError(res, "Recording file is required (field: 'recording')", 400);
+    // ── phone_number is the only hard requirement ──────────────────────────
+    if (!phone_number.trim()) {
+      sendError(res, "phone_number is required", 400);
       return;
     }
 
-    // ── Build public URL for the recording ────────────────────────────────
-    const apiBase = process.env.CRM_API_URL ?? `${req.protocol}://${req.get("host")}`;
-    const recordingUrl = `${apiBase}/recordings/${req.file.filename}`;
+    // ── Build recording URL only if a file was actually uploaded ─────────
+    const apiBase      = process.env.CRM_API_URL ?? `${req.protocol}://${req.get("host")}`;
+    const recordingUrl = req.file
+      ? `${apiBase}/recordings/${req.file.filename}`
+      : null;
 
-    // ── Resolve call type ─────────────────────────────────────────────────
-    const validTypes = ["Inbound", "Outbound", "Missed", "Notanswered", "incoming", "outgoing", "unknown"];
-    const rawType    = call_type.trim();
-    // Normalise incoming/outgoing → Inbound/Outbound
+    // ── Normalise call type ────────────────────────────────────────────────
+    // App sends: "incoming" | "outgoing" | "missed" | "notanswered" | "unknown"
+    // DB accepts: "Inbound" | "Outbound" | "Missed" | "Notanswered"
     const typeMap: Record<string, "Inbound"|"Outbound"|"Missed"|"Notanswered"> = {
       incoming:    "Inbound",
       inbound:     "Inbound",
@@ -867,28 +869,26 @@ export const uploadRecording = async (
       notanswered: "Notanswered",
       unknown:     "Inbound",
     };
-    const callType = typeMap[rawType.toLowerCase()] ?? "Inbound";
+    const callType = typeMap[call_type.trim().toLowerCase()] ?? "Inbound";
     const callDir  = (callType === "Outbound") ? "outbound" : "inbound";
 
     // ── Parse date ────────────────────────────────────────────────────────
     const parsedDate = call_date ? new Date(call_date) : null;
     const callDate   = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : new Date();
 
-    // ── Parse duration (seconds → keep as seconds in CallLog) ────────────
+    // ── Parse duration (seconds) — 0 for missed/not-answered ─────────────
     const callDuration = Math.max(0, parseInt(duration, 10) || 0);
 
     // ── Find matching lead by phone ───────────────────────────────────────
     let leadId = null;
     let contactName: string | null = null;
 
-    if (phone_number.trim()) {
-      const q = phoneMatchQuery(phone_number);
-      if (q) {
-        const lead = await Lead.findOne(q).select("_id name").lean();
-        if (lead) {
-          leadId      = lead._id;
-          contactName = lead.name;
-        }
+    const q = phoneMatchQuery(phone_number);
+    if (q) {
+      const lead = await Lead.findOne(q).select("_id name").lean();
+      if (lead) {
+        leadId      = lead._id;
+        contactName = lead.name;
       }
     }
 
@@ -911,7 +911,7 @@ export const uploadRecording = async (
       callDirection:  callDir as "inbound" | "outbound",
       callDuration,
       callDate,
-      recordingUrl,
+      recordingUrl,                          // null when no file uploaded
       agentExtension: agent_extension || null,
       agentName,
       source:         "call_recorder_app",
@@ -922,8 +922,7 @@ export const uploadRecording = async (
       await Lead.updateOne({ _id: leadId }, { $set: { updatedAt: new Date() } });
     }
 
-    // ── Emit real-time notification to the agent's webapp ─────────────────
-    // Find the CRM user by extension so we can emit to their socket room.
+    // ── Emit real-time notification ───────────────────────────────────────
     if (agent_extension) {
       try {
         const { User } = await import("../models/User.js");
@@ -933,15 +932,15 @@ export const uploadRecording = async (
 
         if (agentUser) {
           emitToUser(String(agentUser._id), "recording:saved", {
-            callLogId:    log._id.toString(),
-            phone:        phone_number.trim(),
+            callLogId:      log._id.toString(),
+            phone:          phone_number.trim(),
             contactName,
             callType,
             callDuration,
             recordingUrl,
             agentExtension: agent_extension,
             agentName,
-            leadId:       leadId ? String(leadId) : null,
+            leadId:         leadId ? String(leadId) : null,
           });
         }
       } catch {

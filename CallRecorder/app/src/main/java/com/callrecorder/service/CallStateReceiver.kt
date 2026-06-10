@@ -7,6 +7,10 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import com.callrecorder.utils.AppLogger
 import com.callrecorder.utils.PrefsHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 
 /**
@@ -107,16 +111,40 @@ class CallStateReceiver : BroadcastReceiver() {
 
                     // ── Call ended ────────────────────────────────────────────
                     TelephonyManager.EXTRA_STATE_IDLE -> {
+                        val wasRinging   = lastCallState == STATE_RINGING
                         val wasRecording = lastCallState == STATE_OFFHOOK
+
+                        // Capture phone before resetting state
+                        val missedPhone = lastIncomingNumber
+
                         lastCallState      = STATE_IDLE
                         lastIncomingNumber = ""
                         lastOutgoingNumber = ""
 
-                        if (wasRecording) {
-                            AppLogger.i(context, TAG, "Call ended — stopping recorder")
-                            CallRecordingService.stopRecording(context)
-                        } else {
-                            AppLogger.i(context, TAG, "IDLE (no active recording to stop)")
+                        when {
+                            wasRecording -> {
+                                // Connected call ended normally — stop recorder (CRM log handled inside)
+                                AppLogger.i(context, TAG, "Call ended — stopping recorder")
+                                CallRecordingService.stopRecording(context)
+                            }
+                            wasRinging -> {
+                                // RINGING → IDLE = missed / rejected incoming call
+                                // Log to CRM immediately (no recording, duration = 0)
+                                AppLogger.i(context, TAG, "Missed call from: $missedPhone — logging to CRM")
+                                if (missedPhone.isNotBlank()) {
+                                    receiverScope.launch {
+                                        CrmSyncService.logCallEvent(
+                                            context      = context,
+                                            phoneNumber  = missedPhone,
+                                            callType     = "missed",
+                                            durationSecs = 0L,
+                                        )
+                                    }
+                                }
+                            }
+                            else -> {
+                                AppLogger.i(context, TAG, "IDLE (no active recording to stop)")
+                            }
                         }
                     }
                 }
@@ -136,8 +164,9 @@ class CallStateReceiver : BroadcastReceiver() {
 
         /**
          * Tracks the previous call state so we can distinguish:
-         *   IDLE → OFFHOOK  = outgoing
-         *   RINGING → OFFHOOK = incoming
+         *   IDLE → OFFHOOK      = outgoing call placed
+         *   RINGING → OFFHOOK   = incoming call answered
+         *   RINGING → IDLE      = missed / rejected
          *
          * Volatile: BroadcastReceiver instances are created fresh per broadcast
          * but share process memory.
@@ -145,5 +174,8 @@ class CallStateReceiver : BroadcastReceiver() {
         @Volatile private var lastCallState      = STATE_IDLE
         @Volatile private var lastIncomingNumber = ""
         @Volatile private var lastOutgoingNumber = ""
+
+        // Coroutine scope for CRM log calls from the receiver (no lifecycle host)
+        private val receiverScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }

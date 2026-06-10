@@ -59,7 +59,8 @@ class CallRecordingService : LifecycleService() {
     private var currentFilePath: String = ""
     private var currentPhoneNumber: String = ""
     private var currentCallType: String = "unknown"
-    private var recordingStartTime: Long = 0L
+    private var callStartTime: Long = 0L        // set at OFFHOOK/STATE_ACTIVE (when call begins)
+    private var recordingStartTime: Long = 0L   // set AFTER waitForCallAudio + audio settle
     private var activeAudioSource: Int = MediaRecorder.AudioSource.MIC
 
     private var audioManager: AudioManager? = null
@@ -130,7 +131,8 @@ class CallRecordingService : LifecycleService() {
         currentPhoneNumber = resolvedPhone
         currentCallType    = callType
         currentFilePath    = StorageHelper.createRecordingFilePath(this, resolvedPhone)
-        recordingStartTime = System.currentTimeMillis()
+        callStartTime      = System.currentTimeMillis()  // call began (OFFHOOK / STATE_ACTIVE)
+        recordingStartTime = 0L                          // will be set after audio settles
 
         // ✅ Call startForeground immediately — Android requires it within 5 s
         startForeground(NOTIF_ID, buildNotification(resolvedPhone))
@@ -166,6 +168,10 @@ class CallRecordingService : LifecycleService() {
         // Wait until the phone's audio system switches to in-call mode.
         // This is essential for outgoing calls (not yet connected at OFFHOOK time).
         waitForCallAudio(callType)
+
+        // ✅ Set recordingStartTime AFTER call connects and audio is ready.
+        // This gives accurate wallClock duration (excludes ringing/dial wait time).
+        recordingStartTime = System.currentTimeMillis()
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             // ─────────────────────────────────────────────────────────────────
@@ -366,8 +372,13 @@ class CallRecordingService : LifecycleService() {
         val phone         = currentPhoneNumber
         val type          = currentCallType
         val stopTimeMs    = System.currentTimeMillis()
-        // wallClock is only valid if startRecording() ran in this service instance
-        val wallClock     = if (recordingStartTime > 0L) stopTimeMs - recordingStartTime else 0L
+        val callDateIso   = java.time.Instant.ofEpochMilli(
+            if (callStartTime > 0L) callStartTime else stopTimeMs
+        ).toString()
+
+        // wallClock = time from when audio actually settled to when call ended.
+        // recordingStartTime is set AFTER waitForCallAudio() so this is accurate.
+        val wallClock = if (recordingStartTime > 0L) stopTimeMs - recordingStartTime else 0L
 
         serviceScope.launch {
             // Wait for the OS to finish writing the audio file
@@ -387,48 +398,68 @@ class CallRecordingService : LifecycleService() {
             val safeWallClock = wallClock.takeIf { it in 1_000L..7_200_000L } ?: 0L
 
             val duration = when {
-                fileDuration > 0L  -> fileDuration   // best — actual audio length
-                safeWallClock > 0L -> safeWallClock  // good — call wall-clock
-                else               -> 0L             // unknown — log as 0
+                fileDuration > 0L  -> fileDuration   // best — actual audio length (ms)
+                safeWallClock > 0L -> safeWallClock  // good — post-connect wallClock (ms)
+                else               -> 0L             // unknown
             }
+            val durationSecs = duration / 1000L
 
             AppLogger.i(this@CallRecordingService, TAG,
-                "Duration: file=${fileDuration}ms  wall=${wallClock}ms  used=${duration}ms")
+                "Duration: file=${fileDuration}ms  wall=${wallClock}ms  used=${duration}ms (${durationSecs}s)")
 
-            if (fileSize > 1_024L) {   // > 1 KB = real recording
-                val contactName = ContactHelper.getContactName(this@CallRecordingService, phone)
+            val contactName = ContactHelper.getContactName(this@CallRecordingService, phone)
+
+            if (fileSize > 1_024L) {
+                // ── Real recording exists — save locally and upload with file ─
                 val entity = RecordingEntity(
                     phoneNumber = phone,
                     contactName = contactName,
                     filePath    = filePath,
                     duration    = duration,
                     fileSize    = fileSize,
-                    callType    = type
+                    callType    = type,
                 )
                 repository.insert(entity)
                 AppLogger.i(this@CallRecordingService, TAG,
-                    "Saved ✅  ${duration / 1000}s  ${fileSize / 1024}KB  " +
+                    "Saved ✅  ${durationSecs}s  ${fileSize / 1024}KB  " +
                     "src=${audioSourceName(activeAudioSource)} speaker=$usedSpeakerMode")
 
-                // ── Notify user: recording saved locally ───────────────────
+                // Notify user: recording saved locally (sync in progress)
                 showSavedNotification(
-                    phone       = contactName ?: phone,
-                    durationMs  = duration,
-                    crmSynced   = null,   // null = syncing in progress
+                    phone      = contactName ?: phone,
+                    durationMs = duration,
+                    crmSynced  = null,
                 )
 
-                // ── Upload to CRM, then update notification with result ────
+                // Upload file + metadata to CRM
                 val synced = CrmSyncService.sync(this@CallRecordingService, entity)
                 showSavedNotification(
-                    phone       = contactName ?: phone,
-                    durationMs  = duration,
-                    crmSynced   = synced,
+                    phone      = contactName ?: phone,
+                    durationMs = duration,
+                    crmSynced  = synced,
                 )
+
             } else {
+                // ── Recording failed / too small — still log call to CRM ───
                 StorageHelper.deleteFile(filePath)
                 AppLogger.w(this@CallRecordingService, TAG,
-                    "Recording too small (${fileSize}B) — deleted. " +
-                    "Check: is the app the default dialer or Call Companion?")
+                    "Recording too small (${fileSize}B) — deleted. Logging call event to CRM.")
+
+                // Log call metadata without a recording file
+                CrmSyncService.logCallEvent(
+                    context      = this@CallRecordingService,
+                    phoneNumber  = phone,
+                    callType     = type,       // "incoming" or "outgoing"
+                    durationSecs = durationSecs,
+                    callDateIso  = callDateIso,
+                )
+
+                // Show notification without recording badge
+                showSavedNotification(
+                    phone      = contactName ?: phone,
+                    durationMs = duration,
+                    crmSynced  = false,        // no recording — just metadata logged
+                )
             }
         }
 
