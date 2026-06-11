@@ -88,12 +88,27 @@ class CallStateReceiver : BroadcastReceiver() {
                             }
                             wasIdle -> {
                                 // IDLE → OFFHOOK = outgoing call placed.
+                                //
+                                // If InCallService is active (companion or default dialer mode),
+                                // let it handle the recording — it has the real phone number
+                                // from call.details.handle and fires at STATE_ACTIVE (answered).
+                                // CallStateReceiver fires at OFFHOOK (dialling) which on Android
+                                // 10+ has no reliable phone number because ACTION_NEW_OUTGOING_CALL
+                                // is deprecated. Starting here would record with a blank number.
+                                if (CallRecorderInCallService.isActive) {
+                                    AppLogger.i(context, TAG,
+                                        "Outgoing OFFHOOK — InCallService active, deferring to it")
+                                    lastCallState = STATE_OFFHOOK
+                                    lastOutgoingNumber = ""
+                                    return
+                                }
+
                                 // On Android 10+, ACTION_NEW_OUTGOING_CALL is deprecated and may
                                 // not fire — fall back to the number saved by DialerFragment.
                                 val num = lastOutgoingNumber.takeIf { it.isNotBlank() }
                                     ?: number.takeIf { it.isNotBlank() }
                                     ?: PrefsHelper.getLastDialedNumber(context)
-                                AppLogger.i(context, TAG, "Outgoing placed: $num")
+                                AppLogger.i(context, TAG, "Outgoing placed (legacy path): $num")
                                 num to "outgoing"
                             }
                             else -> {

@@ -182,8 +182,25 @@ class CallRecorderInCallService : InCallService() {
             if (caps and Call.Details.CAPABILITY_RESPOND_VIA_TEXT != 0) "incoming" else "outgoing"
         }
 
+    override fun onBind(intent: android.content.Intent?): android.os.IBinder? {
+        isActive = true
+        return super.onBind(intent)
+    }
+
+    override fun onUnbind(intent: android.content.Intent?): Boolean {
+        isActive = false
+        return super.onUnbind(intent)
+    }
+
     companion object {
         private const val TAG = "CallRecorderInCallSvc"
+
+        /**
+         * True while the InCallService is bound by the system (companion or default dialer).
+         * Used by CallStateReceiver to avoid starting a second recording for outgoing calls
+         * with a blank phone number — InCallService has the real number from call.details.handle.
+         */
+        @Volatile var isActive: Boolean = false
 
         /** Active call reference used by IncomingCallActivity to answer/reject. */
         @Volatile var currentCall: Call? = null

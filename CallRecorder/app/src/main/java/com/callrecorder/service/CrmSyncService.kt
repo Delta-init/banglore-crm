@@ -138,11 +138,11 @@ object CrmSyncService {
                 val response     = client.newCall(request).execute()
                 val responseBody = response.body?.string() ?: ""
 
+                val msg = "HTTP ${response.code}: ${responseBody.take(200)}"
                 if (response.isSuccessful) {
-                    AppLogger.i(context, TAG, "CRM sync ✅ HTTP ${response.code}: $responseBody")
-                    true to null
+                    AppLogger.i(context, TAG, "CRM sync ✅ $msg")
+                    true to msg
                 } else {
-                    val msg = "HTTP ${response.code}: ${responseBody.take(120)}"
                     AppLogger.e(context, TAG, "CRM sync failed $msg")
                     false to msg
                 }
@@ -213,11 +213,11 @@ object CrmSyncService {
                 val response     = client.newCall(request).execute()
                 val responseBody = response.body?.string() ?: ""
 
+                val msg = "HTTP ${response.code}: ${responseBody.take(200)}"
                 if (response.isSuccessful) {
-                    AppLogger.i(context, TAG, "Call event logged ✅ HTTP ${response.code}: $responseBody")
-                    true to null
+                    AppLogger.i(context, TAG, "Call event logged ✅ $msg")
+                    true to msg
                 } else {
-                    val msg = "HTTP ${response.code}: ${responseBody.take(120)}"
                     AppLogger.e(context, TAG, "Call event log failed $msg")
                     false to msg
                 }

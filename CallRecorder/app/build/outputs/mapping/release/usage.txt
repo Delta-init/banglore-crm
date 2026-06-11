@@ -12798,8 +12798,11 @@ com.callrecorder.databinding.ItemRecordingBinding:
     public synthetic bridge android.view.View getRoot()
     public static com.callrecorder.databinding.ItemRecordingBinding inflate(android.view.LayoutInflater)
 com.callrecorder.databinding.OverlayRecordingBinding
+com.callrecorder.service.CallRecorderInCallService$Companion:
+    public final void setActive(boolean)
 com.callrecorder.service.CallRecorderInCallService:
     private static final java.lang.String TAG
+    public static final synthetic void access$setActive$cp(boolean)
 com.callrecorder.service.CallRecordingService:
     public static final java.lang.String ACTION_START_RECORDING
     public static final java.lang.String ACTION_STOP_RECORDING

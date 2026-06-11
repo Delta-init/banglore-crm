@@ -68,7 +68,14 @@ class CallLogAdapter(
                     b.tvCrmSync.setTextColor(ContextCompat.getColor(ctx, R.color.badge_synced_text))
                     b.tvCrmSync.backgroundTintList =
                         ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.badge_synced_bg))
-                    b.tvSyncError.visibility = View.GONE
+                    // Show API response under the badge (gray)
+                    if (!entry.syncError.isNullOrBlank()) {
+                        b.tvSyncError.visibility = View.VISIBLE
+                        b.tvSyncError.setTextColor(0xFF888888.toInt())
+                        b.tvSyncError.text = entry.syncError
+                    } else {
+                        b.tvSyncError.visibility = View.GONE
+                    }
                 }
                 CrmSyncStatus.NOT_SYNCED -> {
                     b.tvCrmSync.visibility = View.VISIBLE
