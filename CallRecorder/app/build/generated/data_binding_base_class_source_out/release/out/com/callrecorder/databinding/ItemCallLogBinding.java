@@ -44,10 +44,14 @@ public final class ItemCallLogBinding implements ViewBinding {
   @NonNull
   public final TextView tvNumber;
 
+  @NonNull
+  public final TextView tvSyncError;
+
   private ItemCallLogBinding(@NonNull MaterialCardView rootView,
       @NonNull MaterialButton btnCallback, @NonNull TextView tvCallType,
       @NonNull TextView tvCrmSync, @NonNull TextView tvDate, @NonNull TextView tvDirection,
-      @NonNull TextView tvDuration, @NonNull TextView tvName, @NonNull TextView tvNumber) {
+      @NonNull TextView tvDuration, @NonNull TextView tvName, @NonNull TextView tvNumber,
+      @NonNull TextView tvSyncError) {
     this.rootView = rootView;
     this.btnCallback = btnCallback;
     this.tvCallType = tvCallType;
@@ -57,6 +61,7 @@ public final class ItemCallLogBinding implements ViewBinding {
     this.tvDuration = tvDuration;
     this.tvName = tvName;
     this.tvNumber = tvNumber;
+    this.tvSyncError = tvSyncError;
   }
 
   @Override
@@ -134,8 +139,14 @@ public final class ItemCallLogBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.tvSyncError;
+      TextView tvSyncError = ViewBindings.findChildViewById(rootView, id);
+      if (tvSyncError == null) {
+        break missingId;
+      }
+
       return new ItemCallLogBinding((MaterialCardView) rootView, btnCallback, tvCallType, tvCrmSync,
-          tvDate, tvDirection, tvDuration, tvName, tvNumber);
+          tvDate, tvDirection, tvDuration, tvName, tvNumber, tvSyncError);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

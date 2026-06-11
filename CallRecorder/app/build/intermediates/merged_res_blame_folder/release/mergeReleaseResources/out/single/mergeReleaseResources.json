@@ -620,10 +620,6 @@
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/color/m3_timepicker_display_ripple_color.xml"
     },
     {
-        "merged": "com.callrecorder.app-release-56:/layout_activity_in_call.xml.flat",
-        "source": "com.callrecorder.app-main-57:/layout/activity_in_call.xml"
-    },
-    {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/drawable-hdpi-v4_abc_ic_commit_search_api_mtrl_alpha.png.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-appcompat-1.7.0-25:/drawable-hdpi-v4/abc_ic_commit_search_api_mtrl_alpha.png"
     },
@@ -754,6 +750,10 @@
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/layout_material_clockface_view.xml.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/layout/material_clockface_view.xml"
+    },
+    {
+        "merged": "com.callrecorder.app-release-56:/xml_preferences.xml.flat",
+        "source": "com.callrecorder.app-main-57:/xml/preferences.xml"
     },
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/color_m3_navigation_rail_ripple_color_selector.xml.flat",
@@ -2722,6 +2722,10 @@
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/drawable-anydpi-v21_ic_call_decline_low.xml.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-core-1.13.1-15:/drawable-anydpi-v21/ic_call_decline_low.xml"
+    },
+    {
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/layout_activity_in_call.xml.flat",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/activity_in_call.xml"
     },
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/layout-v21_notification_template_custom_big.xml.flat",

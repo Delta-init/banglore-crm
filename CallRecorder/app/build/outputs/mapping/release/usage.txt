@@ -12831,6 +12831,7 @@ com.callrecorder.ui.calls.CallLogEntry:
     public final long component5()
     public final long component6()
     public final com.callrecorder.ui.calls.CrmSyncStatus component7()
+    public final java.lang.String component8()
 com.callrecorder.ui.calls.CrmSyncStatus:
     public static kotlin.enums.EnumEntries getEntries()
 com.callrecorder.ui.calls.RecentCallsViewModel:
@@ -12874,8 +12875,6 @@ com.callrecorder.utils.PrefsHelper:
     private static final java.lang.String DEFAULT_CRM_URL
     public static final java.lang.String KEY_AGENT_EXTENSION
     private static final java.lang.String KEY_AUTO_RECORD
-    public static final java.lang.String KEY_CRM_API_KEY
-    public static final java.lang.String KEY_CRM_BASE_URL
     private static final java.lang.String KEY_FORCE_SPEAKER_MODE
     private static final java.lang.String KEY_LAST_DIALED
     private static final java.lang.String KEY_SHOW_OVERLAY
@@ -36859,7 +36858,7 @@ androidx.navigation.ui.R$animator
 androidx.preference.CheckBoxPreference:
     public static void syncViewIfAccessibilityEnabled()
 androidx.preference.DialogPreference$TargetFragment:
-    public abstract androidx.preference.Preference findPreference(java.lang.CharSequence)
+    public abstract androidx.preference.Preference findPreference(java.lang.String)
 androidx.preference.DialogPreference:
     public abstract android.graphics.drawable.Drawable getDialogIcon()
     public abstract int getDialogLayoutResource()
@@ -38707,7 +38706,7 @@ com.callrecorder.data.repository.RecordingRepository:
     public static java.lang.Object getById()
     public static kotlinx.coroutines.flow.Flow getRecordingCount()
     public static java.lang.Object insert()
-    public static java.lang.Object updateCrmSynced()
+    public static java.lang.Object updateSyncResult()
 com.callrecorder.databinding.ActivityDialerBinding:
     public final com.callrecorder.databinding.DialKeyBinding key0
     public final com.callrecorder.databinding.DialKeyBinding key1
@@ -38858,6 +38857,7 @@ com.callrecorder.ui.calls.CallLogEntry:
     public static long getDuration()
     public static long getId()
     public static java.lang.String getNumber()
+    public static java.lang.String getSyncError()
 com.callrecorder.ui.calls.CrmSyncStatus:
     public static final synthetic kotlin.enums.EnumEntries $ENTRIES
 com.callrecorder.ui.calls.RecentCallsFragment$observeState$1$1$1$1:
@@ -39036,7 +39036,7 @@ com.callrecorder.ui.recordings.RecordingsViewModel:
     public final void delete(com.callrecorder.data.db.RecordingEntity)
     public static void deleteAll()
     public static kotlinx.coroutines.flow.StateFlow getRecordings()
-com.callrecorder.ui.settings.SettingsFragment$setupPreferences$17$1:
+com.callrecorder.ui.settings.SettingsFragment$setupPreferences$13$1:
     public final java.lang.Object invoke$1()
 com.callrecorder.ui.settings.SettingsFragment$special$$inlined$viewModels$default$1:
     public final androidx.fragment.app.Fragment invoke()
@@ -39058,7 +39058,7 @@ com.callrecorder.ui.settings.SettingsFragment:
     public static void promptSetDefaultDialer$1()
     public static void requestBatteryOptimizationExemption()
     public static void restoreSystemDialer()
-    public final void setupCrmPref(java.lang.String,java.lang.String,java.lang.String,int,boolean,kotlin.jvm.functions.Function0,kotlin.jvm.functions.Function1)
+    public static void setupCrmPref()
     public static final void setupCrmPref$refreshSummary(kotlin.jvm.functions.Function0,androidx.preference.Preference,boolean)
     public static void setupPreferences()
     public final void updateOverlaySummary(androidx.preference.Preference)

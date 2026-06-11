@@ -7,7 +7,7 @@ Marking dimen:mtrl_calendar_day_height:2131100279 reachable: referenced from /Us
 Marking id:month_grid:2131231044 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking layout:mtrl_calendar_month_labeled:2131427423 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking attr:autoCompleteTextViewStyle:2130903111 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:view_tree_lifecycle_owner:2131231314 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:view_tree_lifecycle_owner:2131231315 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking attr:colorPrimary:2130903326 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking attr:colorPrimaryVariant:2130903333 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking attr:isMaterialTheme:2130903655 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -18,7 +18,7 @@ Marking dimen:mtrl_min_touch_target_size:2131100354 reachable: referenced from /
 Marking id:textinput_suffix_text:2131231254 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking layout:design_text_input_end_icon:2131427375 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking dimen:material_input_text_to_prefix_suffix_padding:2131100224 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:view_tree_view_model_store_owner:2131231317 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:view_tree_view_model_store_owner:2131231318 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking drawable:abc_textfield_default_mtrl_alpha:2131165298 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking drawable:abc_ab_share_pack_mtrl_alpha:2131165224 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking drawable:abc_textfield_search_default_mtrl_alpha:2131165300 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -80,12 +80,12 @@ Marking id:btn_delete:2131230841 reachable: referenced from /Users/mhdabshar/del
 Marking id:btn_play:2131230842 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:chips_row:2131230860 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:iv_call_type:2131230987 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_call_type:2131231296 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_date:2131231298 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_duration:2131231299 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_name:2131231300 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_phone_number:2131231302 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_size:2131231303 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_call_type:2131231297 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_date:2131231299 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_duration:2131231300 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_name:2131231301 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_phone_number:2131231303 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_size:2131231304 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:fragment_container_view_tag:2131230954 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking style:Theme_AppCompat_Empty:2131886648 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking bool:abc_action_bar_embed_tabs:2130968576 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -136,8 +136,9 @@ Marking id:snackbar_text:2131231196 reachable: referenced from /Users/mhdabshar/
 Marking id:snackbar_action:2131231195 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking dimen:design_snackbar_padding_vertical_2lines:2131099783 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking dimen:design_snackbar_padding_vertical:2131099782 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:visible_removing_fragment_view_tag:2131231319 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:visible_removing_fragment_view_tag:2131231320 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:special_effects_controller_view_tag:2131231201 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:action_settingsFragment_to_logsFragment:2131230787 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking dimen:design_textinput_caption_translate_y:2131099789 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking attr:motionDurationShort4:2130903893 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking attr:motionEasingEmphasizedDecelerateInterpolator:2130903898 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -228,10 +229,10 @@ Marking id:btn_15x:2131230838 reachable: referenced from /Users/mhdabshar/delta/
 Marking id:btn_1x:2131230839 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:btn_2x:2131230840 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:seek_bar:2131231176 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_current_position:2131231297 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_number:2131231301 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_title:2131231304 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tv_total_duration:2131231305 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_current_position:2131231298 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_number:2131231302 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_title:2131231305 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tv_total_duration:2131231306 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking attr:textAppearanceLineHeightEnabled:2130904221 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking string:copy:2131820591 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking string:preference_copied:2131820710 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -327,7 +328,7 @@ Marking drawable:material_ic_calendar_black_24dp:2131165362 reachable: reference
 Marking drawable:material_ic_edit_black_24dp:2131165364 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking string:mtrl_picker_toggle_to_calendar_input_mode:2131820688 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking string:mtrl_picker_toggle_to_text_input_mode:2131820690 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:view_tree_saved_state_registry_owner:2131231316 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:view_tree_saved_state_registry_owner:2131231317 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:nav_host_fragment_container:2131231078 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking layout:design_bottom_sheet_dialog:2131427363 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:coordinator:2131230878 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -569,8 +570,8 @@ Marking layout:activity_main:2131427359 reachable: referenced from /Users/mhdabs
 Marking id:bottom_navigation:2131230817 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:nav_host_fragment:2131231077 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking layout:dialog_update:2131427379 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tvUpdateVersion:2131231295 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:tvUpdateChangelog:2131231294 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tvUpdateVersion:2131231296 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tvUpdateChangelog:2131231295 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking attr:materialButtonToggleGroupStyle:2130903810 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking style:Widget_MaterialComponents_MaterialButtonToggleGroup:2131887165 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking attr:textInputStyle:2130904251 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -618,7 +619,7 @@ Marking attr:isMaterial3Theme:2130903654 reachable: referenced from /Users/mhdab
 Marking drawable:mtrl_checkbox_button:2131165372 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking drawable:mtrl_checkbox_button_icon:2131165374 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:checked:2131230859 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:unchecked:2131231306 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:unchecked:2131231307 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:indeterminate:2131230981 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking string:mtrl_checkbox_state_description_checked:2131820649 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking string:mtrl_checkbox_state_description_unchecked:2131820651 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -627,7 +628,7 @@ Marking attr:colorError:2130903301 reachable: referenced from /Users/mhdabshar/d
 Marking string:m3_exceed_max_badge_text_suffix:2131820602 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking string:mtrl_exceed_max_badge_number_suffix:2131820654 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:mtrl_anchor_parent:2131231051 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:view_tree_on_back_pressed_dispatcher_owner:2131231315 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:view_tree_on_back_pressed_dispatcher_owner:2131231316 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking dimen:abc_cascading_menus_min_smallest_width:2131099670 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:item_touch_helper_previous_elevation:2131230986 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking dimen:item_touch_helper_max_drag_scroll_per_frame:2131099802 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -649,7 +650,7 @@ Marking id:tvCrmSync:2131231278 reachable: referenced from /Users/mhdabshar/delt
 Marking id:tvDate:2131231279 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:tvDirection:2131231281 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking id:tvNumber:2131231289 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
-Marking id:action_settingsFragment_to_logsFragment:2131230787 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+Marking id:tvSyncError:2131231294 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking layout:material_clockface_view:2131427403 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking dimen:material_clock_hand_padding:2131100200 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 Marking color:material_timepicker_clockface:2131034814 reachable: referenced from /Users/mhdabshar/delta/deltainstitutions/crm banglore/CallRecorder/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
@@ -942,6 +943,7 @@ $tmp0
 singleLine
 cacheResponse
 input
+3c21e4e76a0759e9241322600e1f42f6
 SupportMenuInflater
 dalvik.system.CloseGuard
 anim
@@ -1095,8 +1097,8 @@ RESULT_INSTALL_SUCCESS
 internalTransactionExecutor
 dao
 klass
-uimode
 callrecorder_log.txt
+uimode
 KEY_COMPONENT_ACTIVITY_REGISTERED_KEYS
 checked
 AppLocalesStorageHelper
@@ -1414,6 +1416,7 @@ KEY_COMPONENT_ACTIVITY_LAUNCHED_KEYS
 kotlinx.coroutines.io.parallelism
 auto_record_enabled
 ResourcesCompat
+60aad21993d450ae595f847a2cd6dd9d
 TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
 PADDED
 TypefaceCompatApi21Impl
@@ -1784,7 +1787,6 @@ lastScheduledTask$volatile
 kotlin.Int
 queryParam
 android.view.
-1eeed4264fd879ad18423d5ea6670ca8
 okio.Okio
 android.permission.CALL_PHONE
 handleLifecycleEvent
@@ -1798,7 +1800,6 @@ kotlinx.coroutines.DefaultExecutor.ke...
 force_speaker_mode
 FloatingActionButton
 multipart/parallel
-OK
 call_type
 androidx.activity.result.contract.ext...
 Conscrypt
@@ -2059,6 +2060,7 @@ androidx.lifecycle.LifecycleDispatche...
 getSuppressed
 ACTION_UNKNOWN
 defaultLifecycleObserver
+syncError
 FLAG_CONVERT_TO_PLAIN_TEXT
 httponly
 SOURCE_PROCESS_TEXT
@@ -2198,7 +2200,6 @@ Cancel
 extras
 delegate
 Authorization
-d78dc49583c87efceb9885349ca2a638
 RIGHT
 lifecycleImpact
 bundle
@@ -2256,7 +2257,6 @@ inParcel
 ACTION_SCROLL_LEFT
 kotlin.Comparable
 HTTP/1.
-crm_base_url
 android:preferences
 PlayerBottomSheet
 baseKey
@@ -2341,7 +2341,6 @@ store
 kotlin.Float
 _next$volatile
 TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
-crm_api_key
 STATE_REG
 te
 SSL_RSA_WITH_NULL_MD5
@@ -2534,7 +2533,7 @@ Marking attr:paddingStart:2130903955 used because it matches string pool constan
 Marking attr:paddingStartSystemWindowInsets:2130903956 used because it matches string pool constant paddingStart
 Marking id:standard:2131231212 used because it matches string pool constant standard
 Marking attr:drawableLeftCompat:2130903457 used because it matches string pool constant drawableLeft
-Marking id:unchecked:2131231306 used because it matches string pool constant unchecked
+Marking id:unchecked:2131231307 used because it matches string pool constant unchecked
 Marking attr:listChoiceBackgroundIndicator:2130903779 used because it matches string pool constant list
 Marking attr:listChoiceIndicatorMultipleAnimated:2130903780 used because it matches string pool constant list
 Marking attr:listChoiceIndicatorSingleAnimated:2130903781 used because it matches string pool constant list
@@ -3135,12 +3134,12 @@ Marking attr:viewTransitionMode:2130904354 used because it matches string pool c
 Marking attr:viewTransitionOnCross:2130904355 used because it matches string pool constant view
 Marking attr:viewTransitionOnNegativeCross:2130904356 used because it matches string pool constant view
 Marking attr:viewTransitionOnPositiveCross:2130904357 used because it matches string pool constant view
-Marking id:view_offset_helper:2131231312 used because it matches string pool constant view
-Marking id:view_transition:2131231313 used because it matches string pool constant view
-Marking id:view_tree_lifecycle_owner:2131231314 used because it matches string pool constant view
-Marking id:view_tree_on_back_pressed_dispatcher_owner:2131231315 used because it matches string pool constant view
-Marking id:view_tree_saved_state_registry_owner:2131231316 used because it matches string pool constant view
-Marking id:view_tree_view_model_store_owner:2131231317 used because it matches string pool constant view
+Marking id:view_offset_helper:2131231313 used because it matches string pool constant view
+Marking id:view_transition:2131231314 used because it matches string pool constant view
+Marking id:view_tree_lifecycle_owner:2131231315 used because it matches string pool constant view
+Marking id:view_tree_on_back_pressed_dispatcher_owner:2131231316 used because it matches string pool constant view
+Marking id:view_tree_saved_state_registry_owner:2131231317 used because it matches string pool constant view
+Marking id:view_tree_view_model_store_owner:2131231318 used because it matches string pool constant view
 Marking color:androidx_core_ripple_material_light:2131034139 used because it matches string pool constant android
 Marking color:androidx_core_secondary_text_default_material_light:2131034140 used because it matches string pool constant android
 Marking id:androidx_window_activity_scope:2131230797 used because it matches string pool constant android
@@ -3557,7 +3556,7 @@ Marking attr:destination:2130903432 used because it matches string pool constant
 Marking string:dest_title:2131820592 used because it matches string pool constant dest
 Marking attr:upDuration:2130904343 used because it matches string pool constant up
 Marking attr:updatesContinuously:2130904344 used because it matches string pool constant up
-Marking id:up:2131231309 used because it matches string pool constant up
+Marking id:up:2131231310 used because it matches string pool constant up
 Marking attr:queryBackground:2130904013 used because it matches string pool constant query
 Marking attr:queryHint:2130904014 used because it matches string pool constant query
 Marking attr:queryPatterns:2130904015 used because it matches string pool constant query
@@ -9047,6 +9046,7 @@ Marking layout:fragment_recordings:2131427385 used because it matches string poo
 @id/tvPhone : reachable=true
 @id/tvSpeakerLabel : reachable=true
 @id/tvSubtitle : reachable=true
+@id/tvSyncError : reachable=true
 @id/tvUpdateChangelog : reachable=true
 @id/tvUpdateVersion : reachable=true
 @id/tv_call_type : reachable=true
@@ -20163,27 +20163,28 @@ The root reachable resources are:
  id:tvPhone:2131231291
  id:tvSpeakerLabel:2131231292
  id:tvSubtitle:2131231293
- id:tvUpdateChangelog:2131231294
- id:tvUpdateVersion:2131231295
- id:tv_call_type:2131231296
- id:tv_current_position:2131231297
- id:tv_date:2131231298
- id:tv_duration:2131231299
- id:tv_name:2131231300
- id:tv_number:2131231301
- id:tv_phone_number:2131231302
- id:tv_size:2131231303
- id:tv_title:2131231304
- id:tv_total_duration:2131231305
- id:unchecked:2131231306
- id:up:2131231309
- id:view_offset_helper:2131231312
- id:view_transition:2131231313
- id:view_tree_lifecycle_owner:2131231314
- id:view_tree_on_back_pressed_dispatcher_owner:2131231315
- id:view_tree_saved_state_registry_owner:2131231316
- id:view_tree_view_model_store_owner:2131231317
- id:visible_removing_fragment_view_tag:2131231319
+ id:tvSyncError:2131231294
+ id:tvUpdateChangelog:2131231295
+ id:tvUpdateVersion:2131231296
+ id:tv_call_type:2131231297
+ id:tv_current_position:2131231298
+ id:tv_date:2131231299
+ id:tv_duration:2131231300
+ id:tv_name:2131231301
+ id:tv_number:2131231302
+ id:tv_phone_number:2131231303
+ id:tv_size:2131231304
+ id:tv_title:2131231305
+ id:tv_total_duration:2131231306
+ id:unchecked:2131231307
+ id:up:2131231310
+ id:view_offset_helper:2131231313
+ id:view_transition:2131231314
+ id:view_tree_lifecycle_owner:2131231315
+ id:view_tree_on_back_pressed_dispatcher_owner:2131231316
+ id:view_tree_saved_state_registry_owner:2131231317
+ id:view_tree_view_model_store_owner:2131231318
+ id:visible_removing_fragment_view_tag:2131231320
  integer:app_bar_elevation_anim_duration:2131296258
  integer:bottom_sheet_slide_duration:2131296259
  integer:material_motion_duration_long_1:2131296295
@@ -21273,20 +21274,20 @@ Unused resources are:
  id:transition_scene_layoutid_cache:2131231271
  id:transition_transform:2131231272
  id:triangle:2131231273
- id:uniform:2131231307
- id:unlabeled:2131231308
- id:useLogo:2131231310
- id:vertical_only:2131231311
- id:visible:2131231318
- id:west:2131231320
- id:withText:2131231321
- id:with_icon:2131231322
- id:withinBounds:2131231323
- id:wrap:2131231324
- id:wrap_content:2131231325
- id:wrap_content_constrained:2131231326
- id:x_left:2131231327
- id:x_right:2131231328
+ id:uniform:2131231308
+ id:unlabeled:2131231309
+ id:useLogo:2131231311
+ id:vertical_only:2131231312
+ id:visible:2131231319
+ id:west:2131231321
+ id:withText:2131231322
+ id:with_icon:2131231323
+ id:withinBounds:2131231324
+ id:wrap:2131231325
+ id:wrap_content:2131231326
+ id:wrap_content_constrained:2131231327
+ id:x_left:2131231328
+ id:x_right:2131231329
  integer:cancel_button_image_alpha:2131296260
  integer:config_tooltipAnimTime:2131296262
  integer:m3_card_anim_delay_ms:2131296269

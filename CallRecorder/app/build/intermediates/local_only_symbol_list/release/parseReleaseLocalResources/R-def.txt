@@ -109,6 +109,7 @@ id tvOverlayContact
 id tvPhone
 id tvSpeakerLabel
 id tvSubtitle
+id tvSyncError
 id tvUpdateChangelog
 id tvUpdateVersion
 id tv_call_type

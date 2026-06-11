@@ -127,6 +127,18 @@
 
             </LinearLayout>
 
+            <!-- Sync error detail: shown below badges when CRM sync failed -->
+            <TextView
+                android:id="@+id/tvSyncError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:textSize="10sp"
+                android:textColor="#FFB71C1C"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:visibility="gone" />
+
         </LinearLayout>
 
         <!-- Call back button -->

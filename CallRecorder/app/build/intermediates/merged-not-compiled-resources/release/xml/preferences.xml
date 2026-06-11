@@ -91,21 +91,16 @@
     <PreferenceCategory android:title="CRM Sync">
 
         <Preference
-            android:key="crm_base_url"
-            android:title="CRM API URL"
-            android:summary="Not configured"
-            app:iconSpaceReserved="false" />
-
-        <Preference
-            android:key="crm_api_key"
-            android:title="CRM API Key"
-            android:summary="Not configured"
+            android:key="crm_status"
+            android:title="CRM Server"
+            android:summary="✅ api-crm-banglore.deltainstitutions.com"
+            android:selectable="false"
             app:iconSpaceReserved="false" />
 
         <Preference
             android:key="agent_extension"
             android:title="My Extension"
-            android:summary="Not configured"
+            android:summary="Not configured — tap to set"
             app:iconSpaceReserved="false" />
 
     </PreferenceCategory>
