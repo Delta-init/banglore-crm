@@ -38766,9 +38766,13 @@ com.callrecorder.service.CallRecordingService:
     public static void stopRecording()
     public static boolean tryPrivilegedSources()
 com.callrecorder.service.CallStateReceiver$Companion
+com.callrecorder.service.CallStateReceiver$onReceive$1:
+    public final java.lang.Object invoke$1()
 com.callrecorder.service.CallStateReceiver:
     public static final com.callrecorder.service.CallStateReceiver$Companion Companion
-    static void <clinit>()
+com.callrecorder.service.CrmSyncService$logCallEvent$2:
+    public int label
+    public final java.lang.Object invoke$1()
 com.callrecorder.service.CrmSyncService$sync$2:
     public int label
     public final java.lang.Object invoke$1()
@@ -41915,7 +41919,6 @@ kotlin.coroutines.ContinuationKt
 kotlin.coroutines.CoroutineContext$DefaultImpls
 kotlin.coroutines.CoroutineContext$Element$DefaultImpls:
     public static java.lang.Object fold(kotlin.coroutines.CoroutineContext$Element,java.lang.Object,kotlin.jvm.functions.Function2)
-    public static kotlin.coroutines.CoroutineContext plus(kotlin.coroutines.CoroutineContext$Element,kotlin.coroutines.CoroutineContext)
 kotlin.coroutines.CoroutineContext$plus$1:
     public static kotlin.coroutines.CoroutineContext invoke()
 kotlin.coroutines.intrinsics.CoroutineSingletons:
@@ -42198,6 +42201,8 @@ kotlinx.coroutines.CoroutineId$Key
 kotlinx.coroutines.CoroutineId
 kotlinx.coroutines.CoroutineName$Key
 kotlinx.coroutines.CoroutineName
+kotlinx.coroutines.CoroutineScopeKt:
+    public static final kotlinx.coroutines.internal.ContextScope CoroutineScope(kotlin.coroutines.CoroutineContext)
 kotlinx.coroutines.CoroutineStart$WhenMappings
 kotlinx.coroutines.CoroutineStart:
     public static final synthetic kotlin.enums.EnumEntries $ENTRIES
@@ -42366,7 +42371,6 @@ kotlinx.coroutines.NodeList:
     public static java.lang.String getString()
 kotlinx.coroutines.ParentJob:
     public abstract java.util.concurrent.CancellationException getChildJobCancellationCause()
-kotlinx.coroutines.SupervisorKt
 kotlinx.coroutines.ThreadContextElement:
     public abstract void restoreThreadContext(java.lang.Object)
     public abstract java.lang.String updateThreadContext(kotlin.coroutines.CoroutineContext)
@@ -43480,8 +43484,6 @@ okhttp3.MediaType:
 okhttp3.MultipartBody$Builder:
     public static okhttp3.MultipartBody$Builder addFormDataPart()
     public final void addPart(okhttp3.MultipartBody$Part)
-    public static okhttp3.MultipartBody build()
-    public static okhttp3.MultipartBody$Builder setType()
 okhttp3.MultipartBody$Part$Companion:
     public static okhttp3.MultipartBody$Part create()
     public static okhttp3.MultipartBody$Part createFormData()
@@ -43584,7 +43586,7 @@ okhttp3.Protocol:
 okhttp3.Request$Builder:
     public static okhttp3.Request$Builder get()
     public static okhttp3.Request$Builder headers()
-    public static okhttp3.Request$Builder post()
+    public final void post(okhttp3.MultipartBody)
     public final void removeHeader(java.lang.String)
     public final void url(okhttp3.HttpUrl)
 okhttp3.Request:
