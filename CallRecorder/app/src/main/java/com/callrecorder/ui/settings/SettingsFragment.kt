@@ -191,25 +191,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
         }
 
-        // ── CRM Sync ───────────────────────────────────────────────────────
-        setupCrmPref(
-            key       = PrefsHelper.KEY_CRM_BASE_URL,
-            title     = "CRM API URL",
-            hint      = "https://api-crm-banglore.deltainstitutions.com",
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
-            maskValue = false,
-            getter    = { PrefsHelper.getCrmBaseUrl(requireContext()) },
-            setter    = { v -> PrefsHelper.setCrmBaseUrl(requireContext(), v) },
-        )
-        setupCrmPref(
-            key       = PrefsHelper.KEY_CRM_API_KEY,
-            title     = "CRM API Key",
-            hint      = "Paste the key from CRM admin",
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
-            maskValue = true,
-            getter    = { PrefsHelper.getCrmApiKey(requireContext()) },
-            setter    = { v -> PrefsHelper.setCrmApiKey(requireContext(), v) },
-        )
+        // ── CRM Sync — only extension is user-configurable ─────────────────
+        // URL and API key are baked into the app (PrefsHelper constants).
         setupCrmPref(
             key       = PrefsHelper.KEY_AGENT_EXTENSION,
             title     = "My Extension",
@@ -222,24 +205,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         // ── Check for update ───────────────────────────────────────────────
         findPreference<Preference>("check_for_update")?.setOnPreferenceClickListener {
-            val apiKey = PrefsHelper.getCrmApiKey(requireContext()).trim()
-            val baseUrl = PrefsHelper.getCrmBaseUrl(requireContext()).trim()
-
-            if (apiKey.isBlank() || baseUrl.isBlank()) {
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("CRM Not Configured")
-                    .setMessage(
-                        "To check for updates you need to configure CRM Sync first.\n\n" +
-                        "Go to Settings → CRM Sync and enter:\n" +
-                        "• CRM API URL\n" +
-                        "• CRM API Key\n\n" +
-                        "Ask your admin for these values."
-                    )
-                    .setPositiveButton("OK", null)
-                    .show()
-                return@setOnPreferenceClickListener true
-            }
-
             snack("Checking for updates…")
             viewLifecycleOwner.lifecycleScope.launch {
                 val update = AppUpdateChecker.check(requireContext())

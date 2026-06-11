@@ -37,7 +37,7 @@ interface RecordingDao {
     @Query("SELECT * FROM recordings ORDER BY createdAt DESC")
     suspend fun getAllRecordingsSnapshot(): List<RecordingEntity>
 
-    /** Mark a recording as successfully synced (or not) to the CRM. */
-    @Query("UPDATE recordings SET crmSynced = :synced WHERE id = :id")
-    suspend fun updateCrmSynced(id: Int, synced: Boolean)
+    /** Persist CRM sync result — flag + error message (null on success). */
+    @Query("UPDATE recordings SET crmSynced = :synced, syncError = :error WHERE id = :id")
+    suspend fun updateSyncResult(id: Int, synced: Boolean, error: String?)
 }

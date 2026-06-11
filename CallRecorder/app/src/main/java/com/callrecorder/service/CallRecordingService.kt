@@ -419,6 +419,11 @@ class CallRecordingService : LifecycleService() {
                     fileSize    = fileSize,
                     callType    = type,
                     crmSynced   = false,
+                    // Use call START time so the Recent Calls matcher can correlate
+                    // with the system call log (which also uses call start time).
+                    // Without this, long calls (> 90 s) would never match because
+                    // the default is System.currentTimeMillis() at END of call.
+                    createdAt   = if (callStartTime > 0L) callStartTime else System.currentTimeMillis(),
                 )
                 val savedId = repository.insert(entity).toInt()
                 AppLogger.i(this@CallRecordingService, TAG,
@@ -432,12 +437,12 @@ class CallRecordingService : LifecycleService() {
                     crmSynced  = null,
                 )
 
-                // Upload file + metadata to CRM
-                val synced = CrmSyncService.sync(this@CallRecordingService, entity)
+                // Upload file + metadata to CRM — returns (synced, errorMessage)
+                val (synced, syncError) = CrmSyncService.sync(this@CallRecordingService, entity)
 
                 // Persist CRM sync result so the Recent Calls list can show it
                 if (savedId > 0) {
-                    repository.updateCrmSynced(savedId, synced)
+                    repository.updateSyncResult(savedId, synced, syncError)
                 }
 
                 showSavedNotification(

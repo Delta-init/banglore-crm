@@ -60,7 +60,7 @@ class CallLogAdapter(
             b.tvDirection.backgroundTintList =
                 ColorStateList.valueOf(ContextCompat.getColor(ctx, dirBg))
 
-            // ── CRM sync badge (only shown when call was recorded) ────────────
+            // ── CRM sync badge + error detail ─────────────────────────────────
             when (entry.crmSyncStatus) {
                 CrmSyncStatus.SYNCED -> {
                     b.tvCrmSync.visibility = View.VISIBLE
@@ -68,6 +68,7 @@ class CallLogAdapter(
                     b.tvCrmSync.setTextColor(ContextCompat.getColor(ctx, R.color.badge_synced_text))
                     b.tvCrmSync.backgroundTintList =
                         ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.badge_synced_bg))
+                    b.tvSyncError.visibility = View.GONE
                 }
                 CrmSyncStatus.NOT_SYNCED -> {
                     b.tvCrmSync.visibility = View.VISIBLE
@@ -75,9 +76,17 @@ class CallLogAdapter(
                     b.tvCrmSync.setTextColor(ContextCompat.getColor(ctx, R.color.badge_not_synced_text))
                     b.tvCrmSync.backgroundTintList =
                         ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.badge_not_synced_bg))
+                    // Show the actual API error so the user knows what went wrong
+                    if (!entry.syncError.isNullOrBlank()) {
+                        b.tvSyncError.visibility = View.VISIBLE
+                        b.tvSyncError.text       = entry.syncError
+                    } else {
+                        b.tvSyncError.visibility = View.GONE
+                    }
                 }
                 CrmSyncStatus.NOT_RECORDED -> {
-                    b.tvCrmSync.visibility = View.GONE
+                    b.tvCrmSync.visibility   = View.GONE
+                    b.tvSyncError.visibility = View.GONE
                 }
             }
 

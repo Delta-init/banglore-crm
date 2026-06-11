@@ -22,5 +22,6 @@ data class CallLogEntry(
     val callType: Int,                      // CallLog.Calls.TYPE: 1=incoming, 2=outgoing, 3=missed, 5=rejected
     val date: Long,                         // epoch millis
     val duration: Long,                     // seconds
-    val crmSyncStatus: CrmSyncStatus = CrmSyncStatus.NOT_RECORDED
+    val crmSyncStatus: CrmSyncStatus = CrmSyncStatus.NOT_RECORDED,
+    val syncError: String? = null           // HTTP response or exception when NOT_SYNCED
 )

@@ -53,9 +53,9 @@ class RecentCallsViewModel(app: Application) : AndroidViewModel(app) {
                 abs(call.date - rec.createdAt) < MATCH_WINDOW_MS
             }
             when {
-                match == null   -> call   // not recorded — default NOT_RECORDED
-                match.crmSynced -> call.copy(crmSyncStatus = CrmSyncStatus.SYNCED)
-                else            -> call.copy(crmSyncStatus = CrmSyncStatus.NOT_SYNCED)
+                match == null   -> call
+                match.crmSynced -> call.copy(crmSyncStatus = CrmSyncStatus.SYNCED, syncError = null)
+                else            -> call.copy(crmSyncStatus = CrmSyncStatus.NOT_SYNCED, syncError = match.syncError)
             }
         }
     }

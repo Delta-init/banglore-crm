@@ -16,8 +16,6 @@ object PrefsHelper {
     private const val KEY_FORCE_SPEAKER_MODE    = "force_speaker_mode"
 
     // ── CRM Sync ───────────────────────────────────────────────────────────────
-    const val KEY_CRM_BASE_URL    = "crm_base_url"
-    const val KEY_CRM_API_KEY     = "crm_api_key"
     const val KEY_AGENT_EXTENSION = "agent_extension"
 
     // ── Dialer / overlay ───────────────────────────────────────────────────────
@@ -54,17 +52,9 @@ object PrefsHelper {
     fun setForceSpeakerMode(context: Context, enabled: Boolean) =
         prefs(context).edit { putBoolean(KEY_FORCE_SPEAKER_MODE, enabled) }
 
-    fun getCrmBaseUrl(context: Context): String =
-        prefs(context).getString(KEY_CRM_BASE_URL, DEFAULT_CRM_URL) ?: DEFAULT_CRM_URL
-
-    fun setCrmBaseUrl(context: Context, url: String) =
-        prefs(context).edit { putString(KEY_CRM_BASE_URL, url) }
-
-    fun getCrmApiKey(context: Context): String =
-        prefs(context).getString(KEY_CRM_API_KEY, DEFAULT_API_KEY) ?: DEFAULT_API_KEY
-
-    fun setCrmApiKey(context: Context, key: String) =
-        prefs(context).edit { putString(KEY_CRM_API_KEY, key) }
+    // URL and API key are baked in — not user-configurable
+    fun getCrmBaseUrl(context: Context): String = DEFAULT_CRM_URL
+    fun getCrmApiKey(context: Context): String = DEFAULT_API_KEY
 
     fun getAgentExtension(context: Context): String =
         prefs(context).getString(KEY_AGENT_EXTENSION, "") ?: ""

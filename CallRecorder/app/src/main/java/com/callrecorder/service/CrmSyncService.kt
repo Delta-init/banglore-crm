@@ -80,10 +80,12 @@ object CrmSyncService {
      * Upload recording file + call metadata to the CRM.
      * If the file is missing or too small, falls back to logCallEvent().
      *
-     * @return true = successfully logged to CRM
+     * @return Pair(synced, errorMessage) — errorMessage is null on success
      */
-    suspend fun sync(context: Context, recording: RecordingEntity): Boolean {
-        val (baseUrl, apiKey) = readyOrNull(context) ?: return false
+    suspend fun sync(context: Context, recording: RecordingEntity): Pair<Boolean, String?> {
+        val cfg = readyOrNull(context)
+        if (cfg == null) return false to "CRM not configured (Settings → CRM Sync)"
+        val (baseUrl, apiKey) = cfg
         val extension = PrefsHelper.getAgentExtension(context).trim()
 
         val file = File(recording.filePath)
@@ -138,15 +140,17 @@ object CrmSyncService {
 
                 if (response.isSuccessful) {
                     AppLogger.i(context, TAG, "CRM sync ✅ HTTP ${response.code}: $responseBody")
-                    true
+                    true to null
                 } else {
-                    AppLogger.e(context, TAG, "CRM sync failed HTTP ${response.code}: $responseBody")
-                    false
+                    val msg = "HTTP ${response.code}: ${responseBody.take(120)}"
+                    AppLogger.e(context, TAG, "CRM sync failed $msg")
+                    false to msg
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e(context, TAG, "CRM sync error: ${e.javaClass.simpleName}: ${e.message}")
-            false
+            val msg = "${e.javaClass.simpleName}: ${e.message?.take(100)}"
+            AppLogger.e(context, TAG, "CRM sync error: $msg")
+            false to msg
         }
     }
 
@@ -164,7 +168,7 @@ object CrmSyncService {
      * @param durationSecs Call duration in SECONDS. 0 for missed/not-answered.
      * @param callDateIso  ISO 8601 UTC timestamp (defaults to now)
      *
-     * @return true = successfully logged to CRM
+     * @return Pair(synced, errorMessage) — errorMessage is null on success
      */
     suspend fun logCallEvent(
         context:      Context,
@@ -172,13 +176,15 @@ object CrmSyncService {
         callType:     String,
         durationSecs: Long   = 0L,
         callDateIso:  String = Instant.now().toString(),
-    ): Boolean {
-        val (baseUrl, apiKey) = readyOrNull(context) ?: return false
+    ): Pair<Boolean, String?> {
+        val cfg = readyOrNull(context)
+        if (cfg == null) return false to "CRM not configured (Settings → CRM Sync)"
+        val (baseUrl, apiKey) = cfg
         val extension = PrefsHelper.getAgentExtension(context).trim()
 
         if (phoneNumber.isBlank()) {
             AppLogger.w(context, TAG, "logCallEvent skipped — phone number is blank")
-            return false
+            return false to "Phone number blank"
         }
 
         AppLogger.i(
@@ -209,15 +215,17 @@ object CrmSyncService {
 
                 if (response.isSuccessful) {
                     AppLogger.i(context, TAG, "Call event logged ✅ HTTP ${response.code}: $responseBody")
-                    true
+                    true to null
                 } else {
-                    AppLogger.e(context, TAG, "Call event log failed HTTP ${response.code}: $responseBody")
-                    false
+                    val msg = "HTTP ${response.code}: ${responseBody.take(120)}"
+                    AppLogger.e(context, TAG, "Call event log failed $msg")
+                    false to msg
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e(context, TAG, "logCallEvent error: ${e.javaClass.simpleName}: ${e.message}")
-            false
+            val msg = "${e.javaClass.simpleName}: ${e.message?.take(100)}"
+            AppLogger.e(context, TAG, "logCallEvent error: $msg")
+            false to msg
         }
     }
 }
