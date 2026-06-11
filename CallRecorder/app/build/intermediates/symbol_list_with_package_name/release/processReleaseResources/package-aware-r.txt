@@ -3340,6 +3340,7 @@ id btnAnswer
 id btnBackspace
 id btnCall
 id btnCallback
+id btnClear
 id btnClearLogs
 id btnDecline
 id btnDelete
@@ -3386,7 +3387,6 @@ id collapseActionView
 id compress
 id confirm_button
 id constraint
-id contactsFragment
 id container
 id content
 id contentPanel
@@ -3396,6 +3396,7 @@ id coordinator
 id cos
 id counterclockwise
 id cradle
+id crmLogsFragment
 id currentState
 id custom
 id customPanel
@@ -3669,6 +3670,7 @@ id right_side
 id rounded
 id row_index_key
 id rtl
+id rvCrmLogs
 id save_non_transition_alpha
 id save_overlay_view
 id sawtooth
@@ -3788,16 +3790,19 @@ id transition_position
 id transition_scene_layoutid_cache
 id transition_transform
 id triangle
+id tvCallLogId
 id tvCallType
 id tvCallerInitial
 id tvCallerName
 id tvCallerNumber
+id tvCount
 id tvCrmSync
 id tvDate
 id tvDialNumber
 id tvDirection
 id tvDuration
 id tvEmail
+id tvEmpty
 id tvImported
 id tvInitial
 id tvLogs
@@ -3807,8 +3812,11 @@ id tvNumber
 id tvOverlayContact
 id tvPhone
 id tvSpeakerLabel
+id tvStatus
 id tvSubtitle
 id tvSyncError
+id tvTimestamp
+id tvTitle
 id tvUpdateChangelog
 id tvUpdateVersion
 id tv_call_type
@@ -3987,6 +3995,7 @@ layout dialog_add_edit_contact
 layout dialog_update
 layout expand_button
 layout fragment_contacts
+layout fragment_crm_logs
 layout fragment_dialer
 layout fragment_logs
 layout fragment_recent_calls
@@ -3996,6 +4005,7 @@ layout ime_base_split_test_activity
 layout ime_secondary_split_test_activity
 layout item_call_log
 layout item_contact
+layout item_crm_log
 layout item_recording
 layout m3_alert_dialog
 layout m3_alert_dialog_actions
@@ -4258,6 +4268,7 @@ string status_bar_notification_info_overflow
 string summary_collapsed_preference_list
 string tab_calls
 string tab_contacts
+string tab_crm_logs
 string tab_dialer
 string tab_recordings
 string tab_settings

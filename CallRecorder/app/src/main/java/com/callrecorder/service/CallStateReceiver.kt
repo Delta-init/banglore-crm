@@ -8,11 +8,13 @@ import android.util.Log
 import com.callrecorder.data.db.AppDatabase
 import com.callrecorder.data.db.RecordingEntity
 import com.callrecorder.utils.AppLogger
+import com.callrecorder.utils.CallLogQueryHelper
 import com.callrecorder.utils.ContactHelper
 import com.callrecorder.utils.PrefsHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -148,30 +150,33 @@ class CallStateReceiver : BroadcastReceiver() {
                             wasRinging -> {
                                 // RINGING → IDLE = missed / rejected incoming call
                                 AppLogger.i(context, TAG, "Missed call from: $missedPhone — logging to CRM")
-                                if (missedPhone.isNotBlank()) {
-                                    receiverScope.launch {
-                                        val (synced, syncErr) = CrmSyncService.logCallEvent(
-                                            context      = context,
-                                            phoneNumber  = missedPhone,
-                                            callType     = "missed",
-                                            durationSecs = 0L,
-                                        )
-                                        // Save tombstone so Recent Calls badge shows CRM result
-                                        val contactName = ContactHelper.getContactName(context, missedPhone)
-                                        AppDatabase.getInstance(context).recordingDao().insert(
-                                            RecordingEntity(
-                                                phoneNumber = missedPhone,
-                                                contactName = contactName,
-                                                filePath    = "",
-                                                duration    = 0L,
-                                                fileSize    = 0L,
-                                                callType    = "missed",
-                                                crmSynced   = synced,
-                                                syncError   = syncErr,
-                                                createdAt   = System.currentTimeMillis(),
-                                            )
-                                        )
+                                receiverScope.launch {
+                                    // Recover phone from system call log if blank (Android 10+)
+                                    val phone = if (missedPhone.isNotBlank()) missedPhone else {
+                                        delay(1_500L)
+                                        CallLogQueryHelper.getLastCall(context, withinMs = 60_000L)
+                                            ?.number ?: ""
                                     }
+                                    val (synced, syncErr) = CrmSyncService.logCallEvent(
+                                        context      = context,
+                                        phoneNumber  = phone,
+                                        callType     = "missed",
+                                        durationSecs = 0L,
+                                    )
+                                    val contactName = ContactHelper.getContactName(context, phone)
+                                    AppDatabase.getInstance(context).recordingDao().insert(
+                                        RecordingEntity(
+                                            phoneNumber = phone,
+                                            contactName = contactName,
+                                            filePath    = "",
+                                            duration    = 0L,
+                                            fileSize    = 0L,
+                                            callType    = "missed",
+                                            crmSynced   = synced,
+                                            syncError   = syncErr,
+                                            createdAt   = System.currentTimeMillis(),
+                                        )
+                                    )
                                 }
                             }
                             else -> {

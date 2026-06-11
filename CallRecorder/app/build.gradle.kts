@@ -14,8 +14,8 @@ android {
         applicationId = "com.callrecorder"
         minSdk = 26
         targetSdk = 35
-        versionCode = 10
-        versionName = "1.9"
+        versionCode = 12
+        versionName = "1.11"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

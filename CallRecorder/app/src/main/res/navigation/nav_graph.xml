@@ -20,9 +20,9 @@
         android:label="Dialer" />
 
     <fragment
-        android:id="@+id/contactsFragment"
-        android:name="com.callrecorder.ui.contacts.ContactsFragment"
-        android:label="Contacts" />
+        android:id="@+id/crmLogsFragment"
+        android:name="com.callrecorder.ui.crmlogs.CrmLogsFragment"
+        android:label="CRM Logs" />
 
     <fragment
         android:id="@+id/settingsFragment"

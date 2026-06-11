@@ -17,6 +17,7 @@ import com.callrecorder.data.db.RecordingEntity
 import com.callrecorder.data.repository.RecordingRepository
 import com.callrecorder.ui.MainActivity
 import com.callrecorder.utils.AppLogger
+import com.callrecorder.utils.CallLogQueryHelper
 import com.callrecorder.utils.ContactHelper
 import com.callrecorder.utils.PrefsHelper
 import com.callrecorder.utils.StorageHelper
@@ -379,29 +380,37 @@ class CallRecordingService : LifecycleService() {
             val phone   = currentPhoneNumber
             val type    = currentCallType
             val startMs = if (callStartTime > 0L) callStartTime else System.currentTimeMillis()
-            if (phone.isNotBlank()) {
-                serviceScope.launch {
-                    val callDateIso = java.time.Instant.ofEpochMilli(startMs).toString()
-                    val (synced, syncErr) = CrmSyncService.logCallEvent(
-                        context      = this@CallRecordingService,
-                        phoneNumber  = phone,
-                        callType     = type.ifBlank { "unknown" },
-                        durationSecs = 0L,
-                        callDateIso  = callDateIso,
-                    )
-                    val contactName = ContactHelper.getContactName(this@CallRecordingService, phone)
-                    repository.insert(RecordingEntity(
-                        phoneNumber = phone,
-                        contactName = contactName,
-                        filePath    = "",
-                        duration    = 0L,
-                        fileSize    = 0L,
-                        callType    = type.ifBlank { "unknown" },
-                        crmSynced   = synced,
-                        syncError   = syncErr,
-                        createdAt   = startMs,
-                    ))
+            serviceScope.launch {
+                // Recover phone from system call log if blank (Android 10+ inbound)
+                val resolvedPhone = if (phone.isNotBlank()) phone else {
+                    delay(1_500L)
+                    CallLogQueryHelper.getLastCall(this@CallRecordingService, withinMs = 120_000L)
+                        ?.number ?: ""
                 }
+                val callDateIso = java.time.Instant.ofEpochMilli(startMs).toString()
+                // Recover duration from system call log
+                val sysDurSecs = CallLogQueryHelper.getLastCall(
+                    this@CallRecordingService, withinMs = 120_000L
+                )?.durationSec ?: 0L
+                val (synced, syncErr) = CrmSyncService.logCallEvent(
+                    context      = this@CallRecordingService,
+                    phoneNumber  = resolvedPhone,
+                    callType     = type.ifBlank { "unknown" },
+                    durationSecs = sysDurSecs,
+                    callDateIso  = callDateIso,
+                )
+                val contactName = ContactHelper.getContactName(this@CallRecordingService, resolvedPhone)
+                repository.insert(RecordingEntity(
+                    phoneNumber = resolvedPhone,
+                    contactName = contactName,
+                    filePath    = "",
+                    duration    = sysDurSecs * 1000L,
+                    fileSize    = 0L,
+                    callType    = type.ifBlank { "unknown" },
+                    crmSynced   = synced,
+                    syncError   = syncErr,
+                    createdAt   = startMs,
+                ))
             }
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
@@ -433,6 +442,22 @@ class CallRecordingService : LifecycleService() {
             // Wait for the OS to finish writing the audio file
             delay(500)
 
+            // ── Resolve phone number ──────────────────────────────────────────
+            // On Android 10+ EXTRA_INCOMING_NUMBER is removed, so currentPhoneNumber
+            // may be blank for inbound calls. Query the system call log as fallback.
+            val resolvedPhone = if (phone.isNotBlank()) phone else {
+                delay(1_500L)  // give the system a moment to write the call log entry
+                val sys = CallLogQueryHelper.getLastCall(this@CallRecordingService, withinMs = 120_000L)
+                (sys?.number ?: "").also { found ->
+                    if (found.isNotBlank())
+                        AppLogger.i(this@CallRecordingService, TAG,
+                            "Phone recovered from system call log: $found")
+                    else
+                        AppLogger.w(this@CallRecordingService, TAG,
+                            "Phone still blank after system call log query — sync will skip")
+                }
+            }
+
             val fileSize = StorageHelper.getFileSize(filePath)
 
             // Try file metadata first (most accurate).
@@ -446,22 +471,29 @@ class CallRecordingService : LifecycleService() {
             // Clamp wallClock to a sane range (1 s – 2 h) to avoid bad values
             val safeWallClock = wallClock.takeIf { it in 1_000L..7_200_000L } ?: 0L
 
+            // Fallback: use system call log duration when file+wallclock are both 0
+            val sysCallDurationMs = if (fileDuration <= 0L && safeWallClock <= 0L) {
+                CallLogQueryHelper.getLastCall(this@CallRecordingService, withinMs = 120_000L)
+                    ?.durationSec?.times(1000L) ?: 0L
+            } else 0L
+
             val duration = when {
-                fileDuration > 0L  -> fileDuration   // best — actual audio length (ms)
-                safeWallClock > 0L -> safeWallClock  // good — post-connect wallClock (ms)
-                else               -> 0L             // unknown
+                fileDuration > 0L    -> fileDuration       // best — actual audio length (ms)
+                safeWallClock > 0L   -> safeWallClock      // good — post-connect wallClock (ms)
+                sysCallDurationMs > 0L -> sysCallDurationMs // fallback — system call log
+                else                 -> 0L                 // unknown
             }
             val durationSecs = duration / 1000L
 
             AppLogger.i(this@CallRecordingService, TAG,
-                "Duration: file=${fileDuration}ms  wall=${wallClock}ms  used=${duration}ms (${durationSecs}s)")
+                "Duration: file=${fileDuration}ms  wall=${wallClock}ms  sys=${sysCallDurationMs}ms  used=${duration}ms (${durationSecs}s)")
 
-            val contactName = ContactHelper.getContactName(this@CallRecordingService, phone)
+            val contactName = ContactHelper.getContactName(this@CallRecordingService, resolvedPhone)
 
             if (fileSize > 1_024L) {
                 // ── Real recording exists — save locally and upload with file ─
                 val entity = RecordingEntity(
-                    phoneNumber = phone,
+                    phoneNumber = resolvedPhone,
                     contactName = contactName,
                     filePath    = filePath,
                     duration    = duration,
@@ -470,8 +502,6 @@ class CallRecordingService : LifecycleService() {
                     crmSynced   = false,
                     // Use call START time so the Recent Calls matcher can correlate
                     // with the system call log (which also uses call start time).
-                    // Without this, long calls (> 90 s) would never match because
-                    // the default is System.currentTimeMillis() at END of call.
                     createdAt   = if (callStartTime > 0L) callStartTime else System.currentTimeMillis(),
                 )
                 val savedId = repository.insert(entity).toInt()
@@ -479,23 +509,20 @@ class CallRecordingService : LifecycleService() {
                     "Saved ✅  id=$savedId  ${durationSecs}s  ${fileSize / 1024}KB  " +
                     "src=${audioSourceName(activeAudioSource)} speaker=$usedSpeakerMode")
 
-                // Notify user: recording saved locally (sync in progress)
                 showSavedNotification(
-                    phone      = contactName ?: phone,
+                    phone      = contactName ?: resolvedPhone,
                     durationMs = duration,
                     crmSynced  = null,
                 )
 
-                // Upload file + metadata to CRM — returns (synced, errorMessage)
                 val (synced, syncError) = CrmSyncService.sync(this@CallRecordingService, entity)
 
-                // Persist CRM sync result so the Recent Calls list can show it
                 if (savedId > 0) {
                     repository.updateSyncResult(savedId, synced, syncError)
                 }
 
                 showSavedNotification(
-                    phone      = contactName ?: phone,
+                    phone      = contactName ?: resolvedPhone,
                     durationMs = duration,
                     crmSynced  = synced,
                 )
@@ -508,15 +535,14 @@ class CallRecordingService : LifecycleService() {
 
                 val (synced, syncErr) = CrmSyncService.logCallEvent(
                     context      = this@CallRecordingService,
-                    phoneNumber  = phone,
+                    phoneNumber  = resolvedPhone,
                     callType     = type,
                     durationSecs = durationSecs,
                     callDateIso  = callDateIso,
                 )
 
-                // Tombstone — no audio file, but we know the call happened and the CRM result
                 repository.insert(RecordingEntity(
-                    phoneNumber = phone,
+                    phoneNumber = resolvedPhone,
                     contactName = contactName,
                     filePath    = "",
                     duration    = duration,
@@ -528,7 +554,7 @@ class CallRecordingService : LifecycleService() {
                 ))
 
                 showSavedNotification(
-                    phone      = contactName ?: phone,
+                    phone      = contactName ?: resolvedPhone,
                     durationMs = duration,
                     crmSynced  = synced,
                 )

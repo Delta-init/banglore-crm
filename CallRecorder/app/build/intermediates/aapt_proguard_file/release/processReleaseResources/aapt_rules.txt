@@ -51,6 +51,8 @@
 
 -keep class androidx.appcompat.widget.ViewStubCompat { <init>(android.content.Context, android.util.AttributeSet); }
 
+-keep class androidx.cardview.widget.CardView { <init>(android.content.Context, android.util.AttributeSet); }
+
 -keep class androidx.constraintlayout.helper.widget.Flow { <init>(android.content.Context, android.util.AttributeSet); }
 
 -keep class androidx.constraintlayout.widget.ConstraintLayout { <init>(android.content.Context, android.util.AttributeSet); }
@@ -73,7 +75,7 @@
 
 -keep class com.callrecorder.ui.calls.RecentCallsFragment { <init>(...); }
 
--keep class com.callrecorder.ui.contacts.ContactsFragment { <init>(...); }
+-keep class com.callrecorder.ui.crmlogs.CrmLogsFragment { <init>(...); }
 
 -keep class com.callrecorder.ui.logs.LogsFragment { <init>(...); }
 

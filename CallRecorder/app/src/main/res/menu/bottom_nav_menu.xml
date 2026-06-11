@@ -18,9 +18,9 @@
         android:title="@string/tab_dialer" />
 
     <item
-        android:id="@+id/contactsFragment"
-        android:icon="@drawable/ic_contacts"
-        android:title="@string/tab_contacts" />
+        android:id="@+id/crmLogsFragment"
+        android:icon="@drawable/ic_logs"
+        android:title="@string/tab_crm_logs" />
 
     <item
         android:id="@+id/settingsFragment"

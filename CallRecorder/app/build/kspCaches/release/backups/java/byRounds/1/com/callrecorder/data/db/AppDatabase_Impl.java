@@ -30,22 +30,26 @@ public final class AppDatabase_Impl extends AppDatabase {
 
   private volatile ContactDao _contactDao;
 
+  private volatile CrmLogDao _crmLogDao;
+
   @Override
   @NonNull
   protected SupportSQLiteOpenHelper createOpenHelper(@NonNull final DatabaseConfiguration config) {
-    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(4) {
+    final SupportSQLiteOpenHelper.Callback _openCallback = new RoomOpenHelper(config, new RoomOpenHelper.Delegate(5) {
       @Override
       public void createAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS `recordings` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `phoneNumber` TEXT NOT NULL, `contactName` TEXT, `filePath` TEXT NOT NULL, `duration` INTEGER NOT NULL, `fileSize` INTEGER NOT NULL, `callType` TEXT NOT NULL, `crmSynced` INTEGER NOT NULL, `syncError` TEXT, `createdAt` INTEGER NOT NULL)");
         db.execSQL("CREATE TABLE IF NOT EXISTS `contacts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `phone` TEXT NOT NULL, `email` TEXT, `notes` TEXT, `deviceContactId` INTEGER, `createdAt` INTEGER NOT NULL)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `crm_logs` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `phoneNumber` TEXT NOT NULL, `callType` TEXT NOT NULL, `durationSecs` INTEGER NOT NULL, `synced` INTEGER NOT NULL, `callLogId` TEXT, `errorMessage` TEXT)");
         db.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)");
-        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '60aad21993d450ae595f847a2cd6dd9d')");
+        db.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '53aae321e1f6fc4a1da0c5ebe0c5109c')");
       }
 
       @Override
       public void dropAllTables(@NonNull final SupportSQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS `recordings`");
         db.execSQL("DROP TABLE IF EXISTS `contacts`");
+        db.execSQL("DROP TABLE IF EXISTS `crm_logs`");
         final List<? extends RoomDatabase.Callback> _callbacks = mCallbacks;
         if (_callbacks != null) {
           for (RoomDatabase.Callback _callback : _callbacks) {
@@ -126,9 +130,27 @@ public final class AppDatabase_Impl extends AppDatabase {
                   + " Expected:\n" + _infoContacts + "\n"
                   + " Found:\n" + _existingContacts);
         }
+        final HashMap<String, TableInfo.Column> _columnsCrmLogs = new HashMap<String, TableInfo.Column>(8);
+        _columnsCrmLogs.put("id", new TableInfo.Column("id", "INTEGER", true, 1, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrmLogs.put("timestamp", new TableInfo.Column("timestamp", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrmLogs.put("phoneNumber", new TableInfo.Column("phoneNumber", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrmLogs.put("callType", new TableInfo.Column("callType", "TEXT", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrmLogs.put("durationSecs", new TableInfo.Column("durationSecs", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrmLogs.put("synced", new TableInfo.Column("synced", "INTEGER", true, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrmLogs.put("callLogId", new TableInfo.Column("callLogId", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        _columnsCrmLogs.put("errorMessage", new TableInfo.Column("errorMessage", "TEXT", false, 0, null, TableInfo.CREATED_FROM_ENTITY));
+        final HashSet<TableInfo.ForeignKey> _foreignKeysCrmLogs = new HashSet<TableInfo.ForeignKey>(0);
+        final HashSet<TableInfo.Index> _indicesCrmLogs = new HashSet<TableInfo.Index>(0);
+        final TableInfo _infoCrmLogs = new TableInfo("crm_logs", _columnsCrmLogs, _foreignKeysCrmLogs, _indicesCrmLogs);
+        final TableInfo _existingCrmLogs = TableInfo.read(db, "crm_logs");
+        if (!_infoCrmLogs.equals(_existingCrmLogs)) {
+          return new RoomOpenHelper.ValidationResult(false, "crm_logs(com.callrecorder.data.db.CrmLogEntity).\n"
+                  + " Expected:\n" + _infoCrmLogs + "\n"
+                  + " Found:\n" + _existingCrmLogs);
+        }
         return new RoomOpenHelper.ValidationResult(true, null);
       }
-    }, "60aad21993d450ae595f847a2cd6dd9d", "3c21e4e76a0759e9241322600e1f42f6");
+    }, "53aae321e1f6fc4a1da0c5ebe0c5109c", "b9d1aeee316400a5e71c34dce73d0abc");
     final SupportSQLiteOpenHelper.Configuration _sqliteConfig = SupportSQLiteOpenHelper.Configuration.builder(config.context).name(config.name).callback(_openCallback).build();
     final SupportSQLiteOpenHelper _helper = config.sqliteOpenHelperFactory.create(_sqliteConfig);
     return _helper;
@@ -139,7 +161,7 @@ public final class AppDatabase_Impl extends AppDatabase {
   protected InvalidationTracker createInvalidationTracker() {
     final HashMap<String, String> _shadowTablesMap = new HashMap<String, String>(0);
     final HashMap<String, Set<String>> _viewTables = new HashMap<String, Set<String>>(0);
-    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "recordings","contacts");
+    return new InvalidationTracker(this, _shadowTablesMap, _viewTables, "recordings","contacts","crm_logs");
   }
 
   @Override
@@ -150,6 +172,7 @@ public final class AppDatabase_Impl extends AppDatabase {
       super.beginTransaction();
       _db.execSQL("DELETE FROM `recordings`");
       _db.execSQL("DELETE FROM `contacts`");
+      _db.execSQL("DELETE FROM `crm_logs`");
       super.setTransactionSuccessful();
     } finally {
       super.endTransaction();
@@ -166,6 +189,7 @@ public final class AppDatabase_Impl extends AppDatabase {
     final HashMap<Class<?>, List<Class<?>>> _typeConvertersMap = new HashMap<Class<?>, List<Class<?>>>();
     _typeConvertersMap.put(RecordingDao.class, RecordingDao_Impl.getRequiredConverters());
     _typeConvertersMap.put(ContactDao.class, ContactDao_Impl.getRequiredConverters());
+    _typeConvertersMap.put(CrmLogDao.class, CrmLogDao_Impl.getRequiredConverters());
     return _typeConvertersMap;
   }
 
@@ -208,6 +232,20 @@ public final class AppDatabase_Impl extends AppDatabase {
           _contactDao = new ContactDao_Impl(this);
         }
         return _contactDao;
+      }
+    }
+  }
+
+  @Override
+  public CrmLogDao crmLogDao() {
+    if (_crmLogDao != null) {
+      return _crmLogDao;
+    } else {
+      synchronized(this) {
+        if(_crmLogDao == null) {
+          _crmLogDao = new CrmLogDao_Impl(this);
+        }
+        return _crmLogDao;
       }
     }
   }
