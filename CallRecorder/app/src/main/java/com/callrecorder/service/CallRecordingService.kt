@@ -63,6 +63,11 @@ class CallRecordingService : LifecycleService() {
     private var recordingStartTime: Long = 0L   // set AFTER waitForCallAudio + audio settle
     private var activeAudioSource: Int = MediaRecorder.AudioSource.MIC
 
+    // Prevents activateRecording() from starting the recorder after the call has ended
+    @Volatile private var stopRequested      = false
+    // Prevents duplicate stop processing when stopRecording() is called more than once
+    @Volatile private var stopAlreadyHandled = false
+
     private var audioManager: AudioManager? = null
     private var savedSpeakerphoneOn: Boolean = false
     private var savedAudioMode: Int = AudioManager.MODE_NORMAL
@@ -117,6 +122,9 @@ class CallRecordingService : LifecycleService() {
             return
         }
 
+        stopRequested      = false
+        stopAlreadyHandled = false
+
         // Final safety net: if phone is still blank, try the number saved by DialerFragment.
         // This catches any path (InCallService, BroadcastReceiver) that couldn't resolve it.
         val resolvedPhone = phoneNumber.ifBlank {
@@ -153,8 +161,10 @@ class CallRecordingService : LifecycleService() {
 
             val started = activateRecording(callType)
             if (!started) {
-                AppLogger.e(this@CallRecordingService, TAG,
-                    "All recording methods failed. Ensure Speaker Mode is on for Android 9+.")
+                if (!stopRequested) {
+                    AppLogger.e(this@CallRecordingService, TAG,
+                        "All recording methods failed. Ensure Speaker Mode is on for Android 9+.")
+                }
                 withContext(Dispatchers.Main) { stopSelf() }
             }
         }
@@ -168,6 +178,12 @@ class CallRecordingService : LifecycleService() {
         // Wait until the phone's audio system switches to in-call mode.
         // This is essential for outgoing calls (not yet connected at OFFHOOK time).
         waitForCallAudio(callType)
+
+        // If stop was called while we were waiting for audio, abort before touching hardware
+        if (stopRequested) {
+            AppLogger.w(this@CallRecordingService, TAG, "Call ended during audio wait — aborting recorder start")
+            return false
+        }
 
         // ✅ Set recordingStartTime AFTER call connects and audio is ready.
         // This gives accurate wallClock duration (excludes ringing/dial wait time).
@@ -349,11 +365,44 @@ class CallRecordingService : LifecycleService() {
     // ── Recording stop ────────────────────────────────────────────────────────
 
     private fun stopRecording() {
+        stopRequested = true
+        if (stopAlreadyHandled) return   // duplicate stop — InCallService + CallStateReceiver both fire
+        stopAlreadyHandled = true
+
         RecordingOverlayManager.hide()
         restoreAudioMode()
 
         val recorder = mediaRecorder ?: run {
-            AppLogger.w(this, TAG, "stopRecording: no active recorder")
+            // Call ended before recording could start (very short call / audio wait timed out).
+            // Still log to CRM and save a tombstone so the Recent Calls badge shows.
+            AppLogger.w(this, TAG, "stopRecording: no active recorder — logging zero-duration call event")
+            val phone   = currentPhoneNumber
+            val type    = currentCallType
+            val startMs = if (callStartTime > 0L) callStartTime else System.currentTimeMillis()
+            if (phone.isNotBlank()) {
+                serviceScope.launch {
+                    val callDateIso = java.time.Instant.ofEpochMilli(startMs).toString()
+                    val (synced, syncErr) = CrmSyncService.logCallEvent(
+                        context      = this@CallRecordingService,
+                        phoneNumber  = phone,
+                        callType     = type.ifBlank { "unknown" },
+                        durationSecs = 0L,
+                        callDateIso  = callDateIso,
+                    )
+                    val contactName = ContactHelper.getContactName(this@CallRecordingService, phone)
+                    repository.insert(RecordingEntity(
+                        phoneNumber = phone,
+                        contactName = contactName,
+                        filePath    = "",
+                        duration    = 0L,
+                        fileSize    = 0L,
+                        callType    = type.ifBlank { "unknown" },
+                        crmSynced   = synced,
+                        syncError   = syncErr,
+                        createdAt   = startMs,
+                    ))
+                }
+            }
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return
@@ -452,25 +501,36 @@ class CallRecordingService : LifecycleService() {
                 )
 
             } else {
-                // ── Recording failed / too small — still log call to CRM ───
+                // ── Recording failed / too small — log to CRM + save tombstone to DB ───
                 StorageHelper.deleteFile(filePath)
                 AppLogger.w(this@CallRecordingService, TAG,
                     "Recording too small (${fileSize}B) — deleted. Logging call event to CRM.")
 
-                // Log call metadata without a recording file
-                CrmSyncService.logCallEvent(
+                val (synced, syncErr) = CrmSyncService.logCallEvent(
                     context      = this@CallRecordingService,
                     phoneNumber  = phone,
-                    callType     = type,       // "incoming" or "outgoing"
+                    callType     = type,
                     durationSecs = durationSecs,
                     callDateIso  = callDateIso,
                 )
 
-                // Show notification without recording badge
+                // Tombstone — no audio file, but we know the call happened and the CRM result
+                repository.insert(RecordingEntity(
+                    phoneNumber = phone,
+                    contactName = contactName,
+                    filePath    = "",
+                    duration    = duration,
+                    fileSize    = 0L,
+                    callType    = type,
+                    crmSynced   = synced,
+                    syncError   = syncErr,
+                    createdAt   = if (callStartTime > 0L) callStartTime else stopTimeMs,
+                ))
+
                 showSavedNotification(
                     phone      = contactName ?: phone,
                     durationMs = duration,
-                    crmSynced  = false,        // no recording — just metadata logged
+                    crmSynced  = synced,
                 )
             }
         }

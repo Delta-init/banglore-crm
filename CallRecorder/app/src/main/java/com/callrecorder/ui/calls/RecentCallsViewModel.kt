@@ -54,7 +54,7 @@ class RecentCallsViewModel(app: Application) : AndroidViewModel(app) {
             }
             when {
                 match == null   -> call
-                match.crmSynced -> call.copy(crmSyncStatus = CrmSyncStatus.SYNCED, syncError = null)
+                match.crmSynced -> call.copy(crmSyncStatus = CrmSyncStatus.SYNCED,     syncError = match.syncError)
                 else            -> call.copy(crmSyncStatus = CrmSyncStatus.NOT_SYNCED, syncError = match.syncError)
             }
         }
@@ -115,6 +115,6 @@ class RecentCallsViewModel(app: Application) : AndroidViewModel(app) {
     companion object {
         private const val TAG = "RecentCallsViewModel"
         private const val MAX_ENTRIES = 500
-        private const val MATCH_WINDOW_MS = 90_000L   // ±90 s tolerance for call start vs createdAt
+        private const val MATCH_WINDOW_MS = 300_000L  // ±5 min — handles long-ringing outgoing calls
     }
 }

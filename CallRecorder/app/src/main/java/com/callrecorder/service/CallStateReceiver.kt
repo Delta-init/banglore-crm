@@ -5,7 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.telephony.TelephonyManager
 import android.util.Log
+import com.callrecorder.data.db.AppDatabase
+import com.callrecorder.data.db.RecordingEntity
 import com.callrecorder.utils.AppLogger
+import com.callrecorder.utils.ContactHelper
 import com.callrecorder.utils.PrefsHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -144,15 +147,29 @@ class CallStateReceiver : BroadcastReceiver() {
                             }
                             wasRinging -> {
                                 // RINGING → IDLE = missed / rejected incoming call
-                                // Log to CRM immediately (no recording, duration = 0)
                                 AppLogger.i(context, TAG, "Missed call from: $missedPhone — logging to CRM")
                                 if (missedPhone.isNotBlank()) {
                                     receiverScope.launch {
-                                        CrmSyncService.logCallEvent(
+                                        val (synced, syncErr) = CrmSyncService.logCallEvent(
                                             context      = context,
                                             phoneNumber  = missedPhone,
                                             callType     = "missed",
                                             durationSecs = 0L,
+                                        )
+                                        // Save tombstone so Recent Calls badge shows CRM result
+                                        val contactName = ContactHelper.getContactName(context, missedPhone)
+                                        AppDatabase.getInstance(context).recordingDao().insert(
+                                            RecordingEntity(
+                                                phoneNumber = missedPhone,
+                                                contactName = contactName,
+                                                filePath    = "",
+                                                duration    = 0L,
+                                                fileSize    = 0L,
+                                                callType    = "missed",
+                                                crmSynced   = synced,
+                                                syncError   = syncErr,
+                                                createdAt   = System.currentTimeMillis(),
+                                            )
                                         )
                                     }
                                 }
