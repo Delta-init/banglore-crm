@@ -27,7 +27,13 @@ public final class ItemCallLogBinding implements ViewBinding {
   public final TextView tvCallType;
 
   @NonNull
+  public final TextView tvCrmSync;
+
+  @NonNull
   public final TextView tvDate;
+
+  @NonNull
+  public final TextView tvDirection;
 
   @NonNull
   public final TextView tvDuration;
@@ -39,12 +45,15 @@ public final class ItemCallLogBinding implements ViewBinding {
   public final TextView tvNumber;
 
   private ItemCallLogBinding(@NonNull MaterialCardView rootView,
-      @NonNull MaterialButton btnCallback, @NonNull TextView tvCallType, @NonNull TextView tvDate,
+      @NonNull MaterialButton btnCallback, @NonNull TextView tvCallType,
+      @NonNull TextView tvCrmSync, @NonNull TextView tvDate, @NonNull TextView tvDirection,
       @NonNull TextView tvDuration, @NonNull TextView tvName, @NonNull TextView tvNumber) {
     this.rootView = rootView;
     this.btnCallback = btnCallback;
     this.tvCallType = tvCallType;
+    this.tvCrmSync = tvCrmSync;
     this.tvDate = tvDate;
+    this.tvDirection = tvDirection;
     this.tvDuration = tvDuration;
     this.tvName = tvName;
     this.tvNumber = tvNumber;
@@ -89,9 +98,21 @@ public final class ItemCallLogBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.tvCrmSync;
+      TextView tvCrmSync = ViewBindings.findChildViewById(rootView, id);
+      if (tvCrmSync == null) {
+        break missingId;
+      }
+
       id = R.id.tvDate;
       TextView tvDate = ViewBindings.findChildViewById(rootView, id);
       if (tvDate == null) {
+        break missingId;
+      }
+
+      id = R.id.tvDirection;
+      TextView tvDirection = ViewBindings.findChildViewById(rootView, id);
+      if (tvDirection == null) {
         break missingId;
       }
 
@@ -113,8 +134,8 @@ public final class ItemCallLogBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ItemCallLogBinding((MaterialCardView) rootView, btnCallback, tvCallType, tvDate,
-          tvDuration, tvName, tvNumber);
+      return new ItemCallLogBinding((MaterialCardView) rootView, btnCallback, tvCallType, tvCrmSync,
+          tvDate, tvDirection, tvDuration, tvName, tvNumber);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

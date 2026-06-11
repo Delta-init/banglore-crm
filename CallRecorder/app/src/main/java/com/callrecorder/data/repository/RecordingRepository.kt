@@ -23,4 +23,10 @@ class RecordingRepository(private val dao: RecordingDao) {
 
     fun getByPhoneNumber(number: String): Flow<List<RecordingEntity>> =
         dao.getByPhoneNumber(number)
+
+    /** One-shot snapshot for cross-referencing with the system call log. */
+    suspend fun getAllSnapshot(): List<RecordingEntity> = dao.getAllRecordingsSnapshot()
+
+    /** Flip the CRM sync flag for a specific recording. */
+    suspend fun updateCrmSynced(id: Int, synced: Boolean) = dao.updateCrmSynced(id, synced)
 }

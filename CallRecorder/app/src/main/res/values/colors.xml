@@ -8,4 +8,18 @@
     <color name="md_theme_surface">#FAFAFA</color>
     <color name="md_theme_on_surface">#1A1C1E</color>
     <color name="md_theme_surface_variant">#E0E2EC</color>
+
+    <!-- Direction badge -->
+    <color name="badge_inbound_bg">#E3F2FD</color>
+    <color name="badge_inbound_text">#1565C0</color>
+    <color name="badge_outbound_bg">#E8F5E9</color>
+    <color name="badge_outbound_text">#2E7D32</color>
+    <color name="badge_missed_bg">#FFEBEE</color>
+    <color name="badge_missed_text">#C62828</color>
+
+    <!-- CRM sync badge -->
+    <color name="badge_synced_bg">#E8F5E9</color>
+    <color name="badge_synced_text">#2E7D32</color>
+    <color name="badge_not_synced_bg">#FFF3E0</color>
+    <color name="badge_not_synced_text">#E65100</color>
 </resources>

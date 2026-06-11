@@ -678,6 +678,7 @@
 -keep class com.callrecorder.service.CallRecordingService { <init>(); }
 -keep class com.callrecorder.service.CallStateReceiver { <init>(); }
 -keep class com.callrecorder.ui.DialerActivity { <init>(); }
+-keep class com.callrecorder.ui.InCallActivity { <init>(); }
 -keep class com.callrecorder.ui.IncomingCallActivity { <init>(); }
 -keep class com.callrecorder.ui.MainActivity { <init>(); }
 -keep class android.widget.Space { <init>(android.content.Context, android.util.AttributeSet); }

@@ -12,5 +12,6 @@ data class RecordingEntity(
     val duration: Long,                // milliseconds (filled after call ends)
     val fileSize: Long,                // bytes
     val callType: String,              // "incoming" | "outgoing" | "unknown"
+    val crmSynced: Boolean = false,    // true = successfully POSTed to CRM backend
     val createdAt: Long = System.currentTimeMillis()
 )

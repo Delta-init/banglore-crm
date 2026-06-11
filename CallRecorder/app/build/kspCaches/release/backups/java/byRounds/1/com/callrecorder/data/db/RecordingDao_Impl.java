@@ -45,13 +45,15 @@ public final class RecordingDao_Impl implements RecordingDao {
 
   private final SharedSQLiteStatement __preparedStmtOfDeleteAll;
 
+  private final SharedSQLiteStatement __preparedStmtOfUpdateCrmSynced;
+
   public RecordingDao_Impl(@NonNull final RoomDatabase __db) {
     this.__db = __db;
     this.__insertionAdapterOfRecordingEntity = new EntityInsertionAdapter<RecordingEntity>(__db) {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR REPLACE INTO `recordings` (`id`,`phoneNumber`,`contactName`,`filePath`,`duration`,`fileSize`,`callType`,`createdAt`) VALUES (nullif(?, 0),?,?,?,?,?,?,?)";
+        return "INSERT OR REPLACE INTO `recordings` (`id`,`phoneNumber`,`contactName`,`filePath`,`duration`,`fileSize`,`callType`,`crmSynced`,`createdAt`) VALUES (nullif(?, 0),?,?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -68,7 +70,9 @@ public final class RecordingDao_Impl implements RecordingDao {
         statement.bindLong(5, entity.getDuration());
         statement.bindLong(6, entity.getFileSize());
         statement.bindString(7, entity.getCallType());
-        statement.bindLong(8, entity.getCreatedAt());
+        final int _tmp = entity.getCrmSynced() ? 1 : 0;
+        statement.bindLong(8, _tmp);
+        statement.bindLong(9, entity.getCreatedAt());
       }
     };
     this.__deletionAdapterOfRecordingEntity = new EntityDeletionOrUpdateAdapter<RecordingEntity>(__db) {
@@ -88,7 +92,7 @@ public final class RecordingDao_Impl implements RecordingDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "UPDATE OR ABORT `recordings` SET `id` = ?,`phoneNumber` = ?,`contactName` = ?,`filePath` = ?,`duration` = ?,`fileSize` = ?,`callType` = ?,`createdAt` = ? WHERE `id` = ?";
+        return "UPDATE OR ABORT `recordings` SET `id` = ?,`phoneNumber` = ?,`contactName` = ?,`filePath` = ?,`duration` = ?,`fileSize` = ?,`callType` = ?,`crmSynced` = ?,`createdAt` = ? WHERE `id` = ?";
       }
 
       @Override
@@ -105,8 +109,10 @@ public final class RecordingDao_Impl implements RecordingDao {
         statement.bindLong(5, entity.getDuration());
         statement.bindLong(6, entity.getFileSize());
         statement.bindString(7, entity.getCallType());
-        statement.bindLong(8, entity.getCreatedAt());
-        statement.bindLong(9, entity.getId());
+        final int _tmp = entity.getCrmSynced() ? 1 : 0;
+        statement.bindLong(8, _tmp);
+        statement.bindLong(9, entity.getCreatedAt());
+        statement.bindLong(10, entity.getId());
       }
     };
     this.__preparedStmtOfDeleteById = new SharedSQLiteStatement(__db) {
@@ -122,6 +128,14 @@ public final class RecordingDao_Impl implements RecordingDao {
       @NonNull
       public String createQuery() {
         final String _query = "DELETE FROM recordings";
+        return _query;
+      }
+    };
+    this.__preparedStmtOfUpdateCrmSynced = new SharedSQLiteStatement(__db) {
+      @Override
+      @NonNull
+      public String createQuery() {
+        final String _query = "UPDATE recordings SET crmSynced = ? WHERE id = ?";
         return _query;
       }
     };
@@ -233,6 +247,35 @@ public final class RecordingDao_Impl implements RecordingDao {
   }
 
   @Override
+  public Object updateCrmSynced(final int id, final boolean synced,
+      final Continuation<? super Unit> $completion) {
+    return CoroutinesRoom.execute(__db, true, new Callable<Unit>() {
+      @Override
+      @NonNull
+      public Unit call() throws Exception {
+        final SupportSQLiteStatement _stmt = __preparedStmtOfUpdateCrmSynced.acquire();
+        int _argIndex = 1;
+        final int _tmp = synced ? 1 : 0;
+        _stmt.bindLong(_argIndex, _tmp);
+        _argIndex = 2;
+        _stmt.bindLong(_argIndex, id);
+        try {
+          __db.beginTransaction();
+          try {
+            _stmt.executeUpdateDelete();
+            __db.setTransactionSuccessful();
+            return Unit.INSTANCE;
+          } finally {
+            __db.endTransaction();
+          }
+        } finally {
+          __preparedStmtOfUpdateCrmSynced.release(_stmt);
+        }
+      }
+    }, $completion);
+  }
+
+  @Override
   public Flow<List<RecordingEntity>> getAllRecordings() {
     final String _sql = "SELECT * FROM recordings ORDER BY createdAt DESC";
     final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
@@ -249,6 +292,7 @@ public final class RecordingDao_Impl implements RecordingDao {
           final int _cursorIndexOfDuration = CursorUtil.getColumnIndexOrThrow(_cursor, "duration");
           final int _cursorIndexOfFileSize = CursorUtil.getColumnIndexOrThrow(_cursor, "fileSize");
           final int _cursorIndexOfCallType = CursorUtil.getColumnIndexOrThrow(_cursor, "callType");
+          final int _cursorIndexOfCrmSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "crmSynced");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final List<RecordingEntity> _result = new ArrayList<RecordingEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -271,9 +315,13 @@ public final class RecordingDao_Impl implements RecordingDao {
             _tmpFileSize = _cursor.getLong(_cursorIndexOfFileSize);
             final String _tmpCallType;
             _tmpCallType = _cursor.getString(_cursorIndexOfCallType);
+            final boolean _tmpCrmSynced;
+            final int _tmp;
+            _tmp = _cursor.getInt(_cursorIndexOfCrmSynced);
+            _tmpCrmSynced = _tmp != 0;
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
-            _item = new RecordingEntity(_tmpId,_tmpPhoneNumber,_tmpContactName,_tmpFilePath,_tmpDuration,_tmpFileSize,_tmpCallType,_tmpCreatedAt);
+            _item = new RecordingEntity(_tmpId,_tmpPhoneNumber,_tmpContactName,_tmpFilePath,_tmpDuration,_tmpFileSize,_tmpCallType,_tmpCrmSynced,_tmpCreatedAt);
             _result.add(_item);
           }
           return _result;
@@ -309,6 +357,7 @@ public final class RecordingDao_Impl implements RecordingDao {
           final int _cursorIndexOfDuration = CursorUtil.getColumnIndexOrThrow(_cursor, "duration");
           final int _cursorIndexOfFileSize = CursorUtil.getColumnIndexOrThrow(_cursor, "fileSize");
           final int _cursorIndexOfCallType = CursorUtil.getColumnIndexOrThrow(_cursor, "callType");
+          final int _cursorIndexOfCrmSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "crmSynced");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final RecordingEntity _result;
           if (_cursor.moveToFirst()) {
@@ -330,9 +379,13 @@ public final class RecordingDao_Impl implements RecordingDao {
             _tmpFileSize = _cursor.getLong(_cursorIndexOfFileSize);
             final String _tmpCallType;
             _tmpCallType = _cursor.getString(_cursorIndexOfCallType);
+            final boolean _tmpCrmSynced;
+            final int _tmp;
+            _tmp = _cursor.getInt(_cursorIndexOfCrmSynced);
+            _tmpCrmSynced = _tmp != 0;
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
-            _result = new RecordingEntity(_tmpId,_tmpPhoneNumber,_tmpContactName,_tmpFilePath,_tmpDuration,_tmpFileSize,_tmpCallType,_tmpCreatedAt);
+            _result = new RecordingEntity(_tmpId,_tmpPhoneNumber,_tmpContactName,_tmpFilePath,_tmpDuration,_tmpFileSize,_tmpCallType,_tmpCrmSynced,_tmpCreatedAt);
           } else {
             _result = null;
           }
@@ -364,6 +417,7 @@ public final class RecordingDao_Impl implements RecordingDao {
           final int _cursorIndexOfDuration = CursorUtil.getColumnIndexOrThrow(_cursor, "duration");
           final int _cursorIndexOfFileSize = CursorUtil.getColumnIndexOrThrow(_cursor, "fileSize");
           final int _cursorIndexOfCallType = CursorUtil.getColumnIndexOrThrow(_cursor, "callType");
+          final int _cursorIndexOfCrmSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "crmSynced");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final List<RecordingEntity> _result = new ArrayList<RecordingEntity>(_cursor.getCount());
           while (_cursor.moveToNext()) {
@@ -386,9 +440,13 @@ public final class RecordingDao_Impl implements RecordingDao {
             _tmpFileSize = _cursor.getLong(_cursorIndexOfFileSize);
             final String _tmpCallType;
             _tmpCallType = _cursor.getString(_cursorIndexOfCallType);
+            final boolean _tmpCrmSynced;
+            final int _tmp;
+            _tmp = _cursor.getInt(_cursorIndexOfCrmSynced);
+            _tmpCrmSynced = _tmp != 0;
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
-            _item = new RecordingEntity(_tmpId,_tmpPhoneNumber,_tmpContactName,_tmpFilePath,_tmpDuration,_tmpFileSize,_tmpCallType,_tmpCreatedAt);
+            _item = new RecordingEntity(_tmpId,_tmpPhoneNumber,_tmpContactName,_tmpFilePath,_tmpDuration,_tmpFileSize,_tmpCallType,_tmpCrmSynced,_tmpCreatedAt);
             _result.add(_item);
           }
           return _result;
@@ -433,6 +491,66 @@ public final class RecordingDao_Impl implements RecordingDao {
         _statement.release();
       }
     });
+  }
+
+  @Override
+  public Object getAllRecordingsSnapshot(
+      final Continuation<? super List<RecordingEntity>> $completion) {
+    final String _sql = "SELECT * FROM recordings ORDER BY createdAt DESC";
+    final RoomSQLiteQuery _statement = RoomSQLiteQuery.acquire(_sql, 0);
+    final CancellationSignal _cancellationSignal = DBUtil.createCancellationSignal();
+    return CoroutinesRoom.execute(__db, false, _cancellationSignal, new Callable<List<RecordingEntity>>() {
+      @Override
+      @NonNull
+      public List<RecordingEntity> call() throws Exception {
+        final Cursor _cursor = DBUtil.query(__db, _statement, false, null);
+        try {
+          final int _cursorIndexOfId = CursorUtil.getColumnIndexOrThrow(_cursor, "id");
+          final int _cursorIndexOfPhoneNumber = CursorUtil.getColumnIndexOrThrow(_cursor, "phoneNumber");
+          final int _cursorIndexOfContactName = CursorUtil.getColumnIndexOrThrow(_cursor, "contactName");
+          final int _cursorIndexOfFilePath = CursorUtil.getColumnIndexOrThrow(_cursor, "filePath");
+          final int _cursorIndexOfDuration = CursorUtil.getColumnIndexOrThrow(_cursor, "duration");
+          final int _cursorIndexOfFileSize = CursorUtil.getColumnIndexOrThrow(_cursor, "fileSize");
+          final int _cursorIndexOfCallType = CursorUtil.getColumnIndexOrThrow(_cursor, "callType");
+          final int _cursorIndexOfCrmSynced = CursorUtil.getColumnIndexOrThrow(_cursor, "crmSynced");
+          final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
+          final List<RecordingEntity> _result = new ArrayList<RecordingEntity>(_cursor.getCount());
+          while (_cursor.moveToNext()) {
+            final RecordingEntity _item;
+            final int _tmpId;
+            _tmpId = _cursor.getInt(_cursorIndexOfId);
+            final String _tmpPhoneNumber;
+            _tmpPhoneNumber = _cursor.getString(_cursorIndexOfPhoneNumber);
+            final String _tmpContactName;
+            if (_cursor.isNull(_cursorIndexOfContactName)) {
+              _tmpContactName = null;
+            } else {
+              _tmpContactName = _cursor.getString(_cursorIndexOfContactName);
+            }
+            final String _tmpFilePath;
+            _tmpFilePath = _cursor.getString(_cursorIndexOfFilePath);
+            final long _tmpDuration;
+            _tmpDuration = _cursor.getLong(_cursorIndexOfDuration);
+            final long _tmpFileSize;
+            _tmpFileSize = _cursor.getLong(_cursorIndexOfFileSize);
+            final String _tmpCallType;
+            _tmpCallType = _cursor.getString(_cursorIndexOfCallType);
+            final boolean _tmpCrmSynced;
+            final int _tmp;
+            _tmp = _cursor.getInt(_cursorIndexOfCrmSynced);
+            _tmpCrmSynced = _tmp != 0;
+            final long _tmpCreatedAt;
+            _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
+            _item = new RecordingEntity(_tmpId,_tmpPhoneNumber,_tmpContactName,_tmpFilePath,_tmpDuration,_tmpFileSize,_tmpCallType,_tmpCrmSynced,_tmpCreatedAt);
+            _result.add(_item);
+          }
+          return _result;
+        } finally {
+          _cursor.close();
+          _statement.release();
+        }
+      }
+    }, $completion);
   }
 
   @NonNull

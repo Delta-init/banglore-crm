@@ -2,10 +2,15 @@ package com.callrecorder.ui.settings
 
 import android.app.role.RoleManager
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.provider.Settings
 import android.telecom.TelecomManager
+import android.text.InputType
+import android.widget.EditText
+import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.viewModels
@@ -14,10 +19,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
-import android.net.Uri
-import android.text.InputType
-import android.widget.EditText
-import android.widget.LinearLayout
 import com.callrecorder.R
 import com.callrecorder.service.RecordingOverlayManager
 import com.callrecorder.ui.recordings.RecordingsViewModel
@@ -176,6 +177,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
             updateOverlaySummary(this)
             setOnPreferenceClickListener {
                 if (!RecordingOverlayManager.canShow(requireContext())) {
+                    // Step 1: request battery-optimization exemption first.
+                    // On Samsung/MIUI, the overlay toggle is GREYED OUT when the
+                    // app is in "sleeping apps" mode. Exempting from battery
+                    // optimization wakes the app and unlocks the toggle.
+                    requestBatteryOptimizationExemption()
+                    // Step 2: open the overlay permission settings page
                     openOverlaySettings()
                 } else {
                     snack("✅ Overlay permission already granted")
@@ -403,6 +410,38 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 "Alternative to Companion Access. Gives deepest audio access. Requires this app to handle your incoming call screen."
 
         findPreference<Preference>("restore_default_dialer")?.isVisible = isCurrentDefaultDialer()
+    }
+
+    /**
+     * Requests battery-optimization exemption for this app.
+     *
+     * On Samsung OneUI and MIUI, Android puts unused apps into "sleep" mode which
+     * prevents SYSTEM_ALERT_WINDOW from working and greys out the
+     * "Display over other apps" toggle in Special App Access settings.
+     * Exempting the app from battery optimization fixes this.
+     */
+    private fun requestBatteryOptimizationExemption() {
+        val pm  = requireContext().getSystemService(PowerManager::class.java) ?: return
+        val pkg = requireContext().packageName
+        if (pm.isIgnoringBatteryOptimizations(pkg)) return   // already exempt
+
+        try {
+            startActivity(
+                Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    data = Uri.parse("package:$pkg")
+                }
+            )
+        } catch (e: Exception) {
+            // Fallback: open battery optimization list (user selects manually)
+            try {
+                startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+            } catch (e2: Exception) {
+                snack(
+                    "Go to Settings → Battery → Background usage limits → " +
+                    "find Call Recorder → set to 'Never sleeping'"
+                )
+            }
+        }
     }
 
     private fun snack(msg: String) =

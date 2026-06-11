@@ -418,10 +418,11 @@ class CallRecordingService : LifecycleService() {
                     duration    = duration,
                     fileSize    = fileSize,
                     callType    = type,
+                    crmSynced   = false,
                 )
-                repository.insert(entity)
+                val savedId = repository.insert(entity).toInt()
                 AppLogger.i(this@CallRecordingService, TAG,
-                    "Saved ✅  ${durationSecs}s  ${fileSize / 1024}KB  " +
+                    "Saved ✅  id=$savedId  ${durationSecs}s  ${fileSize / 1024}KB  " +
                     "src=${audioSourceName(activeAudioSource)} speaker=$usedSpeakerMode")
 
                 // Notify user: recording saved locally (sync in progress)
@@ -433,6 +434,12 @@ class CallRecordingService : LifecycleService() {
 
                 // Upload file + metadata to CRM
                 val synced = CrmSyncService.sync(this@CallRecordingService, entity)
+
+                // Persist CRM sync result so the Recent Calls list can show it
+                if (savedId > 0) {
+                    repository.updateCrmSynced(savedId, synced)
+                }
+
                 showSavedNotification(
                     phone      = contactName ?: phone,
                     durationMs = duration,

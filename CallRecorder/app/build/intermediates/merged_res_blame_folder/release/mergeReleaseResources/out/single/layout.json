@@ -1,66 +1,70 @@
 [
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/overlay_recording.xml",
-        "source": "com.callrecorder.app-main-57:/layout/overlay_recording.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_recordings.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/fragment_recordings.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_recent_calls.xml",
-        "source": "com.callrecorder.app-main-57:/layout/fragment_recent_calls.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/item_call_log.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/item_call_log.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_logs.xml",
-        "source": "com.callrecorder.app-main-57:/layout/fragment_logs.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/bottom_sheet_player.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/bottom_sheet_player.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/item_recording.xml",
-        "source": "com.callrecorder.app-main-57:/layout/item_recording.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/dialog_add_edit_contact.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/dialog_add_edit_contact.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/item_contact.xml",
-        "source": "com.callrecorder.app-main-57:/layout/item_contact.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_logs.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/fragment_logs.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/dialog_update.xml",
-        "source": "com.callrecorder.app-main-57:/layout/dialog_update.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_recent_calls.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/fragment_recent_calls.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/activity_main.xml",
-        "source": "com.callrecorder.app-main-57:/layout/activity_main.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/activity_dialer.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/activity_dialer.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/item_call_log.xml",
-        "source": "com.callrecorder.app-main-57:/layout/item_call_log.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/dial_key.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/dial_key.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_dialer.xml",
-        "source": "com.callrecorder.app-main-57:/layout/fragment_dialer.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/dialog_update.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/dialog_update.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_recordings.xml",
-        "source": "com.callrecorder.app-main-57:/layout/fragment_recordings.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/item_contact.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/item_contact.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_contacts.xml",
-        "source": "com.callrecorder.app-main-57:/layout/fragment_contacts.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/activity_incoming_call.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/activity_incoming_call.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/dial_key.xml",
-        "source": "com.callrecorder.app-main-57:/layout/dial_key.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/activity_main.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/activity_main.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/activity_incoming_call.xml",
-        "source": "com.callrecorder.app-main-57:/layout/activity_incoming_call.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/item_recording.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/item_recording.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/dialog_add_edit_contact.xml",
-        "source": "com.callrecorder.app-main-57:/layout/dialog_add_edit_contact.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_contacts.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/fragment_contacts.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/bottom_sheet_player.xml",
-        "source": "com.callrecorder.app-main-57:/layout/bottom_sheet_player.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/overlay_recording.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/overlay_recording.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/activity_dialer.xml",
-        "source": "com.callrecorder.app-main-57:/layout/activity_dialer.xml"
+        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/activity_in_call.xml",
+        "source": "com.callrecorder.app-main-57:/layout/activity_in_call.xml"
+    },
+    {
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_dialer.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/fragment_dialer.xml"
     }
 ]

@@ -5,6 +5,7 @@ import android.os.Build
 import android.telecom.Call
 import android.telecom.InCallService
 import android.telecom.VideoProfile
+import com.callrecorder.ui.InCallActivity
 import com.callrecorder.ui.IncomingCallActivity
 import com.callrecorder.utils.AppLogger
 import com.callrecorder.utils.PrefsHelper
@@ -67,6 +68,15 @@ class CallRecorderInCallService : InCallService() {
                         CallRecordingService.startRecording(
                             this@CallRecorderInCallService, phoneNumber, callType
                         )
+
+                        // When default dialer: show our in-call screen (Mute/Speaker/End Call).
+                        // In companion mode: the system phone app handles its own in-call UI.
+                        if (isDefaultDialer()) {
+                            startActivity(
+                                Intent(this@CallRecorderInCallService, InCallActivity::class.java)
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            )
+                        }
                     }
 
                     // ── Call ended ────────────────────────────────────────────
@@ -96,6 +106,12 @@ class CallRecorderInCallService : InCallService() {
                     CallRecordingService.startRecording(
                         this, resolvePhoneNumber(call), resolveCallType(call)
                     )
+                    if (isDefaultDialer()) {
+                        startActivity(
+                            Intent(this, InCallActivity::class.java)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    }
                 }
             }
         }

@@ -32,4 +32,12 @@ interface RecordingDao {
 
     @Query("SELECT COUNT(*) FROM recordings")
     fun getCount(): Flow<Int>
+
+    /** One-shot snapshot — used to cross-reference the system call log. */
+    @Query("SELECT * FROM recordings ORDER BY createdAt DESC")
+    suspend fun getAllRecordingsSnapshot(): List<RecordingEntity>
+
+    /** Mark a recording as successfully synced (or not) to the CRM. */
+    @Query("UPDATE recordings SET crmSynced = :synced WHERE id = :id")
+    suspend fun updateCrmSynced(id: Int, synced: Boolean)
 }

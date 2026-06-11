@@ -7,6 +7,13 @@
     <!-- ── Overlay (recording badge shown over other apps) ───────────────── -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+    <!--
+        Needed to request battery-optimization exemption.
+        Without this, Samsung/MIUI puts the app to sleep, which greys out the
+        overlay (popup windows) toggle in Special App Access settings.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
     <!-- ── Core permissions ──────────────────────────────────────────────── -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -73,6 +80,19 @@
             android:turnScreenOn="true"
             android:launchMode="singleInstance" />
 
+        <!-- ── In-Call Activity (ongoing call screen) ─────────────────────────
+             Shown after a call is answered when this app is the default dialer.
+             Provides Mute / Speaker / End Call controls.
+             Required when IN_CALL_SERVICE_UI = true so the user can hang up.
+        ──────────────────────────────────────────────────────────────────── -->
+        <activity
+            android:name=".ui.InCallActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:launchMode="singleTask" />
+
         <!-- ── Dialer Activity ─────────────────────────────────────────────
              Required for default dialer eligibility.
              Handles outgoing call intents (DIAL/CALL) when we are default dialer.
@@ -133,9 +153,16 @@
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BIND_INCALL_SERVICE">
+            <!--
+                IN_CALL_SERVICE_UI = true:
+                  • Makes this app ELIGIBLE for "Default Phone App" in Android settings
+                    (without this, the option is greyed out / disabled).
+                  • When default dialer: our InCallActivity handles the ongoing-call screen.
+                  • When companion only: system phone app still shows its own UI (unchanged).
+            -->
             <meta-data
                 android:name="android.telecom.IN_CALL_SERVICE_UI"
-                android:value="false" />
+                android:value="true" />
             <intent-filter>
                 <action android:name="android.telecom.InCallService" />
             </intent-filter>

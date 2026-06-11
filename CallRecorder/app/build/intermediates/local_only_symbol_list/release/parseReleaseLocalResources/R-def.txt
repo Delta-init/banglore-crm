@@ -1,5 +1,15 @@
 R_DEF: Internal format may change without notice
 local
+color badge_inbound_bg
+color badge_inbound_text
+color badge_missed_bg
+color badge_missed_text
+color badge_not_synced_bg
+color badge_not_synced_text
+color badge_outbound_bg
+color badge_outbound_text
+color badge_synced_bg
+color badge_synced_text
 color md_theme_on_primary
 color md_theme_on_primary_container
 color md_theme_on_surface
@@ -20,6 +30,7 @@ drawable ic_launcher_foreground
 drawable ic_logs
 drawable ic_mic
 id action_settingsFragment_to_logsFragment
+id avatarFrame
 id bottom_navigation
 id btnAnswer
 id btnBackspace
@@ -29,16 +40,20 @@ id btnClearLogs
 id btnDecline
 id btnDelete
 id btnEdit
+id btnEndCall
 id btnForward
 id btnImport
+id btnMute
 id btnRefresh
 id btnRefreshLogs
+id btnSpeaker
 id btn_075x
 id btn_15x
 id btn_1x
 id btn_2x
 id btn_delete
 id btn_play
+id buttonsRow
 id callsFragment
 id chips_row
 id contactsFragment
@@ -75,19 +90,24 @@ id scrollLogs
 id seek_bar
 id settingsFragment
 id tvCallType
+id tvCallerInitial
 id tvCallerName
 id tvCallerNumber
+id tvCrmSync
 id tvDate
 id tvDialNumber
+id tvDirection
 id tvDuration
 id tvEmail
 id tvImported
 id tvInitial
 id tvLogs
+id tvMuteLabel
 id tvName
 id tvNumber
 id tvOverlayContact
 id tvPhone
+id tvSpeakerLabel
 id tvSubtitle
 id tvUpdateChangelog
 id tvUpdateVersion
@@ -102,6 +122,7 @@ id tv_size
 id tv_title
 id tv_total_duration
 layout activity_dialer
+layout activity_in_call
 layout activity_incoming_call
 layout activity_main
 layout bottom_sheet_player
