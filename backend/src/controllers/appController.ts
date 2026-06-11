@@ -21,18 +21,18 @@ import { sendSuccess } from "../utils/response.js";
  */
 
 // ── Update these whenever you ship a new APK ─────────────────────────────────
-const LATEST_VERSION_CODE = 3;            // must match versionCode in build.gradle
-const LATEST_VERSION_NAME = "1.2";       // human-readable label shown in dialog
+const LATEST_VERSION_CODE = 8;            // must match versionCode in build.gradle
+const LATEST_VERSION_NAME = "1.7";       // human-readable label shown in dialog
 const DOWNLOAD_URL        =
-  "https://github.com/Delta-init/banglore-crm/releases/download/v1.2/call-recorder-v1.2.apk";
+  "https://github.com/Delta-init/banglore-crm/releases/download/v1.7/CallRecorder-v1.7.apk";
 const CHANGELOG           =
-  "• Signed release build — Display over other apps now works on Xiaomi/MIUI\n" +
-  "• 2.2 MB (was 7.3 MB) — optimized & faster\n" +
-  "• Dialer backspace button always visible\n" +
-  "• CRM URL and API key pre-configured\n" +
-  "• Auto-update check built in";
-const FORCE_UPDATE        = true;         // force everyone to upgrade to signed build
-const RELEASE_DATE        = "2026-06-04";
+  "• CRM sync badge now works for ALL call durations\n" +
+  "• Shows exact error if CRM sync fails (e.g. HTTP 401)\n" +
+  "• CRM credentials pre-configured — no setup needed\n" +
+  "• Default dialer support (Mute / Speaker / End Call screen)\n" +
+  "• Popup windows permission fix for Samsung/MIUI";
+const FORCE_UPDATE        = true;
+const RELEASE_DATE        = "2026-06-11";
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
