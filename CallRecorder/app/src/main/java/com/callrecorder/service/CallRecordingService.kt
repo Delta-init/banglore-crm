@@ -375,31 +375,19 @@ class CallRecordingService : LifecycleService() {
 
         val recorder = mediaRecorder ?: run {
             // Call ended before recording could start (very short call / audio wait timed out).
-            // Still log to CRM and save a tombstone so the Recent Calls badge shows.
-            AppLogger.w(this, TAG, "stopRecording: no active recorder — logging zero-duration call event")
+            // CRM sync is handled by CallStateReceiver — just save a tombstone here.
+            AppLogger.w(this, TAG, "stopRecording: no active recorder — saving tombstone")
             val phone   = currentPhoneNumber
             val type    = currentCallType
             val startMs = if (callStartTime > 0L) callStartTime else System.currentTimeMillis()
             serviceScope.launch {
-                // Recover phone from system call log if blank (Android 10+ inbound)
-                val resolvedPhone = if (phone.isNotBlank()) phone else {
-                    delay(1_500L)
-                    CallLogQueryHelper.getLastCall(this@CallRecordingService, withinMs = 120_000L)
-                        ?.number ?: ""
-                }
-                val callDateIso = java.time.Instant.ofEpochMilli(startMs).toString()
-                // Recover duration from system call log
-                val sysDurSecs = CallLogQueryHelper.getLastCall(
+                delay(500L)
+                val entry = CallLogQueryHelper.getLastCall(
                     this@CallRecordingService, withinMs = 120_000L
-                )?.durationSec ?: 0L
-                val (synced, syncErr) = CrmSyncService.logCallEvent(
-                    context      = this@CallRecordingService,
-                    phoneNumber  = resolvedPhone,
-                    callType     = type.ifBlank { "unknown" },
-                    durationSecs = sysDurSecs,
-                    callDateIso  = callDateIso,
                 )
-                val contactName = ContactHelper.getContactName(this@CallRecordingService, resolvedPhone)
+                val resolvedPhone = phone.ifBlank { entry?.number ?: "" }
+                val sysDurSecs    = entry?.durationSec ?: 0L
+                val contactName   = ContactHelper.getContactName(this@CallRecordingService, resolvedPhone)
                 repository.insert(RecordingEntity(
                     phoneNumber = resolvedPhone,
                     contactName = contactName,
@@ -407,8 +395,8 @@ class CallRecordingService : LifecycleService() {
                     duration    = sysDurSecs * 1000L,
                     fileSize    = 0L,
                     callType    = type.ifBlank { "unknown" },
-                    crmSynced   = synced,
-                    syncError   = syncErr,
+                    crmSynced   = false,
+                    syncError   = null,
                     createdAt   = startMs,
                 ))
             }
@@ -426,13 +414,10 @@ class CallRecordingService : LifecycleService() {
             mediaRecorder = null
         }
 
-        val filePath      = currentFilePath
-        val phone         = currentPhoneNumber
-        val type          = currentCallType
-        val stopTimeMs    = System.currentTimeMillis()
-        val callDateIso   = java.time.Instant.ofEpochMilli(
-            if (callStartTime > 0L) callStartTime else stopTimeMs
-        ).toString()
+        val filePath   = currentFilePath
+        val phone      = currentPhoneNumber
+        val type       = currentCallType
+        val stopTimeMs = System.currentTimeMillis()
 
         // wallClock = time from when audio actually settled to when call ended.
         // recordingStartTime is set AFTER waitForCallAudio() so this is accurate.
@@ -509,38 +494,19 @@ class CallRecordingService : LifecycleService() {
                     "Saved ✅  id=$savedId  ${durationSecs}s  ${fileSize / 1024}KB  " +
                     "src=${audioSourceName(activeAudioSource)} speaker=$usedSpeakerMode")
 
+                // CRM sync is handled by CallStateReceiver — recording service only saves the file.
                 showSavedNotification(
                     phone      = contactName ?: resolvedPhone,
                     durationMs = duration,
-                    crmSynced  = null,
-                )
-
-                val (synced, syncError) = CrmSyncService.sync(this@CallRecordingService, entity)
-
-                if (savedId > 0) {
-                    repository.updateSyncResult(savedId, synced, syncError)
-                }
-
-                showSavedNotification(
-                    phone      = contactName ?: resolvedPhone,
-                    durationMs = duration,
-                    crmSynced  = synced,
                 )
 
             } else {
                 // ── Recording failed / too small — log to CRM + save tombstone to DB ───
                 StorageHelper.deleteFile(filePath)
                 AppLogger.w(this@CallRecordingService, TAG,
-                    "Recording too small (${fileSize}B) — deleted. Logging call event to CRM.")
+                    "Recording too small (${fileSize}B) — deleted. CRM sync handled by CallStateReceiver.")
 
-                val (synced, syncErr) = CrmSyncService.logCallEvent(
-                    context      = this@CallRecordingService,
-                    phoneNumber  = resolvedPhone,
-                    callType     = type,
-                    durationSecs = durationSecs,
-                    callDateIso  = callDateIso,
-                )
-
+                // CRM sync is handled by CallStateReceiver — just save tombstone
                 repository.insert(RecordingEntity(
                     phoneNumber = resolvedPhone,
                     contactName = contactName,
@@ -548,15 +514,14 @@ class CallRecordingService : LifecycleService() {
                     duration    = duration,
                     fileSize    = 0L,
                     callType    = type,
-                    crmSynced   = synced,
-                    syncError   = syncErr,
+                    crmSynced   = false,
+                    syncError   = null,
                     createdAt   = if (callStartTime > 0L) callStartTime else stopTimeMs,
                 ))
 
                 showSavedNotification(
                     phone      = contactName ?: resolvedPhone,
                     durationMs = duration,
-                    crmSynced  = synced,
                 )
             }
         }
@@ -567,21 +532,10 @@ class CallRecordingService : LifecycleService() {
 
     // ── Saved recording notification ──────────────────────────────────────────
 
-    /**
-     * Shows (or updates) the "Recording saved" notification.
-     * Uses NOTIF_ID_SAVED so it replaces itself on update without creating a new one.
-     *
-     * @param crmSynced null = still syncing | true = synced OK | false = sync failed / not configured
-     */
-    private fun showSavedNotification(phone: String, durationMs: Long, crmSynced: Boolean?) {
+    private fun showSavedNotification(phone: String, durationMs: Long) {
         val durationStr = StorageHelper.formatDuration(durationMs)
         val display     = phone.ifBlank { "Unknown caller" }
-
-        val body = when (crmSynced) {
-            null  -> "$durationStr  •  $display"
-            true  -> "$durationStr  •  $display  ✅ Synced to CRM"
-            false -> "$durationStr  •  $display  ⚠️ Saved locally"
-        }
+        val body        = "$durationStr  •  $display  ✅ Saved"
 
         val tap = PendingIntent.getActivity(
             this, NOTIF_ID_SAVED,

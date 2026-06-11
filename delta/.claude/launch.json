@@ -4,8 +4,9 @@
     {
       "name": "frontend",
       "runtimeExecutable": "bun",
-      "runtimeArgs": ["--cwd", "/Users/mhdabshar/delta/deltainstitutions/crm/delta", "run", "dev"],
-      "port": 3001
+      "runtimeArgs": ["--cwd", "/Users/mhdabshar/delta/deltainstitutions/crm banglore/delta", "run", "dev"],
+      "port": 3001,
+      "url": "http://localhost:3001/public/leaderboard"
     }
   ]
 }

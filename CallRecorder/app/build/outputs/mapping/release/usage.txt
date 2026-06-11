@@ -12782,6 +12782,7 @@ com.callrecorder.data.repository.RecordingRepository:
     public final java.lang.Object getAllSnapshot(kotlin.coroutines.Continuation)
     public final kotlinx.coroutines.flow.Flow getByPhoneNumber(java.lang.String)
     public final java.lang.Object update(com.callrecorder.data.db.RecordingEntity,kotlin.coroutines.Continuation)
+    public final java.lang.Object updateSyncResult(int,boolean,java.lang.String,kotlin.coroutines.Continuation)
 com.callrecorder.databinding.ActivityDialerBinding:
     public synthetic bridge android.view.View getRoot()
 com.callrecorder.databinding.ActivityInCallBinding:
@@ -12843,8 +12844,11 @@ com.callrecorder.service.CallStateReceiver:
     private static final java.lang.String STATE_OFFHOOK
     private static final java.lang.String STATE_RINGING
     private static final java.lang.String TAG
+com.callrecorder.service.CrmSyncService$sync$1
+com.callrecorder.service.CrmSyncService$sync$2
 com.callrecorder.service.CrmSyncService:
     private static final java.lang.String TAG
+    public final java.lang.Object sync(android.content.Context,com.callrecorder.data.db.RecordingEntity,kotlin.coroutines.Continuation)
 com.callrecorder.service.RecordingOverlayManager:
     private static final java.lang.String TAG
 com.callrecorder.ui.DialerActivity:
@@ -12923,7 +12927,6 @@ com.callrecorder.utils.CallLogQueryHelper$SysCallEntry:
     public final com.callrecorder.utils.CallLogQueryHelper$SysCallEntry copy(java.lang.String,long,int,long)
     public static synthetic com.callrecorder.utils.CallLogQueryHelper$SysCallEntry copy$default(com.callrecorder.utils.CallLogQueryHelper$SysCallEntry,java.lang.String,long,int,long,int,java.lang.Object)
     public final long getDate()
-    public final int getType()
 com.callrecorder.utils.CallLogQueryHelper:
     public static synthetic com.callrecorder.utils.CallLogQueryHelper$SysCallEntry getLastCall$default(com.callrecorder.utils.CallLogQueryHelper,android.content.Context,long,int,java.lang.Object)
 com.callrecorder.utils.ContactHelper:
@@ -25451,7 +25454,6 @@ kotlin.coroutines.jvm.internal.Boxing:
     public static final java.lang.Character boxChar(char)
     public static final java.lang.Double boxDouble(double)
     public static final java.lang.Float boxFloat(float)
-    public static final java.lang.Integer boxInt(int)
     public static final java.lang.Short boxShort(short)
 kotlin.coroutines.jvm.internal.DebugMetadata:
     public abstract int[] i()
@@ -30329,6 +30331,7 @@ okhttp3.MediaType:
     public final java.lang.String subtype()
 okhttp3.MultipartBody$Builder:
     public void <init>()
+    public final okhttp3.MultipartBody$Builder addFormDataPart(java.lang.String,java.lang.String,okhttp3.RequestBody)
     public final okhttp3.MultipartBody$Builder addPart(okhttp3.Headers,okhttp3.RequestBody)
     public final okhttp3.MultipartBody$Builder addPart(okhttp3.RequestBody)
 okhttp3.MultipartBody$Part$Companion:
@@ -30488,8 +30491,10 @@ okhttp3.Request:
     public final java.util.List headers(java.lang.String)
     public final java.lang.Object tag()
     public final java.lang.Object tag(java.lang.Class)
+okhttp3.RequestBody$Companion$asRequestBody$1
 okhttp3.RequestBody$Companion$toRequestBody$1
 okhttp3.RequestBody$Companion:
+    public final okhttp3.RequestBody create(java.io.File,okhttp3.MediaType)
     public final okhttp3.RequestBody create(okhttp3.MediaType,java.io.File)
     public final okhttp3.RequestBody create(okhttp3.MediaType,java.lang.String)
     public final okhttp3.RequestBody create(okhttp3.MediaType,okio.ByteString)
@@ -31085,6 +31090,7 @@ okio.BufferedSink:
     public abstract java.io.OutputStream outputStream()
     public abstract okio.BufferedSink write(okio.ByteString,int,int)
     public abstract okio.BufferedSink write(okio.Source,long)
+    public abstract long writeAll(okio.Source)
     public abstract okio.BufferedSink writeIntLe(int)
     public abstract okio.BufferedSink writeLong(long)
     public abstract okio.BufferedSink writeLongLe(long)
@@ -31233,6 +31239,7 @@ okio.Okio:
     public static final okio.Sink sink(java.io.OutputStream)
     public static final varargs okio.Sink sink(java.nio.file.Path,java.nio.file.OpenOption[])
     public static synthetic okio.Sink sink$default(java.io.File,boolean,int,java.lang.Object)
+    public static final okio.Source source(java.io.File)
     public static final varargs okio.Source source(java.nio.file.Path,java.nio.file.OpenOption[])
     public static final java.lang.Object use(java.io.Closeable,kotlin.jvm.functions.Function1)
 okio.Okio__JvmOkioKt:
@@ -31250,6 +31257,7 @@ okio.Okio__JvmOkioKt:
     public static final okio.Sink sink(java.io.OutputStream)
     public static final varargs okio.Sink sink(java.nio.file.Path,java.nio.file.OpenOption[])
     public static synthetic okio.Sink sink$default(java.io.File,boolean,int,java.lang.Object)
+    public static final okio.Source source(java.io.File)
     public static final varargs okio.Source source(java.nio.file.Path,java.nio.file.OpenOption[])
 okio.Okio__OkioKt:
     public static final okio.Sink blackhole()
@@ -31270,6 +31278,7 @@ okio.RealBufferedSink:
     public java.io.OutputStream outputStream()
     public okio.BufferedSink write(okio.ByteString,int,int)
     public okio.BufferedSink write(okio.Source,long)
+    public long writeAll(okio.Source)
     public okio.BufferedSink writeIntLe(int)
     public okio.BufferedSink writeLong(long)
     public okio.BufferedSink writeLongLe(long)
@@ -38825,7 +38834,6 @@ com.callrecorder.data.repository.RecordingRepository:
     public static java.lang.Object getById()
     public static kotlinx.coroutines.flow.Flow getRecordingCount()
     public static java.lang.Object insert()
-    public static java.lang.Object updateSyncResult()
 com.callrecorder.databinding.ActivityDialerBinding:
     public final com.callrecorder.databinding.DialKeyBinding key0
     public final com.callrecorder.databinding.DialKeyBinding key1
@@ -38903,14 +38911,15 @@ com.callrecorder.service.CallRecordingService:
 com.callrecorder.service.CallStateReceiver$Companion
 com.callrecorder.service.CallStateReceiver$onReceive$1:
     public final java.lang.Object invoke$1()
+com.callrecorder.service.CallStateReceiver$onReceive$2:
+    public final java.lang.Object invoke$1()
 com.callrecorder.service.CallStateReceiver:
     public static final com.callrecorder.service.CallStateReceiver$Companion Companion
 com.callrecorder.service.CrmSyncService$logCallEvent$2:
     public final java.lang.Object invoke$1()
-com.callrecorder.service.CrmSyncService$sync$2:
-    public final java.lang.Object invoke$1()
 com.callrecorder.service.CrmSyncService:
     public static java.lang.String parseCallLogId()
+    public static kotlin.Pair readyOrNull()
 com.callrecorder.service.RecordingOverlayManager:
     public static final com.callrecorder.service.RecordingOverlayManager INSTANCE
     public static boolean canShow()
@@ -39162,6 +39171,7 @@ com.callrecorder.utils.AppUpdateChecker:
 com.callrecorder.utils.CallLogQueryHelper$SysCallEntry:
     public static long getDurationSec()
     public static java.lang.String getNumber()
+    public static int getType()
 com.callrecorder.utils.CallLogQueryHelper:
     public static final com.callrecorder.utils.CallLogQueryHelper INSTANCE
     static void <clinit>()
@@ -43538,11 +43548,11 @@ okhttp3.MediaType:
     public static java.lang.String parameter()
     public static java.lang.String type()
 okhttp3.MultipartBody$Builder:
-    public static okhttp3.MultipartBody$Builder addFormDataPart()
-    public final void addPart(okhttp3.MultipartBody$Part)
-okhttp3.MultipartBody$Part$Companion:
-    public static okhttp3.MultipartBody$Part create()
-    public static okhttp3.MultipartBody$Part createFormData()
+    public static okhttp3.MultipartBody$Builder addPart()
+    public static okhttp3.MultipartBody build()
+    public static okhttp3.MultipartBody$Builder setType()
+okhttp3.MultipartBody$Companion
+okhttp3.MultipartBody$Part$Companion
 okhttp3.MultipartBody$Part:
     public static final okhttp3.MultipartBody$Part$Companion Companion
     static void <clinit>()
@@ -43642,7 +43652,7 @@ okhttp3.Protocol:
 okhttp3.Request$Builder:
     public static okhttp3.Request$Builder get()
     public static okhttp3.Request$Builder headers()
-    public final void post(okhttp3.MultipartBody)
+    public static okhttp3.Request$Builder post()
     public final void removeHeader(java.lang.String)
     public final void url(okhttp3.HttpUrl)
 okhttp3.Request:

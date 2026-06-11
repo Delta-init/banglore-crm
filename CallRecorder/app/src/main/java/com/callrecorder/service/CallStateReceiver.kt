@@ -3,6 +3,7 @@ package com.callrecorder.service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.provider.CallLog
 import android.telephony.TelephonyManager
 import android.util.Log
 import com.callrecorder.data.db.AppDatabase
@@ -16,26 +17,29 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 
 /**
  * ════════════════════════════════════════════════════════════════════
- *  Call State Receiver — both incoming and outgoing calls
+ *  Call State Receiver — CRM sync + recording orchestration
  * ════════════════════════════════════════════════════════════════════
  *
  *  State machine:
+ *    IDLE → RINGING → OFFHOOK  =  Incoming call answered
+ *    IDLE → OFFHOOK            =  Outgoing call placed
+ *    RINGING → IDLE            =  Missed / rejected
+ *    OFFHOOK → IDLE            =  Call ended
  *
- *    IDLE ──→ RINGING ──→ OFFHOOK   =  INCOMING call answered
- *    IDLE ──→ OFFHOOK               =  OUTGOING call placed
- *    IDLE ──→ RINGING ──→ IDLE      =  Missed / rejected
- *    OFFHOOK ──→ IDLE               =  Call ended → stop recording
+ *  CRM sync strategy (v1.12):
+ *    CRM sync happens here, NOT inside CallRecordingService.
+ *    After every call end (answered or missed), we wait 3 s for the OS
+ *    to write the system call log entry, then read phone + duration + type
+ *    directly from CallLog.Calls. This is 100% reliable regardless of
+ *    whether the audio recording succeeded or failed.
  *
- *  On Android 10+ (API 29+):
- *    • ACTION_NEW_OUTGOING_CALL is deprecated — may not fire on all devices
- *    • EXTRA_INCOMING_NUMBER is removed — number unavailable from this broadcast
- *    • We detect outgoing calls via the IDLE → OFFHOOK transition (no RINGING before)
- *    • Phone number for outgoing calls is captured via ACTION_NEW_OUTGOING_CALL when it fires,
- *      or left blank if it doesn't (recording still works, just without the number label)
+ *  CallRecordingService is still started/stopped for audio recording,
+ *  but it no longer calls CrmSyncService — it only saves the audio file.
  * ════════════════════════════════════════════════════════════════════
  */
 class CallStateReceiver : BroadcastReceiver() {
@@ -46,11 +50,9 @@ class CallStateReceiver : BroadcastReceiver() {
         when (intent.action) {
 
             // ── Capture outgoing number before the call connects ──────────────
-            // Deprecated in API 29 but still fires on many Android 10–13 devices.
             Intent.ACTION_NEW_OUTGOING_CALL -> {
                 @Suppress("DEPRECATION")
-                val number = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER)
-                    ?.trim() ?: return
+                val number = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER)?.trim() ?: return
                 if (number.isNotBlank()) {
                     lastOutgoingNumber = number
                     AppLogger.i(context, TAG, "Outgoing → $number")
@@ -61,102 +63,130 @@ class CallStateReceiver : BroadcastReceiver() {
             TelephonyManager.ACTION_PHONE_STATE_CHANGED -> {
                 val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE) ?: return
 
-                // EXTRA_INCOMING_NUMBER: available on ≤ API 28 or if READ_CALL_LOG granted
                 @Suppress("DEPRECATION")
-                val number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)
-                    ?.trim() ?: ""
+                val number = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)?.trim() ?: ""
 
                 AppLogger.i(context, TAG, "PHONE_STATE: $state (number='$number', last='$lastCallState')")
                 Log.d(TAG, "state=$state  prev=$lastCallState  number=$number")
 
                 when (state) {
 
-                    // ── Incoming call ringing ─────────────────────────────────
                     TelephonyManager.EXTRA_STATE_RINGING -> {
                         lastCallState = STATE_RINGING
                         if (number.isNotBlank()) lastIncomingNumber = number
                         AppLogger.i(context, TAG, "Ringing — incoming from: $lastIncomingNumber")
                     }
 
-                    // ── Call answered / placed ────────────────────────────────
                     TelephonyManager.EXTRA_STATE_OFFHOOK -> {
                         val wasIdle    = lastCallState == STATE_IDLE
                         val wasRinging = lastCallState == STATE_RINGING
 
                         val (phoneNumber, callType) = when {
                             wasRinging -> {
-                                // RINGING → OFFHOOK = incoming call answered
-                                val num = lastIncomingNumber
-                                    .takeIf { it.isNotBlank() } ?: number
+                                val num = lastIncomingNumber.takeIf { it.isNotBlank() } ?: number
                                 AppLogger.i(context, TAG, "Incoming answered: $num")
                                 num to "incoming"
                             }
                             wasIdle -> {
-                                // IDLE → OFFHOOK = outgoing call placed.
-                                //
-                                // If InCallService is active (companion or default dialer mode),
-                                // let it handle the recording — it has the real phone number
-                                // from call.details.handle and fires at STATE_ACTIVE (answered).
-                                // CallStateReceiver fires at OFFHOOK (dialling) which on Android
-                                // 10+ has no reliable phone number because ACTION_NEW_OUTGOING_CALL
-                                // is deprecated. Starting here would record with a blank number.
                                 if (CallRecorderInCallService.isActive) {
+                                    // InCallService active — it will start the recording service.
+                                    // We still track state so IDLE handler can sync CRM.
                                     AppLogger.i(context, TAG,
-                                        "Outgoing OFFHOOK — InCallService active, deferring to it")
-                                    lastCallState = STATE_OFFHOOK
+                                        "Outgoing OFFHOOK — InCallService active, deferring recording to it")
+                                    lastCallState    = STATE_OFFHOOK
+                                    lastAnsweredPhone = ""        // system call log will resolve it
+                                    lastAnsweredType  = "outgoing"
+                                    callAnsweredAtMs  = System.currentTimeMillis()
                                     lastOutgoingNumber = ""
                                     return
                                 }
-
-                                // On Android 10+, ACTION_NEW_OUTGOING_CALL is deprecated and may
-                                // not fire — fall back to the number saved by DialerFragment.
                                 val num = lastOutgoingNumber.takeIf { it.isNotBlank() }
                                     ?: number.takeIf { it.isNotBlank() }
                                     ?: PrefsHelper.getLastDialedNumber(context)
-                                AppLogger.i(context, TAG, "Outgoing placed (legacy path): $num")
+                                AppLogger.i(context, TAG, "Outgoing placed: $num")
                                 num to "outgoing"
                             }
                             else -> {
-                                // Already in OFFHOOK (e.g. call waiting) — ignore
                                 AppLogger.i(context, TAG, "OFFHOOK while already off-hook — skipping")
                                 return
                             }
                         }
 
-                        lastCallState    = STATE_OFFHOOK
+                        lastCallState     = STATE_OFFHOOK
+                        lastAnsweredPhone = phoneNumber
+                        lastAnsweredType  = callType
+                        callAnsweredAtMs  = System.currentTimeMillis()
                         lastOutgoingNumber = ""   // consumed
 
                         CallRecordingService.startRecording(context, phoneNumber, callType)
                     }
 
-                    // ── Call ended ────────────────────────────────────────────
                     TelephonyManager.EXTRA_STATE_IDLE -> {
                         val wasRinging   = lastCallState == STATE_RINGING
                         val wasRecording = lastCallState == STATE_OFFHOOK
 
-                        // Capture phone before resetting state
-                        val missedPhone = lastIncomingNumber
+                        // Capture before resetting state
+                        val missedPhone  = lastIncomingNumber
+                        val answeredPhone = lastAnsweredPhone
+                        val answeredType  = lastAnsweredType
+                        val answeredAtMs  = if (callAnsweredAtMs > 0L) callAnsweredAtMs
+                                            else System.currentTimeMillis()
 
                         lastCallState      = STATE_IDLE
                         lastIncomingNumber = ""
                         lastOutgoingNumber = ""
+                        lastAnsweredPhone  = ""
+                        lastAnsweredType   = ""
+                        callAnsweredAtMs   = 0L
 
                         when {
                             wasRecording -> {
-                                // Connected call ended normally — stop recorder (CRM log handled inside)
+                                // Stop recording service — it handles audio file saving only
                                 AppLogger.i(context, TAG, "Call ended — stopping recorder")
                                 CallRecordingService.stopRecording(context)
+
+                                // CRM sync: always runs from here, independent of recording success.
+                                // Wait 3 s for the OS to write the system call log entry.
+                                val callDateIso = Instant.ofEpochMilli(answeredAtMs).toString()
+                                receiverScope.launch {
+                                    delay(3_000L)
+                                    val entry = CallLogQueryHelper.getLastCall(
+                                        context, withinMs = 120_000L
+                                    )
+                                    // System call log is authoritative for phone + duration + type.
+                                    // Fall back to what we captured at OFFHOOK time if entry is null.
+                                    val phone = entry?.number?.takeIf { it.isNotBlank() }
+                                        ?: answeredPhone.takeIf { it.isNotBlank() }
+                                        ?: ""
+                                    val durSecs = entry?.durationSec ?: 0L
+                                    val type = when (entry?.type) {
+                                        CallLog.Calls.INCOMING_TYPE -> "incoming"
+                                        CallLog.Calls.OUTGOING_TYPE -> "outgoing"
+                                        CallLog.Calls.MISSED_TYPE   -> "missed"
+                                        else -> answeredType.ifBlank { "outgoing" }
+                                    }
+                                    AppLogger.i(context, TAG,
+                                        "CRM sync ($type): phone=$phone dur=${durSecs}s")
+                                    CrmSyncService.logCallEvent(
+                                        context      = context,
+                                        phoneNumber  = phone,
+                                        callType     = type,
+                                        durationSecs = durSecs,
+                                        callDateIso  = callDateIso,
+                                    )
+                                }
                             }
                             wasRinging -> {
-                                // RINGING → IDLE = missed / rejected incoming call
-                                AppLogger.i(context, TAG, "Missed call from: $missedPhone — logging to CRM")
+                                // Missed / rejected — no recording service was started
+                                AppLogger.i(context, TAG, "Missed call from: $missedPhone")
                                 receiverScope.launch {
-                                    // Recover phone from system call log if blank (Android 10+)
-                                    val phone = if (missedPhone.isNotBlank()) missedPhone else {
-                                        delay(1_500L)
-                                        CallLogQueryHelper.getLastCall(context, withinMs = 60_000L)
-                                            ?.number ?: ""
-                                    }
+                                    delay(3_000L)
+                                    val entry = CallLogQueryHelper.getLastCall(
+                                        context, withinMs = 120_000L
+                                    )
+                                    val phone = entry?.number?.takeIf { it.isNotBlank() }
+                                        ?: missedPhone.takeIf { it.isNotBlank() }
+                                        ?: ""
                                     val (synced, syncErr) = CrmSyncService.logCallEvent(
                                         context      = context,
                                         phoneNumber  = phone,
@@ -180,7 +210,7 @@ class CallStateReceiver : BroadcastReceiver() {
                                 }
                             }
                             else -> {
-                                AppLogger.i(context, TAG, "IDLE (no active recording to stop)")
+                                AppLogger.i(context, TAG, "IDLE (no active call to handle)")
                             }
                         }
                     }
@@ -189,30 +219,22 @@ class CallStateReceiver : BroadcastReceiver() {
         }
     }
 
-    // ── Companion (process-level state) ──────────────────────────────────────
-
     companion object {
         private const val TAG = "CallStateReceiver"
 
-        // State constants — mirrors TelephonyManager EXTRA_STATE strings
         private const val STATE_IDLE    = "IDLE"
         private const val STATE_RINGING = "RINGING"
         private const val STATE_OFFHOOK = "OFFHOOK"
 
-        /**
-         * Tracks the previous call state so we can distinguish:
-         *   IDLE → OFFHOOK      = outgoing call placed
-         *   RINGING → OFFHOOK   = incoming call answered
-         *   RINGING → IDLE      = missed / rejected
-         *
-         * Volatile: BroadcastReceiver instances are created fresh per broadcast
-         * but share process memory.
-         */
         @Volatile private var lastCallState      = STATE_IDLE
         @Volatile private var lastIncomingNumber = ""
         @Volatile private var lastOutgoingNumber = ""
 
-        // Coroutine scope for CRM log calls from the receiver (no lifecycle host)
+        // Captured at OFFHOOK time; read by the IDLE CRM sync coroutine
+        @Volatile private var lastAnsweredPhone  = ""
+        @Volatile private var lastAnsweredType   = ""
+        @Volatile private var callAnsweredAtMs   = 0L
+
         private val receiverScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     }
 }
