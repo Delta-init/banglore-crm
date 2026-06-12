@@ -12,9 +12,8 @@ import androidx.core.content.ContextCompat
 
 object PermissionHelper {
 
-    /** Permissions always required */
+    /** Permissions required for call detection and CRM sync (mock/log-only mode — no audio) */
     private val REQUIRED_PERMISSIONS = buildList {
-        add(Manifest.permission.RECORD_AUDIO)
         add(Manifest.permission.READ_PHONE_STATE)
         add(Manifest.permission.READ_CALL_LOG)
         add(Manifest.permission.READ_CONTACTS)
@@ -22,9 +21,7 @@ object PermissionHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             add(Manifest.permission.POST_NOTIFICATIONS)
         }
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-            add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
+        // RECORD_AUDIO and WRITE_EXTERNAL_STORAGE removed — no audio capture in mock mode
     }.toTypedArray()
 
     fun getMissingPermissions(context: Context): Array<String> {

@@ -82,41 +82,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     private fun setupPreferences() {
 
-        // ── Auto-record ────────────────────────────────────────────────────
-        findPreference<SwitchPreferenceCompat>("auto_record_enabled")?.apply {
-            isChecked = PrefsHelper.isAutoRecordEnabled(requireContext())
-            setOnPreferenceChangeListener { _, newValue ->
-                PrefsHelper.setAutoRecordEnabled(requireContext(), newValue as Boolean)
-                true
-            }
-        }
-
-        // ── Speaker mode ───────────────────────────────────────────────────
-        findPreference<SwitchPreferenceCompat>("force_speaker_mode")?.apply {
-            isChecked = PrefsHelper.forceSpeakerMode(requireContext())
-            setOnPreferenceChangeListener { _, newValue ->
-                val enabled = newValue as Boolean
-                if (enabled) {
-                    MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("Force Speaker Mode")
-                        .setMessage(
-                            "✅ Captures BOTH sides on ALL Android versions.\n\n" +
-                            "⚠️ The other person's voice will be audible from your speaker. " +
-                            "Use in a private location."
-                        )
-                        .setPositiveButton("Enable") { _, _ ->
-                            PrefsHelper.setForceSpeakerMode(requireContext(), true)
-                            isChecked = true
-                        }
-                        .setNegativeButton("Cancel") { _, _ -> isChecked = false }
-                        .show()
-                    false
-                } else {
-                    PrefsHelper.setForceSpeakerMode(requireContext(), false)
-                    true
-                }
-            }
-        }
+        // Auto-record and speaker-mode toggles are hidden in mock/log-only mode.
+        // CRM sync is always active — these settings have no effect.
+        findPreference<SwitchPreferenceCompat>("auto_record_enabled")?.isVisible = false
+        findPreference<SwitchPreferenceCompat>("force_speaker_mode")?.isVisible  = false
 
         // ── Grant Companion Access ─────────────────────────────────────────
         findPreference<Preference>("grant_companion_access")?.setOnPreferenceClickListener {
@@ -309,7 +278,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Set as Default Dialer")
             .setMessage(
-                "This gives the best recording access.\n\n" +
+                "This gives the most reliable call detection for CRM sync.\n\n" +
                 "⚠️ This app will handle your incoming call screen (Answer / Decline buttons). " +
                 "If it doesn't work properly, use 'Switch Back to System Phone App' in Settings."
             )
@@ -343,8 +312,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
             .setMessage(
                 "This will open Default App Settings where you can select your original phone app " +
                 "(usually 'Phone' or 'Dialer').\n\n" +
-                "After switching back, this app will still record calls via the microphone — " +
-                "you just won't use it as your dialer."
+                "After switching back, CRM sync will use the broadcast receiver — " +
+                "call detection may be slightly less reliable for outgoing calls."
             )
             .setPositiveButton("Open Settings") { _, _ ->
                 try {
@@ -372,7 +341,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             if (isCurrentDefaultDialer())
                 "✅ Currently the default dialer — InCallService active"
             else
-                "Alternative to Companion Access. Gives deepest audio access. Requires this app to handle your incoming call screen."
+                "Alternative to Companion Access. Most reliable call detection for CRM sync. Requires this app to handle your incoming call screen."
 
         findPreference<Preference>("restore_default_dialer")?.isVisible = isCurrentDefaultDialer()
     }

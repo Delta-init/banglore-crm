@@ -1,6 +1,7 @@
 package com.callrecorder.ui.recordings
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -23,7 +24,6 @@ class RecordingAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: RecordingEntity) {
-            // Display name: contact name or phone number
             binding.tvName.text = item.contactName?.takeIf { it.isNotBlank() }
                 ?: item.phoneNumber.takeIf { it.isNotBlank() }
                 ?: "Unknown"
@@ -31,10 +31,24 @@ class RecordingAdapter(
             binding.tvPhoneNumber.text = item.phoneNumber.ifBlank { "Unknown" }
             binding.tvDate.text        = dateFormat.format(Date(item.createdAt))
             binding.tvDuration.text    = StorageHelper.formatDuration(item.duration)
-            binding.tvSize.text        = StorageHelper.formatFileSize(item.fileSize)
             binding.tvCallType.text    = item.callType.replaceFirstChar { it.uppercase() }
 
-            binding.btnPlay.setOnClickListener   { onPlay(item)   }
+            val hasAudioFile = item.filePath.isNotBlank()
+            if (hasAudioFile) {
+                // Real audio file — show size and enable play button
+                binding.tvSize.text = StorageHelper.formatFileSize(item.fileSize)
+                binding.btnPlay.visibility = View.VISIBLE
+                binding.btnPlay.setOnClickListener { onPlay(item) }
+            } else {
+                // Mock / log-only entry — no audio to play
+                binding.tvSize.text = when {
+                    item.crmSynced                  -> "✓ CRM Synced"
+                    !item.syncError.isNullOrBlank()  -> "⚠ Not Synced"
+                    else                             -> "Pending sync…"
+                }
+                binding.btnPlay.visibility = View.GONE
+            }
+
             binding.btnDelete.setOnClickListener { onDelete(item) }
         }
     }

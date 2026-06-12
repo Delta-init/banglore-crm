@@ -53,10 +53,10 @@ class App : Application() {
 
             val recordingChannel = NotificationChannel(
                 CHANNEL_RECORDING,
-                "Call Recording",
+                "Active Call",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Shown while a call is being recorded"
+                description = "Shown while a call is active — keeps the process alive for CRM sync"
                 setShowBadge(false)
             }
 
@@ -65,7 +65,7 @@ class App : Application() {
                 "General",
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "General app notifications"
+                description = "Call logged / CRM sync result notifications"
             }
 
             manager.createNotificationChannel(recordingChannel)

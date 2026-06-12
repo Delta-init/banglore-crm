@@ -86,13 +86,13 @@ class MainActivity : AppCompatActivity() {
         markDefaultDialerPromptShown()
 
         MaterialAlertDialogBuilder(this)
-            .setTitle("Upgrade to Both-Sides Recording?")
+            .setTitle("Improve Call Detection?")
             .setMessage(
-                "For the best recording quality (capturing BOTH sides of every call), " +
-                "set Call Recorder as your default Phone app.\n\n" +
-                "• This gives deeper audio access via Android's InCallService\n" +
+                "For the most reliable CRM sync on every call, set this app as your default Phone app.\n\n" +
+                "• Enables InCallService — detects calls the moment they connect\n" +
+                "• Ensures outgoing calls are always captured\n" +
                 "• You can switch back to your original phone app at any time\n\n" +
-                "Even without this, the app records calls automatically.\n" +
+                "CRM sync works without this too.\n" +
                 "You can also enable this later in Settings."
             )
             .setPositiveButton("Set as Default") { _, _ -> promptSetDefaultDialer() }
@@ -141,10 +141,10 @@ class MainActivity : AppCompatActivity() {
             .setTitle("Permissions Required")
             .setMessage(
                 "Call Recorder needs:\n\n" +
-                "• Microphone — to record audio\n" +
-                "• Phone State — to detect when calls start/end\n" +
-                "• Call Log — to identify call type (incoming/outgoing)\n\n" +
-                "Without these, recording will not work."
+                "• Phone State — to detect when calls start and end\n" +
+                "• Call Log — to identify call type (incoming / outgoing / missed)\n" +
+                "• Contacts — to show contact names in the call list\n\n" +
+                "Without these, CRM sync will not work."
             )
             .setPositiveButton("Open Settings") { _, _ -> PermissionHelper.openAppSettings(this) }
             .setNegativeButton("Not Now", null)
