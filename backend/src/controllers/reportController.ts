@@ -360,15 +360,14 @@ export const getLeaderboard = async (
       // Only show users who have at least 1 assigned lead
       .filter((e) => e.totalLeads > 0);
 
-    // Sort: closings → total leads → callback → followup → call duration
+    // Sort: revenue → closings → call duration → followup → call count
     entries.sort((a, b) => {
+      if (b.closingAmount    !== a.closingAmount)    return b.closingAmount    - a.closingAmount;
       if (b.closings         !== a.closings)         return b.closings         - a.closings;
-      if (b.totalLeads       !== a.totalLeads)       return b.totalLeads       - a.totalLeads;
-      if ((b.leadCounts.callback ?? 0) !== (a.leadCounts.callback ?? 0))
-        return (b.leadCounts.callback ?? 0) - (a.leadCounts.callback ?? 0);
+      if (b.callDurationMins !== a.callDurationMins) return b.callDurationMins - a.callDurationMins;
       if ((b.leadCounts.followup ?? 0) !== (a.leadCounts.followup ?? 0))
         return (b.leadCounts.followup ?? 0) - (a.leadCounts.followup ?? 0);
-      return b.callDurationMins - a.callDurationMins;
+      return b.callCount - a.callCount;
     });
 
     // Assign ranks

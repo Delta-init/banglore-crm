@@ -223,11 +223,11 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
 
   const cardBg =
     entry.rank === 1
-      ? "bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-transparent border-amber-500/30"
+      ? "bg-gradient-to-r from-amber-50 via-yellow-50 to-white border-amber-300 shadow-md shadow-amber-200/60 dark:from-amber-500/10 dark:via-yellow-500/5 dark:to-transparent dark:border-amber-500/30 dark:shadow-none"
       : entry.rank === 2
-      ? "bg-gradient-to-r from-slate-400/10 via-slate-300/5 to-transparent border-slate-400/30"
+      ? "bg-gradient-to-r from-slate-100 via-gray-50 to-white border-slate-300 shadow-md shadow-slate-200/60 dark:from-slate-400/10 dark:via-slate-300/5 dark:to-transparent dark:border-slate-400/30 dark:shadow-none"
       : entry.rank === 3
-      ? "bg-gradient-to-r from-orange-400/10 via-orange-300/5 to-transparent border-orange-400/30"
+      ? "bg-gradient-to-r from-orange-50 via-amber-50 to-white border-orange-300 shadow-md shadow-orange-200/60 dark:from-orange-400/10 dark:via-orange-300/5 dark:to-transparent dark:border-orange-400/30 dark:shadow-none"
       : "bg-card border-border hover:border-primary/20";
 
   return (
@@ -240,7 +240,8 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
       transition={{ type: "spring", stiffness: 260, damping: 28, delay: index * 0.03 }}
       whileHover={{ scale: 1.005, y: -1 }}
       className={cn(
-        "relative rounded-xl border px-4 py-3 transition-colors",
+        "relative rounded-xl px-4 py-3 transition-colors",
+        isTop3 ? "border-2" : "border",
         cardBg,
         isFullscreen ? "py-4" : "",
       )}
@@ -249,9 +250,9 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
       {entry.rank === 1 && (
         <motion.div
           className="pointer-events-none absolute inset-0 rounded-xl"
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
+          animate={{ opacity: [0.4, 0.9, 0.4] }}
           transition={{ duration: 2.5, repeat: Infinity }}
-          style={{ boxShadow: "inset 0 0 30px rgba(245,158,11,0.08)" }}
+          style={{ boxShadow: "inset 0 0 40px rgba(245,158,11,0.18)" }}
         />
       )}
 
@@ -265,7 +266,7 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
             <span className={cn(
               "font-semibold truncate",
               isFullscreen ? "text-lg" : "text-sm",
-              entry.rank === 1 ? "text-amber-400" : "text-foreground",
+              entry.rank === 1 ? "text-amber-700 dark:text-amber-400" : "text-foreground",
             )}>
               {entry.name}
             </span>
@@ -533,7 +534,7 @@ export default function LeaderboardPage() {
         <span className="flex items-center gap-1"><Flame className="h-3 w-3 text-orange-400" /> ≥{CALL_TARGET_MINS} min call target</span>
         <span className="flex items-center gap-1 ml-auto">
           <Zap className="h-3 w-3 text-amber-400" />
-          Sorted by closings → revenue → call time
+          Ranked: revenue → closings → call time → followup → calls
         </span>
       </div>
 
