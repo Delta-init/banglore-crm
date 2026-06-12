@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.callrecorder.databinding.FragmentRecentCallsBinding
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import android.Manifest
 
@@ -57,6 +58,11 @@ class RecentCallsFragment : Fragment() {
 
         binding.btnRefresh.setOnClickListener { checkPermissionAndLoad() }
 
+        binding.btnSyncAll.setOnClickListener {
+            binding.btnSyncAll.isEnabled = false
+            viewModel.resyncAll()
+        }
+
         observeState()
         checkPermissionAndLoad()
     }
@@ -87,6 +93,16 @@ class RecentCallsFragment : Fragment() {
                                 View.VISIBLE else View.GONE
                         binding.recyclerView.visibility =
                             if (calls.isNotEmpty()) View.VISIBLE else View.GONE
+                    }
+                }
+                launch {
+                    viewModel.syncAllResult.collect { successCount ->
+                        binding.btnSyncAll.isEnabled = true
+                        val msg = if (successCount > 0)
+                            "✅ $successCount sync${if (successCount > 1) "s" else ""} succeeded"
+                        else
+                            "⚠️ No unsynced calls to sync"
+                        Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
                     }
                 }
             }

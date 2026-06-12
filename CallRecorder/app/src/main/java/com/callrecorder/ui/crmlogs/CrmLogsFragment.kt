@@ -81,6 +81,23 @@ class CrmLogsFragment : Fragment() {
             }
         }
 
+        // ── Sync All button (always visible) ────────────────────────────────
+        binding.btnSyncAll.setOnClickListener {
+            binding.btnSyncAll.isEnabled = false
+            viewLifecycleOwner.lifecycleScope.launch {
+                val successCount = withContext(Dispatchers.IO) {
+                    CrmSyncService.retryAllFailed(requireContext())
+                }
+                binding.btnSyncAll.isEnabled = true
+
+                val msg = if (successCount > 0)
+                    "✅ $successCount sync${if (successCount > 1) "s" else ""} succeeded"
+                else
+                    "⚠️ No failed syncs to retry"
+                Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+            }
+        }
+
         // ── Retry All Failed button ───────────────────────────────────────────
         binding.btnRetryAll.setOnClickListener {
             binding.btnRetryAll.isEnabled = false
