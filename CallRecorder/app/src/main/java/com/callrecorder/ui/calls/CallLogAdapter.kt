@@ -1,5 +1,6 @@
 package com.callrecorder.ui.calls
 
+import android.app.AlertDialog
 import android.content.res.ColorStateList
 import android.provider.CallLog
 import android.view.LayoutInflater
@@ -17,7 +18,8 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class CallLogAdapter(
-    private val onCall: (CallLogEntry) -> Unit
+    private val onCall: (CallLogEntry) -> Unit,
+    private val onResync: ((CallLogEntry) -> Unit)? = null,
 ) : ListAdapter<CallLogEntry, CallLogAdapter.VH>(DIFF) {
 
     inner class VH(private val b: ItemCallLogBinding) : RecyclerView.ViewHolder(b.root) {
@@ -63,27 +65,40 @@ class CallLogAdapter(
             // ── CRM sync badge + error detail ─────────────────────────────────
             when (entry.crmSyncStatus) {
                 CrmSyncStatus.SYNCED -> {
-                    b.tvCrmSync.visibility = View.VISIBLE
-                    b.tvCrmSync.text       = "✓ CRM Synced"
+                    b.tvCrmSync.visibility  = View.VISIBLE
+                    b.tvCrmSync.text        = "✓ CRM Synced"
+                    b.tvCrmSync.isClickable = false
+                    b.tvCrmSync.setOnClickListener(null)
                     b.tvCrmSync.setTextColor(ContextCompat.getColor(ctx, R.color.badge_synced_text))
                     b.tvCrmSync.backgroundTintList =
                         ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.badge_synced_bg))
-                    // Show API response under the badge (gray)
-                    if (!entry.syncError.isNullOrBlank()) {
+                    // Show CRM call log ID so the user can verify the exact CRM record
+                    if (!entry.crmCallLogId.isNullOrBlank()) {
                         b.tvSyncError.visibility = View.VISIBLE
                         b.tvSyncError.setTextColor(0xFF888888.toInt())
-                        b.tvSyncError.text = entry.syncError
+                        b.tvSyncError.text = "ID: ${entry.crmCallLogId}"
                     } else {
                         b.tvSyncError.visibility = View.GONE
                     }
                 }
                 CrmSyncStatus.NOT_SYNCED -> {
                     b.tvCrmSync.visibility = View.VISIBLE
-                    b.tvCrmSync.text       = "⚠ Not Synced"
+                    b.tvCrmSync.text       = "⚠ Not Synced — Tap to retry"
                     b.tvCrmSync.setTextColor(ContextCompat.getColor(ctx, R.color.badge_not_synced_text))
                     b.tvCrmSync.backgroundTintList =
                         ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.badge_not_synced_bg))
-                    // Show the actual API error so the user knows what went wrong
+                    b.tvCrmSync.isClickable  = true
+                    b.tvCrmSync.isFocusable  = true
+                    b.tvCrmSync.setOnClickListener {
+                        val errDetail = entry.syncError?.takeIf { it.isNotBlank() } ?: "Unknown error"
+                        AlertDialog.Builder(ctx)
+                            .setTitle("⚠ Sync Failed")
+                            .setMessage("Error: $errDetail\n\nRetry syncing this call to the CRM?")
+                            .setPositiveButton("Retry Sync") { _, _ -> onResync?.invoke(entry) }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
+                    // Show the actual API error inline so the user sees it without tapping
                     if (!entry.syncError.isNullOrBlank()) {
                         b.tvSyncError.visibility = View.VISIBLE
                         b.tvSyncError.text       = entry.syncError

@@ -15,8 +15,8 @@ import com.callrecorder.utils.PrefsHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import java.time.Instant
 
 
@@ -25,28 +25,23 @@ import java.time.Instant
  *  Call State Receiver — CRM sync + recording orchestration
  * ════════════════════════════════════════════════════════════════════
  *
- *  State machine:
- *    IDLE → RINGING → OFFHOOK  =  Incoming call answered
- *    IDLE → OFFHOOK            =  Outgoing call placed
- *    RINGING → IDLE            =  Missed / rejected
- *    OFFHOOK → IDLE            =  Call ended
+ *  CRM sync strategy (v1.13):
+ *    Every answered/missed call → wait 1.5 s → read system call log
+ *    (phone + duration + type) → POST to CRM. Fully independent of
+ *    audio recording success.
  *
- *  CRM sync strategy (v1.12):
- *    CRM sync happens here, NOT inside CallRecordingService.
- *    After every call end (answered or missed), we wait 3 s for the OS
- *    to write the system call log entry, then read phone + duration + type
- *    directly from CallLog.Calls. This is 100% reliable regardless of
- *    whether the audio recording succeeded or failed.
+ *  Process lifetime:
+ *    goAsync() extends the BroadcastReceiver window so Android does not
+ *    kill the process while the coroutine is pending.
  *
- *  CallRecordingService is still started/stopped for audio recording,
- *  but it no longer calls CrmSyncService — it only saves the audio file.
+ *  RecordingEntity back-fill:
+ *    After CRM sync succeeds, the most recent RecordingEntity is updated
+ *    so the Recent Calls tab badge shows ✅ instead of "Not Synced".
  * ════════════════════════════════════════════════════════════════════
  */
 class CallStateReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (!PrefsHelper.isAutoRecordEnabled(context)) return
-
         when (intent.action) {
 
             // ── Capture outgoing number before the call connects ──────────────
@@ -89,12 +84,15 @@ class CallStateReceiver : BroadcastReceiver() {
                             }
                             wasIdle -> {
                                 if (CallRecorderInCallService.isActive) {
-                                    // InCallService active — it will start the recording service.
-                                    // We still track state so IDLE handler can sync CRM.
+                                    // Preserve the dialed number NOW before clearing lastOutgoingNumber,
+                                    // so the IDLE branch CRM sync has a phone number to work with.
+                                    val num = lastOutgoingNumber.takeIf { it.isNotBlank() }
+                                        ?: number.takeIf { it.isNotBlank() }
+                                        ?: PrefsHelper.getLastDialedNumber(context)
                                     AppLogger.i(context, TAG,
-                                        "Outgoing OFFHOOK — InCallService active, deferring recording to it")
+                                        "Outgoing OFFHOOK — InCallService active, deferring recording to it ($num)")
                                     lastCallState    = STATE_OFFHOOK
-                                    lastAnsweredPhone = ""        // system call log will resolve it
+                                    lastAnsweredPhone = num      // saved for the IDLE CRM sync
                                     lastAnsweredType  = "outgoing"
                                     callAnsweredAtMs  = System.currentTimeMillis()
                                     lastOutgoingNumber = ""
@@ -116,7 +114,7 @@ class CallStateReceiver : BroadcastReceiver() {
                         lastAnsweredPhone = phoneNumber
                         lastAnsweredType  = callType
                         callAnsweredAtMs  = System.currentTimeMillis()
-                        lastOutgoingNumber = ""   // consumed
+                        lastOutgoingNumber = ""
 
                         CallRecordingService.startRecording(context, phoneNumber, callType)
                     }
@@ -125,8 +123,7 @@ class CallStateReceiver : BroadcastReceiver() {
                         val wasRinging   = lastCallState == STATE_RINGING
                         val wasRecording = lastCallState == STATE_OFFHOOK
 
-                        // Capture before resetting state
-                        val missedPhone  = lastIncomingNumber
+                        val missedPhone   = lastIncomingNumber
                         val answeredPhone = lastAnsweredPhone
                         val answeredType  = lastAnsweredType
                         val answeredAtMs  = if (callAnsweredAtMs > 0L) callAnsweredAtMs
@@ -141,72 +138,145 @@ class CallStateReceiver : BroadcastReceiver() {
 
                         when {
                             wasRecording -> {
-                                // Stop recording service — it handles audio file saving only
-                                AppLogger.i(context, TAG, "Call ended — stopping recorder")
+                                AppLogger.i(context, TAG, "Call ended — stopping recorder, syncing CRM")
                                 CallRecordingService.stopRecording(context)
 
-                                // CRM sync: always runs from here, independent of recording success.
-                                // Wait 3 s for the OS to write the system call log entry.
+                                // goAsync() tells Android the receiver is still doing work —
+                                // process is kept alive until pendingResult.finish() is called.
+                                val pendingResult = goAsync()
                                 val callDateIso = Instant.ofEpochMilli(answeredAtMs).toString()
+
                                 receiverScope.launch {
-                                    delay(3_000L)
-                                    val entry = CallLogQueryHelper.getLastCall(
-                                        context, withinMs = 120_000L
-                                    )
-                                    // System call log is authoritative for phone + duration + type.
-                                    // Fall back to what we captured at OFFHOOK time if entry is null.
-                                    val phone = entry?.number?.takeIf { it.isNotBlank() }
-                                        ?: answeredPhone.takeIf { it.isNotBlank() }
-                                        ?: ""
-                                    val durSecs = entry?.durationSec ?: 0L
-                                    val type = when (entry?.type) {
-                                        CallLog.Calls.INCOMING_TYPE -> "incoming"
-                                        CallLog.Calls.OUTGOING_TYPE -> "outgoing"
-                                        CallLog.Calls.MISSED_TYPE   -> "missed"
-                                        else -> answeredType.ifBlank { "outgoing" }
+                                    try {
+                                        // 1 s: give system call log time to be written
+                                        delay(1_000L)
+
+                                        val entry = CallLogQueryHelper.getLastCall(
+                                            context, withinMs = 120_000L
+                                        )
+                                        val phone = entry?.number?.takeIf { it.isNotBlank() }
+                                            ?: answeredPhone.takeIf { it.isNotBlank() }
+                                            ?: ""
+                                        val durSecs = entry?.durationSec ?: 0L
+                                        val type = when (entry?.type) {
+                                            CallLog.Calls.INCOMING_TYPE -> "incoming"
+                                            CallLog.Calls.OUTGOING_TYPE -> "outgoing"
+                                            CallLog.Calls.MISSED_TYPE   -> "missed"
+                                            else -> answeredType.ifBlank { "outgoing" }
+                                        }
+
+                                        AppLogger.i(context, TAG,
+                                            "CRM sync ($type): phone=$phone dur=${durSecs}s")
+
+                                        val db = AppDatabase.getInstance(context)
+
+                                        // HTTP call (7 s timeout) — RecordingService is saving the
+                                        // audio file concurrently. By the time this returns (~1–7 s)
+                                        // the RecordingEntity is guaranteed to be in the DB.
+                                        val (synced, crmCallLogId, syncErr) = CrmSyncService.logCallEvent(
+                                            context         = context,
+                                            phoneNumber     = phone,
+                                            callType        = type,
+                                            durationSecs    = durSecs,
+                                            callDateIso     = callDateIso,
+                                            systemCallLogId = entry?.id,
+                                        )
+
+                                        // Back-fill RecordingEntity now that HTTP is done.
+                                        // Use -2 s window to avoid matching the previous call.
+                                        // One 300 ms retry covers any slow file-write edge cases.
+                                        var record = db.recordingDao()
+                                            .getMostRecentAfter(answeredAtMs - 2_000L)
+                                        if (record == null) {
+                                            delay(300L)
+                                            record = db.recordingDao()
+                                                .getMostRecentAfter(answeredAtMs - 2_000L)
+                                        }
+
+                                        if (record != null) {
+                                            db.recordingDao().updateSyncResult(
+                                                id              = record.id,
+                                                synced          = synced,
+                                                error           = if (synced) null else syncErr,
+                                                crmCallLogId    = crmCallLogId,
+                                                systemCallLogId = entry?.id,
+                                            )
+                                            AppLogger.i(context, TAG,
+                                                "Back-filled RecordingEntity #${record.id} — synced=$synced")
+                                        } else {
+                                            // RecordingService didn't create an entity (e.g. call too
+                                            // short, service not started). Create one now so the
+                                            // Recent Calls tab shows the correct sync badge.
+                                            AppLogger.w(context, TAG,
+                                                "No RecordingEntity found — creating fallback for $phone")
+                                            val contactName = ContactHelper.getContactName(context, phone)
+                                            db.recordingDao().insert(
+                                                RecordingEntity(
+                                                    phoneNumber     = phone,
+                                                    contactName     = contactName,
+                                                    filePath        = "",
+                                                    duration        = durSecs * 1_000L,
+                                                    fileSize        = 0L,
+                                                    callType        = type,
+                                                    crmSynced       = synced,
+                                                    syncError       = if (synced) null else syncErr,
+                                                    createdAt       = answeredAtMs,
+                                                    systemCallLogId = entry?.id,
+                                                    crmCallLogId    = crmCallLogId,
+                                                )
+                                            )
+                                        }
+                                    } finally {
+                                        pendingResult.finish()
                                     }
-                                    AppLogger.i(context, TAG,
-                                        "CRM sync ($type): phone=$phone dur=${durSecs}s")
-                                    CrmSyncService.logCallEvent(
-                                        context      = context,
-                                        phoneNumber  = phone,
-                                        callType     = type,
-                                        durationSecs = durSecs,
-                                        callDateIso  = callDateIso,
-                                    )
                                 }
                             }
                             wasRinging -> {
-                                // Missed / rejected — no recording service was started
                                 AppLogger.i(context, TAG, "Missed call from: $missedPhone")
+
+                                val pendingResult = goAsync()
                                 receiverScope.launch {
-                                    delay(3_000L)
-                                    val entry = CallLogQueryHelper.getLastCall(
-                                        context, withinMs = 120_000L
-                                    )
-                                    val phone = entry?.number?.takeIf { it.isNotBlank() }
-                                        ?: missedPhone.takeIf { it.isNotBlank() }
-                                        ?: ""
-                                    val (synced, syncErr) = CrmSyncService.logCallEvent(
-                                        context      = context,
-                                        phoneNumber  = phone,
-                                        callType     = "missed",
-                                        durationSecs = 0L,
-                                    )
-                                    val contactName = ContactHelper.getContactName(context, phone)
-                                    AppDatabase.getInstance(context).recordingDao().insert(
-                                        RecordingEntity(
-                                            phoneNumber = phone,
-                                            contactName = contactName,
-                                            filePath    = "",
-                                            duration    = 0L,
-                                            fileSize    = 0L,
-                                            callType    = "missed",
-                                            crmSynced   = synced,
-                                            syncError   = syncErr,
-                                            createdAt   = System.currentTimeMillis(),
+                                    try {
+                                        delay(1_500L)
+                                        val entry = CallLogQueryHelper.getLastCall(
+                                            context, withinMs = 120_000L
                                         )
-                                    )
+                                        val phone = entry?.number?.takeIf { it.isNotBlank() }
+                                            ?: missedPhone.takeIf { it.isNotBlank() }
+                                            ?: ""
+                                        // Use the actual call time from the system log so the
+                                        // CRM records when the call happened, not when we synced.
+                                        val callDateIso = if (entry != null)
+                                            Instant.ofEpochMilli(entry.date).toString()
+                                        else
+                                            Instant.now().toString()
+                                        val (synced, crmCallLogId, syncErr) = CrmSyncService.logCallEvent(
+                                            context         = context,
+                                            phoneNumber     = phone,
+                                            callType        = "missed",
+                                            durationSecs    = 0L,
+                                            callDateIso     = callDateIso,
+                                            systemCallLogId = entry?.id,
+                                        )
+                                        val contactName = ContactHelper.getContactName(context, phone)
+                                        AppDatabase.getInstance(context).recordingDao().insert(
+                                            RecordingEntity(
+                                                phoneNumber     = phone,
+                                                contactName     = contactName,
+                                                filePath        = "",
+                                                duration        = 0L,
+                                                fileSize        = 0L,
+                                                callType        = "missed",
+                                                crmSynced       = synced,
+                                                syncError       = if (synced) null else syncErr,
+                                                createdAt       = System.currentTimeMillis(),
+                                                systemCallLogId = entry?.id,
+                                                crmCallLogId    = crmCallLogId,
+                                            )
+                                        )
+                                    } finally {
+                                        pendingResult.finish()
+                                    }
                                 }
                             }
                             else -> {
@@ -230,7 +300,7 @@ class CallStateReceiver : BroadcastReceiver() {
         @Volatile private var lastIncomingNumber = ""
         @Volatile private var lastOutgoingNumber = ""
 
-        // Captured at OFFHOOK time; read by the IDLE CRM sync coroutine
+        // Captured at OFFHOOK; read by the IDLE CRM sync coroutine
         @Volatile private var lastAnsweredPhone  = ""
         @Volatile private var lastAnsweredType   = ""
         @Volatile private var callAnsweredAtMs   = 0L

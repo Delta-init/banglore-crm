@@ -45,7 +45,10 @@ class RecentCallsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        adapter = CallLogAdapter { entry -> dialNumber(entry.number) }
+        adapter = CallLogAdapter(
+            onCall   = { entry -> dialNumber(entry.number) },
+            onResync = { entry -> viewModel.resync(entry) },
+        )
 
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())

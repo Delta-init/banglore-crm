@@ -6,12 +6,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.callrecorder.data.db.AppDatabase
 import com.callrecorder.data.db.RecordingEntity
+import com.callrecorder.service.CrmSyncService
 import com.callrecorder.utils.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.Instant
 import kotlin.math.abs
 
 class RecentCallsViewModel(app: Application) : AndroidViewModel(app) {
@@ -35,28 +37,80 @@ class RecentCallsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * For each system call log entry, find a matching RecordingEntity in our DB
-     * (same phone number, within 90 seconds). Attach the CRM sync status.
+     * For each system call log entry, find a matching RecordingEntity in our DB.
      *
-     * Match logic:
-     *  • Normalize both numbers to last 10 digits (handles +91 prefix differences)
-     *  • Call log date vs recording createdAt within MATCH_WINDOW_MS
+     * Match logic (v1.18):
+     *  1. Exact match by Android system call log _ID (recordings saved since v1.18)
+     *  2. Fallback: closest-timestamp within MATCH_WINDOW_MS for pre-v1.18 rows
+     *     where systemCallLogId is null.  Numbers normalised to last 10 digits.
      */
     private fun enrichWithCrmStatus(
         calls: List<CallLogEntry>,
         recordings: List<RecordingEntity>
     ): List<CallLogEntry> {
         if (recordings.isEmpty()) return calls
+
+        // Build O(1) lookup for recordings that carry a system call log ID
+        val bySystemId = recordings
+            .filter { it.systemCallLogId != null }
+            .associateBy { it.systemCallLogId!! }
+
         return calls.map { call ->
-            val match = recordings.firstOrNull { rec ->
-                phoneLast10(call.number) == phoneLast10(rec.phoneNumber) &&
-                abs(call.date - rec.createdAt) < MATCH_WINDOW_MS
-            }
+            val match = bySystemId[call.id]
+                ?: recordings
+                    .filter { rec ->
+                        rec.systemCallLogId == null &&
+                        phoneLast10(call.number) == phoneLast10(rec.phoneNumber) &&
+                        abs(call.date - rec.createdAt) < MATCH_WINDOW_MS
+                    }
+                    .minByOrNull { abs(call.date - it.createdAt) }
+
             when {
                 match == null   -> call
-                match.crmSynced -> call.copy(crmSyncStatus = CrmSyncStatus.SYNCED,     syncError = match.syncError)
-                else            -> call.copy(crmSyncStatus = CrmSyncStatus.NOT_SYNCED, syncError = match.syncError)
+                match.crmSynced -> call.copy(
+                    crmSyncStatus = CrmSyncStatus.SYNCED,
+                    syncError     = match.syncError,
+                    crmCallLogId  = match.crmCallLogId,
+                    recordingId   = match.id,
+                )
+                else            -> call.copy(
+                    crmSyncStatus = CrmSyncStatus.NOT_SYNCED,
+                    syncError     = match.syncError,
+                    crmCallLogId  = null,
+                    recordingId   = match.id,
+                )
             }
+        }
+    }
+
+    /**
+     * Retry CRM sync for a single call that previously failed.
+     * Calls CrmSyncService.logCallEvent(), updates the RecordingEntity, then
+     * refreshes the list so the UI badge updates immediately.
+     */
+    fun resync(entry: CallLogEntry) {
+        val recordingId = entry.recordingId ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            val rec = db.recordingDao().getById(recordingId) ?: return@launch
+            val callDateIso = Instant.ofEpochMilli(rec.createdAt).toString()
+            val (synced, crmCallLogId, errMsg) = CrmSyncService.logCallEvent(
+                context         = getApplication(),
+                phoneNumber     = rec.phoneNumber,
+                callType        = rec.callType,
+                durationSecs    = rec.duration / 1_000L,
+                callDateIso     = callDateIso,
+                systemCallLogId = rec.systemCallLogId,
+            )
+            db.recordingDao().updateSyncResult(
+                id              = recordingId,
+                synced          = synced,
+                error           = if (synced) null else errMsg,
+                crmCallLogId    = crmCallLogId,
+                systemCallLogId = rec.systemCallLogId,
+            )
+            AppLogger.i(getApplication(), TAG, "Resync #$recordingId → synced=$synced err=$errMsg")
+            // Refresh UI on main thread
+            withContext(Dispatchers.Main) { loadCallLog() }
         }
     }
 
@@ -115,6 +169,6 @@ class RecentCallsViewModel(app: Application) : AndroidViewModel(app) {
     companion object {
         private const val TAG = "RecentCallsViewModel"
         private const val MAX_ENTRIES = 500
-        private const val MATCH_WINDOW_MS = 300_000L  // ±5 min — handles long-ringing outgoing calls
+        private const val MATCH_WINDOW_MS = 60_000L   // ±60 s — call start times are within seconds of each other
     }
 }

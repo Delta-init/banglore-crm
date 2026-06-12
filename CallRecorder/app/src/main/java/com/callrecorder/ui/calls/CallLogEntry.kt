@@ -23,5 +23,7 @@ data class CallLogEntry(
     val date: Long,                         // epoch millis
     val duration: Long,                     // seconds
     val crmSyncStatus: CrmSyncStatus = CrmSyncStatus.NOT_RECORDED,
-    val syncError: String? = null           // HTTP response or exception when NOT_SYNCED
+    val syncError: String? = null,          // HTTP response or exception when NOT_SYNCED
+    val crmCallLogId: String? = null,       // CRM backend's call_log_id — shown under ✓ CRM Synced badge
+    val recordingId: Int? = null,           // Room RecordingEntity.id — needed for manual resync
 )

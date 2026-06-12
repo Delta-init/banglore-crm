@@ -56,8 +56,6 @@ class CallRecorderInCallService : InCallService() {
 
                     // ── Call answered / connected ─────────────────────────────
                     Call.STATE_ACTIVE -> {
-                        if (!PrefsHelper.isAutoRecordEnabled(this@CallRecorderInCallService)) return
-
                         val phoneNumber = resolvePhoneNumber(call)
                         val callType   = resolveCallType(call)
 
@@ -102,16 +100,14 @@ class CallRecorderInCallService : InCallService() {
                 if (isDefaultDialer()) launchIncomingCallActivity(call)
             }
             Call.STATE_ACTIVE -> {
-                if (PrefsHelper.isAutoRecordEnabled(this)) {
-                    CallRecordingService.startRecording(
-                        this, resolvePhoneNumber(call), resolveCallType(call)
+                CallRecordingService.startRecording(
+                    this, resolvePhoneNumber(call), resolveCallType(call)
+                )
+                if (isDefaultDialer()) {
+                    startActivity(
+                        Intent(this, InCallActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     )
-                    if (isDefaultDialer()) {
-                        startActivity(
-                            Intent(this, InCallActivity::class.java)
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        )
-                    }
                 }
             }
         }
