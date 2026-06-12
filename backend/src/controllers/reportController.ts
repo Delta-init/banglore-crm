@@ -357,8 +357,8 @@ export const getLeaderboard = async (
           leadCounts:      statusCounts,
         };
       })
-      // Only show users who have at least 1 assigned lead
-      .filter((e) => e.totalLeads > 0);
+      // Only show users who have at least 1 assigned lead; hide specific accounts
+      .filter((e) => e.totalLeads > 0 && e.email !== "safvan@gmail.com");
 
     // Sort: revenue → closings → call duration → followup → call count
     entries.sort((a, b) => {
