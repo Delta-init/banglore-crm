@@ -12893,14 +12893,14 @@ com.callrecorder.ui.calls.CallLogEntry:
 com.callrecorder.ui.calls.CrmSyncStatus:
     public static kotlin.enums.EnumEntries getEntries()
 com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams:
+    public final java.lang.String component1()
+    public final java.lang.String component2()
+    public final long component3()
+    public final java.lang.String component4()
+    public final java.lang.Long component5()
+    public final int component6()
     public final com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams copy(java.lang.String,java.lang.String,long,java.lang.String,java.lang.Long,int)
     public static synthetic com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams copy$default(com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams,java.lang.String,java.lang.String,long,java.lang.String,java.lang.Long,int,int,java.lang.Object)
-    public final java.lang.String getDateIso()
-    public final long getDurSecs()
-    public final int getEntityId()
-    public final java.lang.String getPhone()
-    public final java.lang.Long getSysCallLogId()
-    public final java.lang.String getType()
 com.callrecorder.ui.calls.RecentCallsViewModel:
     private static final long MATCH_WINDOW_MS
     private static final int MAX_ENTRIES
@@ -38916,7 +38916,6 @@ com.callrecorder.databinding.FragmentLogsBinding:
     public final android.widget.LinearLayout rootView
     public static android.widget.LinearLayout getRoot()
 com.callrecorder.databinding.FragmentRecentCallsBinding:
-    public final android.widget.LinearLayout rootView
     public static android.widget.LinearLayout getRoot()
 com.callrecorder.databinding.FragmentRecordingsBinding:
     public static android.widget.LinearLayout getRoot()
@@ -39031,6 +39030,10 @@ com.callrecorder.ui.calls.RecentCallsFragment$observeState$1$1$2$1:
     public final java.lang.Object emit$1()
 com.callrecorder.ui.calls.RecentCallsFragment$observeState$1$1$2:
     public final java.lang.Object invoke$1()
+com.callrecorder.ui.calls.RecentCallsFragment$observeState$1$1$3$1:
+    public final java.lang.Object emit(int,kotlin.coroutines.Continuation)
+com.callrecorder.ui.calls.RecentCallsFragment$observeState$1$1$3:
+    public final java.lang.Object invoke$1()
 com.callrecorder.ui.calls.RecentCallsFragment$observeState$1$1:
     public int label
     public final java.lang.Object invoke$1()
@@ -39055,12 +39058,12 @@ com.callrecorder.ui.calls.RecentCallsFragment:
     public static void showPermissionDenied()
 com.callrecorder.ui.calls.RecentCallsViewModel$Companion
 com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams:
-    public static java.lang.String component1()
-    public static java.lang.String component2()
-    public static long component3()
-    public static java.lang.String component4()
-    public static java.lang.Long component5()
-    public static int component6()
+    public static java.lang.String getDateIso()
+    public static long getDurSecs()
+    public static int getEntityId()
+    public static java.lang.String getPhone()
+    public static java.lang.Long getSysCallLogId()
+    public static java.lang.String getType()
 com.callrecorder.ui.calls.RecentCallsViewModel$fetchCallLog$2:
     public int label
     public final java.lang.Object invoke$1()
@@ -39073,14 +39076,22 @@ com.callrecorder.ui.calls.RecentCallsViewModel$resync$1$1:
     public final java.lang.Object invoke$1()
 com.callrecorder.ui.calls.RecentCallsViewModel$resync$1:
     public final java.lang.Object invoke$1()
+com.callrecorder.ui.calls.RecentCallsViewModel$resyncAll$1$1:
+    public int label
+    public final java.lang.Object invoke$1()
+com.callrecorder.ui.calls.RecentCallsViewModel$resyncAll$1:
+    public final java.lang.Object invoke$1()
 com.callrecorder.ui.calls.RecentCallsViewModel:
     public static final com.callrecorder.ui.calls.RecentCallsViewModel$Companion Companion
     static void <clinit>()
+    public static java.lang.Object buildSyncParams()
     public static java.util.List enrichWithCrmStatus()
     public static java.lang.Object fetchCallLog()
     public static kotlinx.coroutines.flow.StateFlow getCalls()
     public static kotlinx.coroutines.flow.StateFlow getLoading()
+    public static kotlinx.coroutines.flow.SharedFlow getSyncAllResult()
     public static void resync()
+    public static void resyncAll()
 com.callrecorder.ui.crmlogs.CrmLogAdapter$Companion$DIFF$1:
     public static boolean areContentsTheSame$1()
     public static boolean areItemsTheSame$1()
@@ -39108,11 +39119,15 @@ com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$3$1$successCount$1:
     public final java.lang.Object invoke$1()
 com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$3$1:
     public final java.lang.Object invoke$1()
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$4$1$successCount$1:
+    public final java.lang.Object invoke$1()
 com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$4$1:
     public final java.lang.Object invoke$1()
 com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$5$1:
     public final java.lang.Object invoke$1()
-com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$5:
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$6$1:
+    public final java.lang.Object invoke$1()
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$6:
     public final java.lang.Object invoke$1()
 com.callrecorder.ui.crmlogs.CrmLogsFragment:
     public static java.lang.String fmtTime()

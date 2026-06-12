@@ -3072,6 +3072,10 @@
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/color/m3_fab_efab_foreground_color_selector.xml"
     },
     {
+        "merged": "com.callrecorder.app-release-56:/layout_fragment_recent_calls.xml.flat",
+        "source": "com.callrecorder.app-main-57:/layout/fragment_recent_calls.xml"
+    },
+    {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/color_m3_assist_chip_stroke_color.xml.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/color/m3_assist_chip_stroke_color.xml"
     },
@@ -3294,10 +3298,6 @@
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/layout_mtrl_calendar_vertical.xml.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/layout/mtrl_calendar_vertical.xml"
-    },
-    {
-        "merged": "com.callrecorder.app-release-56:/layout_fragment_crm_logs.xml.flat",
-        "source": "com.callrecorder.app-main-57:/layout/fragment_crm_logs.xml"
     },
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/drawable_mtrl_checkbox_button.xml.flat",

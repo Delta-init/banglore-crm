@@ -3354,6 +3354,7 @@ id btnRefreshLogs
 id btnRetry
 id btnRetryAll
 id btnSpeaker
+id btnSyncAll
 id btn_075x
 id btn_15x
 id btn_1x

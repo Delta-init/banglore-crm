@@ -24,12 +24,12 @@
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/activity_in_call.xml"
     },
     {
-        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/dialog_add_edit_contact.xml",
-        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/dialog_add_edit_contact.xml"
+        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_recent_calls.xml",
+        "source": "com.callrecorder.app-main-57:/layout/fragment_recent_calls.xml"
     },
     {
-        "merged": "com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_crm_logs.xml",
-        "source": "com.callrecorder.app-main-57:/layout/fragment_crm_logs.xml"
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/dialog_add_edit_contact.xml",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/dialog_add_edit_contact.xml"
     },
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-mergeReleaseResources-54:/layout/fragment_logs.xml",

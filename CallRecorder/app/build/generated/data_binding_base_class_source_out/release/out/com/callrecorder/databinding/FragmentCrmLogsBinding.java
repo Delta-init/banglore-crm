@@ -28,6 +28,9 @@ public final class FragmentCrmLogsBinding implements ViewBinding {
   public final Button btnRetryAll;
 
   @NonNull
+  public final Button btnSyncAll;
+
+  @NonNull
   public final RecyclerView rvCrmLogs;
 
   @NonNull
@@ -43,11 +46,13 @@ public final class FragmentCrmLogsBinding implements ViewBinding {
   public final TextView tvTitle;
 
   private FragmentCrmLogsBinding(@NonNull LinearLayout rootView, @NonNull Button btnClear,
-      @NonNull Button btnRetryAll, @NonNull RecyclerView rvCrmLogs, @NonNull TextView tvCount,
-      @NonNull TextView tvEmpty, @NonNull TextView tvSyncStatus, @NonNull TextView tvTitle) {
+      @NonNull Button btnRetryAll, @NonNull Button btnSyncAll, @NonNull RecyclerView rvCrmLogs,
+      @NonNull TextView tvCount, @NonNull TextView tvEmpty, @NonNull TextView tvSyncStatus,
+      @NonNull TextView tvTitle) {
     this.rootView = rootView;
     this.btnClear = btnClear;
     this.btnRetryAll = btnRetryAll;
+    this.btnSyncAll = btnSyncAll;
     this.rvCrmLogs = rvCrmLogs;
     this.tvCount = tvCount;
     this.tvEmpty = tvEmpty;
@@ -94,6 +99,12 @@ public final class FragmentCrmLogsBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnSyncAll;
+      Button btnSyncAll = ViewBindings.findChildViewById(rootView, id);
+      if (btnSyncAll == null) {
+        break missingId;
+      }
+
       id = R.id.rvCrmLogs;
       RecyclerView rvCrmLogs = ViewBindings.findChildViewById(rootView, id);
       if (rvCrmLogs == null) {
@@ -124,8 +135,8 @@ public final class FragmentCrmLogsBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentCrmLogsBinding((LinearLayout) rootView, btnClear, btnRetryAll, rvCrmLogs,
-          tvCount, tvEmpty, tvSyncStatus, tvTitle);
+      return new FragmentCrmLogsBinding((LinearLayout) rootView, btnClear, btnRetryAll, btnSyncAll,
+          rvCrmLogs, tvCount, tvEmpty, tvSyncStatus, tvTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

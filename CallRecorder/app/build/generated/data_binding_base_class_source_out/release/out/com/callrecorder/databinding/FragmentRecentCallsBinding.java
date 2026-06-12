@@ -26,6 +26,9 @@ public final class FragmentRecentCallsBinding implements ViewBinding {
   public final MaterialButton btnRefresh;
 
   @NonNull
+  public final MaterialButton btnSyncAll;
+
+  @NonNull
   public final TextView emptyState;
 
   @NonNull
@@ -35,10 +38,12 @@ public final class FragmentRecentCallsBinding implements ViewBinding {
   public final RecyclerView recyclerView;
 
   private FragmentRecentCallsBinding(@NonNull LinearLayout rootView,
-      @NonNull MaterialButton btnRefresh, @NonNull TextView emptyState,
-      @NonNull ProgressBar progressBar, @NonNull RecyclerView recyclerView) {
+      @NonNull MaterialButton btnRefresh, @NonNull MaterialButton btnSyncAll,
+      @NonNull TextView emptyState, @NonNull ProgressBar progressBar,
+      @NonNull RecyclerView recyclerView) {
     this.rootView = rootView;
     this.btnRefresh = btnRefresh;
+    this.btnSyncAll = btnSyncAll;
     this.emptyState = emptyState;
     this.progressBar = progressBar;
     this.recyclerView = recyclerView;
@@ -77,6 +82,12 @@ public final class FragmentRecentCallsBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnSyncAll;
+      MaterialButton btnSyncAll = ViewBindings.findChildViewById(rootView, id);
+      if (btnSyncAll == null) {
+        break missingId;
+      }
+
       id = R.id.emptyState;
       TextView emptyState = ViewBindings.findChildViewById(rootView, id);
       if (emptyState == null) {
@@ -95,8 +106,8 @@ public final class FragmentRecentCallsBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentRecentCallsBinding((LinearLayout) rootView, btnRefresh, emptyState,
-          progressBar, recyclerView);
+      return new FragmentRecentCallsBinding((LinearLayout) rootView, btnRefresh, btnSyncAll,
+          emptyState, progressBar, recyclerView);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));
