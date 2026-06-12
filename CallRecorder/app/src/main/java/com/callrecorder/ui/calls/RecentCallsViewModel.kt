@@ -122,17 +122,20 @@ class RecentCallsViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** Resync all NOT_SYNCED calls in one batch; emits success count via [syncAllResult]. */
+    /** Resync all unsynced calls (both NOT_SYNCED and NOT_RECORDED) in one batch. */
     fun resyncAll() {
-        val notSynced = _calls.value.filter { it.crmSyncStatus == CrmSyncStatus.NOT_SYNCED }
-        if (notSynced.isEmpty()) {
+        val toSync = _calls.value.filter {
+            it.crmSyncStatus == CrmSyncStatus.NOT_SYNCED ||
+            it.crmSyncStatus == CrmSyncStatus.NOT_RECORDED
+        }
+        if (toSync.isEmpty()) {
             _syncAllResult.tryEmit(0)
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
             val ctx = getApplication<Application>()
             var successCount = 0
-            for (entry in notSynced) {
+            for (entry in toSync) {
                 val params = buildSyncParams(ctx, entry) ?: continue
                 val (synced, crmCallLogId, errMsg) = CrmSyncService.logCallEvent(
                     context         = ctx,
