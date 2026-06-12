@@ -124,10 +124,7 @@ class RecentCallsViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Resync all unsynced calls (both NOT_SYNCED and NOT_RECORDED) in one batch. */
     fun resyncAll() {
-        val toSync = _calls.value.filter {
-            it.crmSyncStatus == CrmSyncStatus.NOT_SYNCED ||
-            it.crmSyncStatus == CrmSyncStatus.NOT_RECORDED
-        }
+        val toSync = _calls.value.filter { it.crmSyncStatus != CrmSyncStatus.SYNCED }
         if (toSync.isEmpty()) {
             _syncAllResult.tryEmit(0)
             return
