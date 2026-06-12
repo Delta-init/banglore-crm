@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Trophy, Crown, Medal, Flame, Clock, Target,
+  Trophy, Crown, Medal, Flame, Clock, Target, Phone,
   ChevronLeft, ChevronRight, RefreshCw, TrendingUp, Zap, Sun, Moon,
 } from "lucide-react";
 import axios from "axios";
@@ -27,8 +27,8 @@ const STATUS_CHIPS: Array<{ key: string; label: string; dark: string; light: str
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 function currentMonth() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const ist = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  return `${ist.getUTCFullYear()}-${String(ist.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 function monthLabel(m: string) {
   const [y, mo] = m.split("-").map(Number);
@@ -149,6 +149,21 @@ function LeaderCard({ entry, index, isDark }: { entry: LeaderboardEntry; index: 
               </span>
             </div>
             <p className={cn("text-[10px] mt-0.5", isDark ? "text-white/40" : "text-gray-400")}>closings</p>
+          </div>
+
+          {/* Call count */}
+          <div className="text-center hidden sm:block">
+            <div className="flex items-center gap-1 justify-center">
+              <Phone className="h-3.5 w-3.5 text-blue-400/70" />
+              <span className={cn("text-xl font-bold tabular-nums",
+                (entry.callCount ?? 0) > 0
+                  ? (isDark ? "text-blue-300" : "text-blue-600")
+                  : (isDark ? "text-white/30" : "text-gray-300"),
+              )}>
+                {entry.callCount ?? 0}
+              </span>
+            </div>
+            <p className={cn("text-[10px] mt-0.5", isDark ? "text-white/40" : "text-gray-400")}>calls</p>
           </div>
 
           {/* Total leads */}

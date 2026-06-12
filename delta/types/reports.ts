@@ -288,6 +288,7 @@ export interface LeaderboardEntry {
   extension:        string | null;
   closings:         number;
   closingAmount:    number;
+  callCount:        number;           // total calls (inbound + outbound) this month
   callDurationMins: number;
   callDurationSecs: number;
   callDurationHit:  boolean;          // true when ≥ 100 mins

@@ -268,16 +268,15 @@ export const getLeaderboard = async (
         { $group: { _id: "$assignedTo", closingAmount: { $sum: "$payments.amount" } } },
       ]),
 
-      // Total call seconds per assigned user this month.
-      // Attributed to whoever the lead is assigned to (not the agent extension),
-      // so no per-device extension configuration is required.
+      // Call count + total call seconds per assigned user this month.
+      // Counts ALL inbound/outbound calls; only connected calls (duration > 0)
+      // contribute to totalSecs. Attributed via leadId → Lead.assignedTo.
       CallLog.aggregate([
         {
           $match: {
-            callDate:     { $gte: monthStart, $lt: monthEnd },
-            callType:     { $in: ["Inbound", "Outbound"] },
-            callDuration: { $gt: 0 },
-            leadId:       { $ne: null },
+            callDate: { $gte: monthStart, $lt: monthEnd },
+            callType: { $in: ["Inbound", "Outbound"] },
+            leadId:   { $ne: null },
           },
         },
         {
@@ -291,7 +290,13 @@ export const getLeaderboard = async (
         },
         { $unwind: "$lead" },
         { $match: { "lead.assignedTo": { $exists: true, $ne: null } } },
-        { $group: { _id: "$lead.assignedTo", totalSecs: { $sum: "$callDuration" } } },
+        {
+          $group: {
+            _id:       "$lead.assignedTo",
+            totalSecs: { $sum: { $cond: [{ $gt: ["$callDuration", 0] }, "$callDuration", 0] } },
+            callCount: { $sum: 1 },
+          },
+        },
       ]),
 
       // All-time lead status counts per assigned user
@@ -310,9 +315,9 @@ export const getLeaderboard = async (
       (paymentAgg as { _id: unknown; closingAmount: number }[])
         .map((x) => [String(x._id), x.closingAmount]),
     );
-    const callDurMap = new Map<string, number>(
-      (callDurAgg as { _id: string; totalSecs: number }[])
-        .map((x) => [x._id, x.totalSecs]),
+    const callDurMap = new Map<string, { totalSecs: number; callCount: number }>(
+      (callDurAgg as { _id: string; totalSecs: number; callCount: number }[])
+        .map((x) => [String(x._id), { totalSecs: x.totalSecs, callCount: x.callCount }]),
     );
 
     // Build status counts map: userId → { status → count }
@@ -329,8 +334,10 @@ export const getLeaderboard = async (
         const uid              = String(user._id);
         const closings         = closingsMap.get(uid)                    ?? 0;
         const closingAmount    = paymentMap.get(uid)                     ?? 0;
-        const callDurationSecs = callDurMap.get(uid) ?? 0;
+        const callStats        = callDurMap.get(uid) ?? { totalSecs: 0, callCount: 0 };
+        const callDurationSecs = callStats.totalSecs;
         const callDurationMins = Math.round(callDurationSecs / 60);
+        const callCount        = callStats.callCount;
         const statusCounts     = statusCountsMap.get(uid)                ?? {};
         const totalLeads       = Object.values(statusCounts).reduce((s, n) => s + n, 0);
 
@@ -341,6 +348,7 @@ export const getLeaderboard = async (
           extension:       user.extension ?? null,
           closings,
           closingAmount,
+          callCount,
           callDurationMins,
           callDurationSecs,
           callDurationHit: callDurationMins >= 100,

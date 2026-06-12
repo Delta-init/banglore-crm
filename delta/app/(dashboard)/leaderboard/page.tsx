@@ -42,8 +42,9 @@ function fmtMins(mins: number): string {
 }
 
 function currentMonthStr(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  // Use IST to match server-side month boundary
+  const ist = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+  return `${ist.getUTCFullYear()}-${String(ist.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
 function monthLabel(m: string): string {
@@ -297,6 +298,21 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
             <span className="text-[10px] text-muted-foreground">closings</span>
           </div>
 
+          {/* Call count */}
+          <div className="flex flex-col items-center hidden sm:flex">
+            <div className="flex items-center gap-1">
+              <Phone className="h-3.5 w-3.5 text-blue-400/70" />
+              <span className={cn(
+                "font-bold tabular-nums",
+                isFullscreen ? "text-2xl" : "text-lg",
+                entry.callCount > 0 ? "text-blue-400" : "text-muted-foreground",
+              )}>
+                {entry.callCount}
+              </span>
+            </div>
+            <span className="text-[10px] text-muted-foreground">calls</span>
+          </div>
+
           {/* Amount */}
           <div className="flex flex-col items-center hidden sm:flex">
             <div className="flex items-center gap-0.5">
@@ -512,6 +528,7 @@ export default function LeaderboardPage() {
       {/* ── Legend ─────────────────────────────────────────────────────────── */}
       <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1"><Target className="h-3 w-3 text-primary" /> Closings this month</span>
+        <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-blue-400" /> Total calls this month</span>
         <span className="flex items-center gap-1"><IndianRupee className="h-3 w-3 text-green-400" /> Revenue collected</span>
         <span className="flex items-center gap-1"><Flame className="h-3 w-3 text-orange-400" /> ≥{CALL_TARGET_MINS} min call target</span>
         <span className="flex items-center gap-1 ml-auto">
