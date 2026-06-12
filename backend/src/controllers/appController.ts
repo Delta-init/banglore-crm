@@ -21,13 +21,14 @@ import { sendSuccess } from "../utils/response.js";
  */
 
 // ── Update these whenever you ship a new APK ─────────────────────────────────
-const LATEST_VERSION_CODE = 22;            // must match versionCode in build.gradle
-const LATEST_VERSION_NAME = "1.21";       // human-readable label shown in dialog
+const LATEST_VERSION_CODE = 23;            // must match versionCode in build.gradle
+const LATEST_VERSION_NAME = "1.22";       // human-readable label shown in dialog
 const DOWNLOAD_URL        =
-  "https://github.com/Delta-init/banglore-crm/releases/download/v1.21/app-release.apk";
+  "https://github.com/Delta-init/banglore-crm/releases/download/v1.22/app-release.apk";
 const CHANGELOG           =
   "• 🔄 Sync All button on CRM Logs tab — retries all failed syncs in one tap\n" +
-  "• 🔄 Sync All button on Recent Calls tab — syncs all unsynced calls at once\n" +
+  "• 🔄 Sync All button on Recent Calls tab — syncs every unsynced call at once\n" +
+  "• Fixed: Sync All now includes all unsynced calls, not just previously failed ones\n" +
   "• Per-row individual resync (tap badge) still works as before";
 const FORCE_UPDATE        = true;
 const RELEASE_DATE        = "2026-06-12";
