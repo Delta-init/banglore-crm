@@ -111,14 +111,14 @@ export interface ITeamSettings {
   splitMode: "round_robin" | "equal_load";
   roundRobinIndex: number;
   includedMembers: Types.Array<Types.ObjectId | IUser>;
-  splitTime?: string | null;           // "HH:mm" AED/GST, e.g. "09:00"
+  splitTime?: string | null;           // "HH:mm" IST, e.g. "09:00"
   roundRobinStartDate?: Date | null;   // count leads from this date for fair round-robin
   lastSplitAt?: Date | null;           // cron dedup — last time scheduled split ran
 }
 
 export interface IAbsentToday {
   userId: Types.ObjectId | IUser;
-  date: Date;  // midnight UTC of the AED calendar day
+  date: Date;  // midnight UTC of the IST calendar day
 }
 
 export interface ITeam extends Document {
@@ -154,7 +154,7 @@ export interface ICourse extends Document {
 }
 
 // ─── Lead ──────────────────────────────────────────────────────────────────────
-export type LeadStatus = "new" | "assigned" | "pending_response" | "followup" | "closed" | "lost" | "not_connected" | "mia" | "repeated" | "callback" | "cnc";
+export type LeadStatus = "new" | "assigned" | "pending_response" | "followup" | "closed" | "lost" | "not_connected" | "mia" | "repeated" | "callback" | "cnc" | "booking" | "partialbooking";
 
 export type InitialLeadResponse = "very_interested" | "not_interested" | "let_me_think";
 export type PrimaryConcern      = "risk" | "price" | "time" | "trust" | "exact_concern";
@@ -245,6 +245,7 @@ export interface ILead extends Document {
   demoAttended?: boolean | null;
   lastFollowupDate?: Date | null;
   comments?: string | null;
+  closedAt?: Date | null;   // set when status transitions into booking/partialbooking/closed
   createdAt: Date;
   updatedAt: Date;
 }

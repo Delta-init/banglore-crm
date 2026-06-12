@@ -34,7 +34,7 @@
             android:orientation="vertical"
             android:layout_marginStart="8dp">
 
-            <!-- Phone + call type on same row -->
+            <!-- Phone + call type badge on same row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -64,7 +64,7 @@
 
             </LinearLayout>
 
-            <!-- CRM ID or error -->
+            <!-- CRM ID or error message -->
             <TextView
                 android:id="@+id/tvCallLogId"
                 android:layout_width="match_parent"
@@ -105,6 +105,19 @@
             </LinearLayout>
 
         </LinearLayout>
+
+        <!-- Retry button — visible only on failed / retrying rows -->
+        <Button
+            android:id="@+id/btnRetry"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="↺"
+            android:textSize="18sp"
+            android:minWidth="0dp"
+            android:paddingHorizontal="8dp"
+            android:visibility="gone" />
 
     </LinearLayout>
 

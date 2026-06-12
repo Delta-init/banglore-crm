@@ -112,7 +112,7 @@ export const exportExcel = async (
 
     const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
-    const filename = `crm-report-${new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Dubai" })}.xlsx`;
+    const filename = `crm-report-${new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Kolkata" })}.xlsx`;
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.send(buf);
@@ -206,7 +206,7 @@ export const exportPdf = async (
     doc.fillColor(WHITE).font("Helvetica-Bold").fontSize(18)
       .text("DELTA BANGLORE CRM — Report", 40, 18);
     doc.font("Helvetica").fontSize(10)
-      .text(`Period: ${labelRange(dateFrom, dateTo)}   ·   Generated: ${new Date().toLocaleDateString("en-AE", { timeZone: "Asia/Dubai" })} GST`, 40, 40);
+      .text(`Period: ${labelRange(dateFrom, dateTo)}   ·   Generated: ${new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })} IST`, 40, 40);
 
     let y = 80;
 
@@ -314,7 +314,7 @@ export const exportPdf = async (
     await finish;
 
     const pdf = Buffer.concat(chunks);
-    const filename = `crm-report-${new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Dubai" })}.pdf`;
+    const filename = `crm-report-${new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Kolkata" })}.pdf`;
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.setHeader("Content-Length", pdf.length);
@@ -483,7 +483,7 @@ export const exportTeamPdf = async (
     const finish = new Promise<void>((resolve) => doc.on("end", resolve));
 
     const W = doc.page.width - 80;
-    pdfHeader(doc, `${(team as unknown as { name: string }).name} — Team Report`, `Period: ${labelRange(dateFrom, dateTo)}   ·   Generated: ${new Date().toLocaleDateString("en-AE", { timeZone: "Asia/Dubai" })} GST`);
+    pdfHeader(doc, `${(team as unknown as { name: string }).name} — Team Report`, `Period: ${labelRange(dateFrom, dateTo)}   ·   Generated: ${new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })} IST`);
 
     let y = 70;
 
@@ -518,7 +518,7 @@ export const exportTeamPdf = async (
     await finish;
 
     const teamSlug = (team as unknown as { name: string }).name.toLowerCase().replace(/\s+/g, "-");
-    sendPdf(res, Buffer.concat(chunks), `team-${teamSlug}-${new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Dubai" })}.pdf`);
+    sendPdf(res, Buffer.concat(chunks), `team-${teamSlug}-${new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Kolkata" })}.pdf`);
   } catch (err) {
     next(err);
   }
@@ -572,7 +572,7 @@ export const exportUserPdf = async (
     const finish = new Promise<void>((resolve) => doc.on("end", resolve));
 
     const W = doc.page.width - 80;
-    pdfHeader(doc, `${u.name} — Performance Report`, `Period: ${labelRange(dateFrom, dateTo)}   ·   Generated: ${new Date().toLocaleDateString("en-AE", { timeZone: "Asia/Dubai" })} GST`);
+    pdfHeader(doc, `${u.name} — Performance Report`, `Period: ${labelRange(dateFrom, dateTo)}   ·   Generated: ${new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })} IST`);
 
     let y = 70;
 
@@ -624,7 +624,7 @@ export const exportUserPdf = async (
       const lColW = [170, 110, 80, 150];
       const lRows = recentLeads.map((l) => {
         const ld = l as unknown as { name: string; phone: string; source?: string; createdAt: string };
-        return [ld.name, ld.phone ?? "-", ld.source ?? "-", new Date(ld.createdAt).toLocaleDateString("en-AE", { timeZone: "Asia/Dubai" })];
+        return [ld.name, ld.phone ?? "-", ld.source ?? "-", new Date(ld.createdAt).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" })];
       });
       pdfTable(doc, lHeaders, lColW, lRows, 40, y);
     }
@@ -634,7 +634,7 @@ export const exportUserPdf = async (
     await finish;
 
     const nameSlug = u.name.toLowerCase().replace(/\s+/g, "-");
-    sendPdf(res, Buffer.concat(chunks), `user-${nameSlug}-${new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Dubai" })}.pdf`);
+    sendPdf(res, Buffer.concat(chunks), `user-${nameSlug}-${new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Kolkata" })}.pdf`);
   } catch (err) {
     next(err);
   }

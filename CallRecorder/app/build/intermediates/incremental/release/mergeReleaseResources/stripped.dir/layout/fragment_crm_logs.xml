@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingStart="16dp"
-        android:paddingEnd="8dp"
+        android:paddingEnd="4dp"
         android:paddingTop="12dp"
         android:paddingBottom="8dp"
         android:gravity="center_vertical">
@@ -33,7 +33,17 @@
             android:layout_height="wrap_content"
             android:textSize="12sp"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:paddingEnd="8dp" />
+            android:paddingEnd="4dp" />
+
+        <!-- Retry all failed entries -->
+        <Button
+            android:id="@+id/btnRetryAll"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="↺ Retry All"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btnClear"
@@ -44,6 +54,25 @@
             android:textSize="12sp" />
 
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutline"
+        android:alpha="0.2" />
+
+    <!-- Auto-sync job status bar -->
+    <TextView
+        android:id="@+id/tvSyncStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="7dp"
+        android:textSize="11sp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:background="?attr/colorSurfaceVariant"
+        android:text="⏱ Auto-sync: starting…"
+        android:fontFamily="monospace" />
 
     <View
         android:layout_width="match_parent"

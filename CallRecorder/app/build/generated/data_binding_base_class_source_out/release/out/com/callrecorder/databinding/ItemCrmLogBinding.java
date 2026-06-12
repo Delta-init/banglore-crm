@@ -4,6 +4,7 @@ package com.callrecorder.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,6 +19,9 @@ import java.lang.String;
 public final class ItemCrmLogBinding implements ViewBinding {
   @NonNull
   private final CardView rootView;
+
+  @NonNull
+  public final Button btnRetry;
 
   @NonNull
   public final TextView tvCallLogId;
@@ -37,10 +41,11 @@ public final class ItemCrmLogBinding implements ViewBinding {
   @NonNull
   public final TextView tvTimestamp;
 
-  private ItemCrmLogBinding(@NonNull CardView rootView, @NonNull TextView tvCallLogId,
-      @NonNull TextView tvCallType, @NonNull TextView tvDuration, @NonNull TextView tvPhone,
-      @NonNull TextView tvStatus, @NonNull TextView tvTimestamp) {
+  private ItemCrmLogBinding(@NonNull CardView rootView, @NonNull Button btnRetry,
+      @NonNull TextView tvCallLogId, @NonNull TextView tvCallType, @NonNull TextView tvDuration,
+      @NonNull TextView tvPhone, @NonNull TextView tvStatus, @NonNull TextView tvTimestamp) {
     this.rootView = rootView;
+    this.btnRetry = btnRetry;
     this.tvCallLogId = tvCallLogId;
     this.tvCallType = tvCallType;
     this.tvDuration = tvDuration;
@@ -76,6 +81,12 @@ public final class ItemCrmLogBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.btnRetry;
+      Button btnRetry = ViewBindings.findChildViewById(rootView, id);
+      if (btnRetry == null) {
+        break missingId;
+      }
+
       id = R.id.tvCallLogId;
       TextView tvCallLogId = ViewBindings.findChildViewById(rootView, id);
       if (tvCallLogId == null) {
@@ -112,8 +123,8 @@ public final class ItemCrmLogBinding implements ViewBinding {
         break missingId;
       }
 
-      return new ItemCrmLogBinding((CardView) rootView, tvCallLogId, tvCallType, tvDuration,
-          tvPhone, tvStatus, tvTimestamp);
+      return new ItemCrmLogBinding((CardView) rootView, btnRetry, tvCallLogId, tvCallType,
+          tvDuration, tvPhone, tvStatus, tvTimestamp);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

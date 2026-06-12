@@ -33,13 +33,13 @@ async function buildLeadPrompt(leadId: string): Promise<string> {
   const notesText = lead.notes.slice(-10).map((n) => {
     const author = typeof n.author === "object" && n.author && "name" in n.author
       ? (n.author as { name: string }).name : "Unknown";
-    return `  - [${new Date(n.createdAt).toLocaleString("en-AE", { timeZone: "Asia/Dubai" })} GST] ${author}: ${n.content}`;
+    return `  - [${new Date(n.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST] ${author}: ${n.content}`;
   }).join("\n");
 
   const activityText = lead.activityLogs.slice(-10).map((a) => {
     const by = typeof a.performedBy === "object" && a.performedBy && "name" in a.performedBy
       ? (a.performedBy as { name: string }).name : "Unknown";
-    return `  - [${new Date(a.createdAt).toLocaleString("en-AE", { timeZone: "Asia/Dubai" })} GST] ${by}: ${a.description}`;
+    return `  - [${new Date(a.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST] ${by}: ${a.description}`;
   }).join("\n");
 
   const paymentsArr = Array.from(lead.payments ?? []) as unknown as { amount: number }[];
@@ -69,8 +69,8 @@ async function buildLeadPrompt(leadId: string): Promise<string> {
 - **Team**: ${teamName}
 - **Course**: ${courseName}
 - **Payments**: ${paymentLine}
-- **Created**: ${new Date(lead.createdAt).toLocaleString("en-AE", { timeZone: "Asia/Dubai" })} GST
-- **Last Updated**: ${new Date(lead.updatedAt).toLocaleString("en-AE", { timeZone: "Asia/Dubai" })} GST
+- **Created**: ${new Date(lead.createdAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST
+- **Last Updated**: ${new Date(lead.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST
 
 ## Recent Notes
 ${notesText || "  None yet."}

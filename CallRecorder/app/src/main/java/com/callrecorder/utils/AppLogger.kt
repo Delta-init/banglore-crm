@@ -26,6 +26,7 @@ object AppLogger {
     fun w(context: Context, tag: String, message: String) = write(context, "W", tag, message)
     fun e(context: Context, tag: String, message: String) = write(context, "E", tag, message)
 
+    @Synchronized
     private fun write(context: Context, level: String, tag: String, message: String) {
         val line = "${timeFmt.format(Date())} $level/$tag: $message"
         Log.println(

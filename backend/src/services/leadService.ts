@@ -14,6 +14,9 @@ import type {
   IRole,
 } from "../types/index.js";
 
+// Statuses that mark a lead as "closed/won" for leaderboard purposes
+const CLOSING_STATUSES = new Set<LeadStatus>(["booking", "partialbooking", "closed"]);
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function buildPopulatedQuery(id: string) {
@@ -121,16 +124,14 @@ async function notifyTeamLeaders(
   sendPushToUsers(leaderIds, payload).catch(() => null);
 }
 
-// ── Return midnight UTC for the current AED calendar day ─────────────────────
+// ── Return midnight UTC for the current IST calendar day ─────────────────────
 function istMidnightUTC(): Date {
-  const now = new Date();
-  // AED = UTC+4; floor to day in AED then convert back to UTC
-  const aedOffset = 4 * 60 * 60 * 1000;
-  const aedNow = new Date(now.getTime() + aedOffset);
-  const aedMidnight = new Date(
-    Date.UTC(aedNow.getUTCFullYear(), aedNow.getUTCMonth(), aedNow.getUTCDate()),
+  const istOffset = 5.5 * 60 * 60 * 1000; // UTC+5:30
+  const istNow = new Date(Date.now() + istOffset);
+  const istMidnight = new Date(
+    Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate()),
   );
-  return new Date(aedMidnight.getTime() - aedOffset);
+  return new Date(istMidnight.getTime() - istOffset);
 }
 
 // ── Auto-split a lead to a team member based on team settings ────────────────
@@ -500,6 +501,11 @@ export class LeadService {
       (lead as unknown as Record<string, unknown>).assignedAt = null;
     }
 
+    // Stamp closedAt when status enters or leaves a closing group
+    if (data.status !== undefined) {
+      lead.closedAt = CLOSING_STATUSES.has(data.status) ? new Date() : null;
+    }
+
     const changedFields = Object.keys(changes);
     if (changedFields.length > 0) {
       addLog(
@@ -539,6 +545,7 @@ export class LeadService {
 
     const prevStatus = lead.status;
     lead.status = status;
+    lead.closedAt = CLOSING_STATUSES.has(status) ? new Date() : null;
 
     addLog(
       lead as never,
@@ -850,9 +857,10 @@ export class LeadService {
     }
 
     // Count THIS MONTH's leads per team — fair monthly balancing (resets each month)
-    const assignNow = new Date();
+    const assignIstOff = 5.5 * 60 * 60 * 1000;
+    const assignNow = new Date(Date.now() + assignIstOff);
     const assignMonthStart = new Date(
-      Date.UTC(assignNow.getUTCFullYear(), assignNow.getUTCMonth(), 1),
+      Date.UTC(assignNow.getUTCFullYear(), assignNow.getUTCMonth(), 1) - assignIstOff,
     );
 
     const teamLeadCounts = await Promise.all(

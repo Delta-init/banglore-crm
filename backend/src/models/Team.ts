@@ -7,7 +7,7 @@ const teamSettingsSchema = new Schema(
     splitMode: { type: String, enum: ["round_robin", "equal_load"], default: "round_robin" },
     roundRobinIndex: { type: Number, default: 0 },
     includedMembers: [{ type: Schema.Types.ObjectId, ref: "User" }],
-    splitTime: { type: String, default: null },             // "HH:mm" AED/GST
+    splitTime: { type: String, default: null },             // "HH:mm" IST
     roundRobinStartDate: { type: Date, default: null },     // count leads from this date
     lastSplitAt: { type: Date, default: null },             // cron dedup
   },

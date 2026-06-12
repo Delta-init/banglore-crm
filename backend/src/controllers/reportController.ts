@@ -222,17 +222,19 @@ export const getLeaderboard = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const now = new Date();
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000; // UTC+5:30
+    const nowIST = new Date(Date.now() + IST_OFFSET_MS);
     const monthStr =
       (req.query.month as string)?.trim() ||
-      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      `${nowIST.getUTCFullYear()}-${String(nowIST.getUTCMonth() + 1).padStart(2, "0")}`;
 
     const parts = monthStr.split("-").map(Number);
-    const year  = parts[0] ?? now.getFullYear();
-    const mon   = parts[1] ?? now.getMonth() + 1;
+    const year  = parts[0] ?? nowIST.getUTCFullYear();
+    const mon   = parts[1] ?? nowIST.getUTCMonth() + 1;
 
-    const monthStart = new Date(year, mon - 1, 1);
-    const monthEnd   = new Date(year, mon, 1);
+    // IST month boundaries expressed as UTC timestamps
+    const monthStart = new Date(Date.UTC(year, mon - 1, 1) - IST_OFFSET_MS);
+    const monthEnd   = new Date(Date.UTC(year, mon,     1) - IST_OFFSET_MS);
 
     // ── Lazy import to avoid circular deps ───────────────────────────────────
     const { User } = await import("../models/User.js");
@@ -243,13 +245,16 @@ export const getLeaderboard = async (
       // All active users
       User.find({ status: "active" }).select("_id name email extension").lean(),
 
-      // Closings per user this month
+      // Closings per user this month — uses closedAt (set exactly when status
+      // transitions into booking/partialbooking/closed) so that any other update
+      // to the lead (call logged, note added, etc.) does NOT shift the lead into
+      // a different month's count.
       Lead.aggregate([
         {
           $match: {
             status:     { $in: ["booking", "partialbooking", "closed"] },
             assignedTo: { $exists: true, $ne: null },
-            updatedAt:  { $gte: monthStart, $lt: monthEnd },
+            closedAt:   { $gte: monthStart, $lt: monthEnd },
           },
         },
         { $group: { _id: "$assignedTo", closings: { $sum: 1 } } },
@@ -263,17 +268,30 @@ export const getLeaderboard = async (
         { $group: { _id: "$assignedTo", closingAmount: { $sum: "$payments.amount" } } },
       ]),
 
-      // Total call seconds per agent extension this month
+      // Total call seconds per assigned user this month.
+      // Attributed to whoever the lead is assigned to (not the agent extension),
+      // so no per-device extension configuration is required.
       CallLog.aggregate([
         {
           $match: {
-            callDate:       { $gte: monthStart, $lt: monthEnd },
-            callType:       { $in: ["Inbound", "Outbound"] },
-            callDuration:   { $gt: 0 },
-            agentExtension: { $ne: null },
+            callDate:     { $gte: monthStart, $lt: monthEnd },
+            callType:     { $in: ["Inbound", "Outbound"] },
+            callDuration: { $gt: 0 },
+            leadId:       { $ne: null },
           },
         },
-        { $group: { _id: "$agentExtension", totalSecs: { $sum: "$callDuration" } } },
+        {
+          $lookup: {
+            from:         "leads",
+            localField:   "leadId",
+            foreignField: "_id",
+            as:           "lead",
+            pipeline:     [{ $project: { assignedTo: 1 } }],
+          },
+        },
+        { $unwind: "$lead" },
+        { $match: { "lead.assignedTo": { $exists: true, $ne: null } } },
+        { $group: { _id: "$lead.assignedTo", totalSecs: { $sum: "$callDuration" } } },
       ]),
 
       // All-time lead status counts per assigned user
@@ -311,7 +329,7 @@ export const getLeaderboard = async (
         const uid              = String(user._id);
         const closings         = closingsMap.get(uid)                    ?? 0;
         const closingAmount    = paymentMap.get(uid)                     ?? 0;
-        const callDurationSecs = callDurMap.get(user.extension ?? "___") ?? 0;
+        const callDurationSecs = callDurMap.get(uid) ?? 0;
         const callDurationMins = Math.round(callDurationSecs / 60);
         const statusCounts     = statusCountsMap.get(uid)                ?? {};
         const totalLeads       = Object.values(statusCounts).reduce((s, n) => s + n, 0);

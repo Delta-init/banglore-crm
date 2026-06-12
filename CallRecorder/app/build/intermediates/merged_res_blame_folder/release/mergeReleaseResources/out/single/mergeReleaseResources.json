@@ -372,6 +372,10 @@
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-appcompat-1.7.0-25:/drawable-mdpi-v4/abc_list_selector_disabled_holo_light.9.png"
     },
     {
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/layout_fragment_crm_logs.xml.flat",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/fragment_crm_logs.xml"
+    },
+    {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/drawable_mtrl_checkbox_button_icon_indeterminate_unchecked.xml.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/drawable/mtrl_checkbox_button_icon_indeterminate_unchecked.xml"
     },
@@ -1756,10 +1760,6 @@
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/color/m3_tabs_icon_color.xml"
     },
     {
-        "merged": "com.callrecorder.app-release-56:/layout_item_crm_log.xml.flat",
-        "source": "com.callrecorder.app-main-57:/layout/item_crm_log.xml"
-    },
-    {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/color_material_on_surface_emphasis_medium.xml.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/color/material_on_surface_emphasis_medium.xml"
     },
@@ -2592,10 +2592,6 @@
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/layout-land/material_clock_period_toggle_land.xml"
     },
     {
-        "merged": "com.callrecorder.app-release-56:/navigation_nav_graph.xml.flat",
-        "source": "com.callrecorder.app-main-57:/navigation/nav_graph.xml"
-    },
-    {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/anim-v21_design_bottom_sheet_slide_in.xml.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/anim-v21/design_bottom_sheet_slide_in.xml"
     },
@@ -2960,6 +2956,10 @@
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/drawable/ic_launcher_foreground.xml"
     },
     {
+        "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/layout_item_crm_log.xml.flat",
+        "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-main-57:/layout/item_crm_log.xml"
+    },
+    {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/layout_material_timepicker_dialog.xml.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-material-1.12.0-2:/layout/material_timepicker_dialog.xml"
     },
@@ -3142,10 +3142,6 @@
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/drawable_abc_seekbar_tick_mark_material.xml.flat",
         "source": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-appcompat-1.7.0-25:/drawable/abc_seekbar_tick_mark_material.xml"
-    },
-    {
-        "merged": "com.callrecorder.app-release-56:/menu_bottom_nav_menu.xml.flat",
-        "source": "com.callrecorder.app-main-57:/menu/bottom_nav_menu.xml"
     },
     {
         "merged": "/Users/mhdabshar/.gradle/daemon/8.9/com.callrecorder.app-release-56:/drawable_abc_list_selector_holo_dark.xml.flat",

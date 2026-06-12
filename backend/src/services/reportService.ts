@@ -229,8 +229,9 @@ export class ReportService {
     const match = this.buildDateFilter(dateFrom, dateTo);
 
     // This-month window for the thisMonth field (always current month, regardless of date filter)
-    const rankNow = new Date();
-    const rankMonthStart = new Date(Date.UTC(rankNow.getUTCFullYear(), rankNow.getUTCMonth(), 1));
+    const rankIstOff = 5.5 * 60 * 60 * 1000;
+    const rankNow = new Date(Date.now() + rankIstOff);
+    const rankMonthStart = new Date(Date.UTC(rankNow.getUTCFullYear(), rankNow.getUTCMonth(), 1) - rankIstOff);
 
     const agg = await Lead.aggregate([
       { $match: { ...match, team: { $exists: true, $ne: null } } },

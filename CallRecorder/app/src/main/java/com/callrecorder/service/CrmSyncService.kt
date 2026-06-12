@@ -45,10 +45,18 @@ object CrmSyncService {
 
     private const val TAG = "CrmSyncService"
 
+    // Used for file uploads (sync() with recording attached) — long write timeout for large files
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(180, TimeUnit.SECONDS)   // long calls = large files
+        .writeTimeout(180, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
+        .build()
+
+    // Used for metadata-only calls (logCallEvent, no file).
+    // Short timeouts so we stay within the BroadcastReceiver goAsync() 10-second window.
+    private val metadataClient = OkHttpClient.Builder()
+        .connectTimeout(7, TimeUnit.SECONDS)
+        .readTimeout(7, TimeUnit.SECONDS)
         .build()
 
     // ── Pre-flight check ──────────────────────────────────────────────────────
@@ -77,23 +85,25 @@ object CrmSyncService {
     // ── Shared: persist audit entry to local DB ───────────────────────────────
 
     private suspend fun saveLog(
-        context:      Context,
-        phoneNumber:  String,
-        callType:     String,
-        durationSecs: Long,
-        synced:       Boolean,
-        callLogId:    String?,
-        errorMessage: String?,
+        context:         Context,
+        phoneNumber:     String,
+        callType:        String,
+        durationSecs:    Long,
+        synced:          Boolean,
+        callLogId:       String?,
+        errorMessage:    String?,
+        systemCallLogId: Long? = null,
     ) {
         try {
             AppDatabase.getInstance(context).crmLogDao().insert(
                 CrmLogEntity(
-                    phoneNumber  = phoneNumber,
-                    callType     = callType,
-                    durationSecs = durationSecs,
-                    synced       = synced,
-                    callLogId    = callLogId,
-                    errorMessage = errorMessage,
+                    phoneNumber     = phoneNumber,
+                    callType        = callType,
+                    durationSecs    = durationSecs,
+                    synced          = synced,
+                    callLogId       = callLogId,
+                    errorMessage    = errorMessage,
+                    systemCallLogId = systemCallLogId,
                 )
             )
         } catch (e: Exception) {
@@ -129,13 +139,15 @@ object CrmSyncService {
                 context, TAG,
                 "Recording file missing/tiny (${file.length()}B) — logging call without file"
             )
-            return logCallEvent(
-                context      = context,
-                phoneNumber  = recording.phoneNumber,
-                callType     = recording.callType,
-                durationSecs = durationSecs,
-                callDateIso  = callDateIso,
+            val (synced, callLogId, errMsg) = logCallEvent(
+                context         = context,
+                phoneNumber     = recording.phoneNumber,
+                callType        = recording.callType,
+                durationSecs    = durationSecs,
+                callDateIso     = callDateIso,
+                systemCallLogId = recording.systemCallLogId,
             )
+            return synced to if (synced) "ID: $callLogId" else errMsg
         }
 
         AppLogger.i(
@@ -174,13 +186,13 @@ object CrmSyncService {
                     val successMsg = if (callLogId != null) "ID: $callLogId" else "HTTP ${response.code}"
                     AppLogger.i(context, TAG, "CRM sync ✅ $successMsg")
                     saveLog(context, recording.phoneNumber, recording.callType,
-                            durationSecs, true, callLogId, null)
+                            durationSecs, true, callLogId, null, recording.systemCallLogId)
                     true to successMsg
                 } else {
                     val errMsg = "HTTP ${response.code}: ${responseBody.take(200)}"
                     AppLogger.e(context, TAG, "CRM sync failed $errMsg")
                     saveLog(context, recording.phoneNumber, recording.callType,
-                            durationSecs, false, null, errMsg)
+                            durationSecs, false, null, errMsg, recording.systemCallLogId)
                     false to errMsg
                 }
             }
@@ -188,7 +200,7 @@ object CrmSyncService {
             val msg = "${e.javaClass.simpleName}: ${e.message?.take(100)}"
             AppLogger.e(context, TAG, "CRM sync error: $msg")
             saveLog(context, recording.phoneNumber, recording.callType,
-                    durationSecs, false, null, msg)
+                    durationSecs, false, null, msg, recording.systemCallLogId)
             false to msg
         }
     }
@@ -197,45 +209,59 @@ object CrmSyncService {
 
     /**
      * Logs a call event to the CRM without uploading a recording file.
+     * Inserts a new CrmLogEntity row in the local DB on every call.
      *
-     * Use for:
-     *   • Missed / not-answered calls        (callType = "missed" | "notanswered")
-     *   • Connected calls where recording failed (callType = "incoming" | "outgoing")
-     *
-     * @param phoneNumber  Raw phone number (may include + and country code)
-     * @param callType     "incoming" | "outgoing" | "missed" | "notanswered"
-     * @param durationSecs Call duration in SECONDS. 0 for missed/not-answered.
-     * @param callDateIso  ISO 8601 UTC timestamp (defaults to now)
-     *
-     * @return Pair(synced, "ID: xxx" | errorMessage)
+     * @return Triple(synced, callLogId, errorMessage)
+     *         callLogId is non-null only on success; errorMessage is non-null only on failure.
      */
     suspend fun logCallEvent(
-        context:      Context,
-        phoneNumber:  String,
-        callType:     String,
-        durationSecs: Long   = 0L,
-        callDateIso:  String = Instant.now().toString(),
-    ): Pair<Boolean, String?> {
+        context:         Context,
+        phoneNumber:     String,
+        callType:        String,
+        durationSecs:    Long   = 0L,
+        callDateIso:     String = Instant.now().toString(),
+        systemCallLogId: Long?  = null,
+    ): Triple<Boolean, String?, String?> {
         val cfg = readyOrNull(context)
         if (cfg == null) {
             val err = "CRM not configured (Settings → CRM Sync)"
-            saveLog(context, phoneNumber, callType, durationSecs, false, null, err)
-            return false to err
+            saveLog(context, phoneNumber, callType, durationSecs, false, null, err, systemCallLogId)
+            return Triple(false, null, err)
         }
-        val (baseUrl, apiKey) = cfg
-        val extension = PrefsHelper.getAgentExtension(context).trim()
 
         if (phoneNumber.isBlank()) {
             val err = "Phone number blank"
             AppLogger.w(context, TAG, "logCallEvent skipped — phone number is blank")
-            saveLog(context, phoneNumber, callType, durationSecs, false, null, err)
-            return false to err
+            saveLog(context, phoneNumber, callType, durationSecs, false, null, err, systemCallLogId)
+            return Triple(false, null, err)
         }
 
-        AppLogger.i(
-            context, TAG,
-            "Logging call event to CRM: $phoneNumber ($callType, ${durationSecs}s)"
+        AppLogger.i(context, TAG,
+            "Logging call event to CRM: $phoneNumber ($callType, ${durationSecs}s)")
+
+        val (synced, callLogId, errMsg) = executeCallEvent(
+            context, cfg, phoneNumber, callType, durationSecs, callDateIso
         )
+        saveLog(context, phoneNumber, callType, durationSecs, synced, callLogId, errMsg, systemCallLogId)
+        return Triple(synced, callLogId, errMsg)
+    }
+
+    // ── executeCallEvent() — shared HTTP call (no DB write) ───────────────────
+
+    /**
+     * Makes the actual HTTP POST. Returns Triple(synced, callLogId, errorMessage).
+     * Does NOT write to the local DB — callers decide whether to insert or update.
+     */
+    private suspend fun executeCallEvent(
+        context:      Context,
+        cfg:          Pair<String, String>,
+        phoneNumber:  String,
+        callType:     String,
+        durationSecs: Long,
+        callDateIso:  String,
+    ): Triple<Boolean, String?, String?> {
+        val (baseUrl, apiKey) = cfg
+        val extension = PrefsHelper.getAgentExtension(context).trim()
 
         return try {
             withContext(Dispatchers.IO) {
@@ -254,29 +280,109 @@ object CrmSyncService {
                     .post(body)
                     .build()
 
-                val response     = client.newCall(request).execute()
+                val response     = metadataClient.newCall(request).execute()
                 val responseBody = response.body?.string() ?: ""
 
                 if (response.isSuccessful) {
-                    val callLogId  = parseCallLogId(responseBody)
-                    val successMsg = if (callLogId != null) "ID: $callLogId" else "HTTP ${response.code}"
-                    AppLogger.i(context, TAG, "Call event logged ✅ $successMsg")
-                    saveLog(context, phoneNumber, callType, durationSecs,
-                            true, callLogId, null)
-                    true to successMsg
+                    val callLogId = parseCallLogId(responseBody)
+                    AppLogger.i(context, TAG, "CRM ✅ ID: $callLogId")
+                    Triple(true, callLogId, null)
                 } else {
-                    val errMsg = "HTTP ${response.code}: ${responseBody.take(200)}"
-                    AppLogger.e(context, TAG, "Call event log failed $errMsg")
-                    saveLog(context, phoneNumber, callType, durationSecs,
-                            false, null, errMsg)
-                    false to errMsg
+                    val err = "HTTP ${response.code}: ${responseBody.take(300)}"
+                    AppLogger.e(context, TAG, "CRM failed: $err")
+                    Triple(false, null, err)
                 }
             }
         } catch (e: Exception) {
-            val msg = "${e.javaClass.simpleName}: ${e.message?.take(100)}"
-            AppLogger.e(context, TAG, "logCallEvent error: $msg")
-            saveLog(context, phoneNumber, callType, durationSecs, false, null, msg)
-            false to msg
+            val err = "${e.javaClass.simpleName}: ${e.message?.take(100)}"
+            AppLogger.e(context, TAG, "CRM error: $err")
+            Triple(false, null, err)
         }
+    }
+
+    // ── Retry helpers ─────────────────────────────────────────────────────────
+
+    /**
+     * Retry a single failed CrmLogEntity.
+     * Updates the EXISTING row in-place (no new insert) so the UI reflects
+     * the live retry state via the DB Flow.
+     *
+     * State machine:
+     *   row.errorMessage = "⏳ Retrying…"  → HTTP call in progress (button disabled)
+     *   row.synced = true                  → success (green)
+     *   row.synced = false + real error    → failure (red, button re-enabled)
+     */
+    suspend fun retrySingle(context: Context, log: CrmLogEntity) {
+        val dao = AppDatabase.getInstance(context).crmLogDao()
+
+        // 1. Mark as in-progress so UI disables the retry button immediately
+        dao.updateSyncResult(log.id, false, null, "⏳ Retrying…")
+
+        val cfg = readyOrNull(context)
+        if (cfg == null) {
+            dao.updateSyncResult(log.id, false, null, "CRM not configured (Settings → CRM Sync)")
+            return
+        }
+        if (log.phoneNumber.isBlank()) {
+            dao.updateSyncResult(log.id, false, null, "Phone number blank")
+            return
+        }
+
+        val callDateIso = Instant.ofEpochMilli(log.timestamp).toString()
+        val (synced, callLogId, errMsg) = executeCallEvent(
+            context, cfg, log.phoneNumber, log.callType, log.durationSecs, callDateIso
+        )
+
+        // 2. Write real result back — Flow emits → UI refreshes automatically
+        dao.updateSyncResult(
+            id           = log.id,
+            synced       = synced,
+            callLogId    = callLogId,
+            errorMessage = if (synced) null else errMsg,
+        )
+
+        // 3. If retry succeeded and this log has a system call log link, back-fill
+        //    the matching RecordingEntity so the Recent Calls badge shows ✅.
+        if (synced && callLogId != null && log.systemCallLogId != null) {
+            try {
+                val recDao = AppDatabase.getInstance(context).recordingDao()
+                val rec = recDao.getBySystemCallLogId(log.systemCallLogId)
+                if (rec != null) {
+                    recDao.updateSyncResult(
+                        id              = rec.id,
+                        synced          = true,
+                        error           = null,
+                        crmCallLogId    = callLogId,
+                        systemCallLogId = log.systemCallLogId,
+                    )
+                }
+            } catch (e: Exception) {
+                AppLogger.w(context, TAG, "Back-fill RecordingEntity after retry failed: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Retry every failed CrmLogEntry that is not already retrying.
+     * Called automatically on app launch and by the "Retry All" button.
+     *
+     * @return number of entries that succeeded this round
+     */
+    suspend fun retryAllFailed(context: Context): Int {
+        val dao = AppDatabase.getInstance(context).crmLogDao()
+        val failed = dao.getFailedLogs()
+        if (failed.isEmpty()) return 0
+
+        AppLogger.i(context, TAG, "Auto-retry: ${failed.size} failed entries")
+        var successCount = 0
+        for (log in failed) {
+            retrySingle(context, log)
+            // Read back updated row to count successes
+            if (dao.getAllLogsSnapshot().firstOrNull { it.id == log.id }?.synced == true) {
+                successCount++
+            }
+        }
+        AppLogger.i(context, TAG, "Auto-retry done: $successCount/${failed.size} succeeded")
+        return successCount
     }
 }

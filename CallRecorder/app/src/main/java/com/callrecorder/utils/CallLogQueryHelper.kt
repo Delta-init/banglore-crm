@@ -12,10 +12,11 @@ import android.provider.CallLog
 object CallLogQueryHelper {
 
     data class SysCallEntry(
-        val number: String,   // raw number from system log
+        val id: Long,          // CallLog.Calls._ID — unique per call in Android system log
+        val number: String,    // raw number from system log
         val durationSec: Long, // call duration in SECONDS (0 for missed)
-        val type: Int,        // CallLog.Calls.*_TYPE
-        val date: Long        // epoch ms
+        val type: Int,         // CallLog.Calls.*_TYPE
+        val date: Long         // epoch ms
     )
 
     /**
@@ -28,6 +29,7 @@ object CallLogQueryHelper {
             context.contentResolver.query(
                 CallLog.Calls.CONTENT_URI,
                 arrayOf(
+                    CallLog.Calls._ID,
                     CallLog.Calls.NUMBER,
                     CallLog.Calls.DURATION,
                     CallLog.Calls.TYPE,
@@ -39,10 +41,11 @@ object CallLogQueryHelper {
             )?.use { cursor ->
                 if (cursor.moveToFirst()) {
                     SysCallEntry(
-                        number      = cursor.getString(0) ?: "",
-                        durationSec = cursor.getLong(1),
-                        type        = cursor.getInt(2),
-                        date        = cursor.getLong(3)
+                        id          = cursor.getLong(0),
+                        number      = cursor.getString(1) ?: "",
+                        durationSec = cursor.getLong(2),
+                        type        = cursor.getInt(3),
+                        date        = cursor.getLong(4)
                     )
                 } else null
             }

@@ -27,7 +27,12 @@ class RecordingRepository(private val dao: RecordingDao) {
     /** One-shot snapshot for cross-referencing with the system call log. */
     suspend fun getAllSnapshot(): List<RecordingEntity> = dao.getAllRecordingsSnapshot()
 
-    /** Persist CRM sync result (flag + error reason) for a specific recording. */
-    suspend fun updateSyncResult(id: Int, synced: Boolean, error: String?) =
-        dao.updateSyncResult(id, synced, error)
+    /** Persist CRM sync result including ID-based matching fields. */
+    suspend fun updateSyncResult(
+        id: Int,
+        synced: Boolean,
+        error: String?,
+        crmCallLogId: String? = null,
+        systemCallLogId: Long? = null,
+    ) = dao.updateSyncResult(id, synced, error, crmCallLogId, systemCallLogId)
 }

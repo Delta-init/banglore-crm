@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [RecordingEntity::class, ContactEntity::class, CrmLogEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -55,6 +55,24 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v5 → v6: add ID-based matching columns.
+         *
+         * recordings.systemCallLogId — Android CallLog.Calls._ID (unique per call)
+         * recordings.crmCallLogId    — CRM backend's returned call_log_id
+         * crm_logs.systemCallLogId   — same Android _ID, cross-references recordings
+         *
+         * Existing rows get NULL — they will keep working via the timestamp-fallback
+         * matching path in RecentCallsViewModel until they age out of the call log.
+         */
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE recordings ADD COLUMN systemCallLogId INTEGER")
+                db.execSQL("ALTER TABLE recordings ADD COLUMN crmCallLogId TEXT")
+                db.execSQL("ALTER TABLE crm_logs   ADD COLUMN systemCallLogId INTEGER")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
@@ -62,7 +80,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "call_recorder.db"
                 )
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .fallbackToDestructiveMigration()   // safety net for older versions
                     .build()
                     .also { INSTANCE = it }

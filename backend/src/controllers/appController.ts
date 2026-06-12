@@ -24,7 +24,7 @@ import { sendSuccess } from "../utils/response.js";
 const LATEST_VERSION_CODE = 8;            // must match versionCode in build.gradle
 const LATEST_VERSION_NAME = "1.7";       // human-readable label shown in dialog
 const DOWNLOAD_URL        =
-  "https://github.com/Delta-init/banglore-crm/releases/download/v1.7/CallRecorder-v1.7.apk";
+  "https://github.com/Delta-init/banglore-crm/releases/download/v1.20/app-release.apk";
 const CHANGELOG           =
   "• CRM sync badge now works for ALL call durations\n" +
   "• Shows exact error if CRM sync fails (e.g. HTTP 401)\n" +

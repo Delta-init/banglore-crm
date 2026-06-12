@@ -1156,8 +1156,6 @@ export const transferLeadToTeam = async (
 
 // ─── Reminder Controllers ─────────────────────────────────────────────────────
 
-const AED_OFFSET_MS = 4 * 60 * 60 * 1000; // UTC+4 (AED/GST)
-
 const reminderSchema = z.object({
   title:    z.string().max(200).optional(),
   note:     z.string().max(1000).optional(),
@@ -1172,9 +1170,8 @@ const reminderSchema = z.object({
       const d = new Date(val);
       // Allow a 60-second grace window so a reminder set "right now" isn't
       // rejected due to slight clock drift between client and server.
-      const nowAED = new Date(Date.now() - AED_OFFSET_MS);
-      return d.getTime() > nowAED.getTime() - 60_000;
-    }, "Reminder time must be in the future (GST)"),
+      return d.getTime() > Date.now() - 60_000;
+    }, "Reminder time must be in the future (IST)"),
   isDone:   z.boolean().optional(),
 });
 

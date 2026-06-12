@@ -47,6 +47,8 @@ id btnImport
 id btnMute
 id btnRefresh
 id btnRefreshLogs
+id btnRetry
+id btnRetryAll
 id btnSpeaker
 id btn_075x
 id btn_15x
@@ -116,6 +118,7 @@ id tvSpeakerLabel
 id tvStatus
 id tvSubtitle
 id tvSyncError
+id tvSyncStatus
 id tvTimestamp
 id tvTitle
 id tvUpdateChangelog

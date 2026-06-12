@@ -74,8 +74,9 @@ export class TeamService {
 
     // Append lead counts per team
     const teamIds = teams.map((t) => (t as unknown as ITeam & { _id: { toString(): string } })._id.toString());
-    const now = new Date();
-    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const istOff = 5.5 * 60 * 60 * 1000;
+    const nowIST = new Date(Date.now() + istOff);
+    const monthStart = new Date(Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), 1) - istOff);
     const leadCounts = await Promise.all(
       teamIds.map(async (id) => ({
         teamId:     id,
@@ -99,8 +100,9 @@ export class TeamService {
     const team = await populatedTeam(id);
     if (!team) throw Object.assign(new Error("Team not found"), { statusCode: 404 });
 
-    const now2 = new Date();
-    const monthStart2 = new Date(Date.UTC(now2.getUTCFullYear(), now2.getUTCMonth(), 1));
+    const istOff2 = 5.5 * 60 * 60 * 1000;
+    const nowIST2 = new Date(Date.now() + istOff2);
+    const monthStart2 = new Date(Date.UTC(nowIST2.getUTCFullYear(), nowIST2.getUTCMonth(), 1) - istOff2);
     const [total, unassigned, thisMonth] = await Promise.all([
       Lead.countDocuments({ team: id }),
       Lead.countDocuments({ team: id, assignedTo: null }),
@@ -431,19 +433,19 @@ export class TeamService {
       .sort({ createdAt: 1 })
       .lean();
 
-    // Calculate nextSplitAt in AED (GST, UTC+4)
+    // Calculate nextSplitAt in IST (UTC+5:30)
     let nextSplitAt: string | null = null;
     if (splitTime) {
       const [hh, mm] = splitTime.split(":").map(Number);
-      const aedOffset = 4 * 60 * 60 * 1000; // UTC+4
+      const istOffset = 5.5 * 60 * 60 * 1000; // UTC+5:30
       const nowUTC    = Date.now();
-      const nowAED    = new Date(nowUTC + aedOffset);
+      const nowIST    = new Date(nowUTC + istOffset);
 
-      // Build today's split instant in AED then convert to UTC
-      const todaySplitAED = new Date(
-        Date.UTC(nowAED.getUTCFullYear(), nowAED.getUTCMonth(), nowAED.getUTCDate(), hh, mm, 0, 0),
+      // Build today's split instant in IST then convert to UTC
+      const todaySplitIST = new Date(
+        Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate(), hh, mm, 0, 0),
       );
-      const todaySplitUTC = new Date(todaySplitAED.getTime() - aedOffset);
+      const todaySplitUTC = new Date(todaySplitIST.getTime() - istOffset);
 
       // If split time for today has already passed, next fire is tomorrow
       const fireUTC = todaySplitUTC.getTime() > nowUTC ? todaySplitUTC : new Date(todaySplitUTC.getTime() + 86400000);
@@ -566,9 +568,10 @@ export class TeamService {
       ...(team.members as unknown as (IUser & { _id: { toString(): string } })[]),
     ];
 
-    // Always-current-month window for the thisMonth stat
-    const dashNow = new Date();
-    const dashMonthStart = new Date(Date.UTC(dashNow.getUTCFullYear(), dashNow.getUTCMonth(), 1));
+    // Always-current-month window for the thisMonth stat (IST)
+    const dashIstOff = 5.5 * 60 * 60 * 1000;
+    const dashNow = new Date(Date.now() + dashIstOff);
+    const dashMonthStart = new Date(Date.UTC(dashNow.getUTCFullYear(), dashNow.getUTCMonth(), 1) - dashIstOff);
 
     // Optional date range filter applied to all other counts
     const dateFilter: Record<string, unknown> = {};

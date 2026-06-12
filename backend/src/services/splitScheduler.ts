@@ -4,7 +4,7 @@
  * Runs every 60 seconds.
  *
  * For each team where settings.autoAssign === true AND settings.splitTime is
- * set (HH:mm AED/GST), checks if the current AED time matches. If it does and
+ * set (HH:mm IST), checks if the current IST time matches. If it does and
  * the team has not already been split in this minute (lastSplitAt), it
  * auto-assigns all unassigned leads belonging to that team.
  */
@@ -15,9 +15,9 @@ import { autoSplitLeadPublic } from "./leadService.js";
 
 const INTERVAL_MS = 60_000; // every 60 seconds
 
-function currentAEDHHMM(): string {
+function currentISTHHMM(): string {
   return new Date().toLocaleTimeString("en-GB", {
-    timeZone: "Asia/Dubai",
+    timeZone: "Asia/Kolkata",
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
@@ -26,7 +26,7 @@ function currentAEDHHMM(): string {
 
 async function tick() {
   try {
-    const nowHHMM = currentAEDHHMM();
+    const nowHHMM = currentISTHHMM();
     const nowMinus1Min = new Date(Date.now() - 60_000);
 
     // Find teams that should split at this minute and haven't run yet
@@ -73,7 +73,7 @@ async function tick() {
       }
 
       console.log(
-        `[splitScheduler] ${team.name}: assigned ${unassignedLeads.length} leads at ${nowHHMM} GST`,
+        `[splitScheduler] ${team.name}: assigned ${unassignedLeads.length} leads at ${nowHHMM} IST`,
       );
     }
   } catch (err) {

@@ -162,7 +162,7 @@ const leadSchema = new Schema<ILead>(
     },
     status: {
       type: String,
-      enum: ["new", "assigned", "pending_response", "followup", "closed", "lost", "not_connected", "mia", "repeated", "callback", "cnc"],
+      enum: ["new", "assigned", "pending_response", "followup", "closed", "lost", "not_connected", "mia", "repeated", "callback", "cnc", "booking", "partialbooking"],
       default: "new",
     },
     assignedTo: {
@@ -171,6 +171,10 @@ const leadSchema = new Schema<ILead>(
       default: null,
     },
     assignedAt: {
+      type: Date,
+      default: null,
+    },
+    closedAt: {
       type: Date,
       default: null,
     },
@@ -287,6 +291,7 @@ leadSchema.index({ course: 1 });
 // Sparse unique index on email (allows multiple nulls)
 leadSchema.index({ email: 1 });
 leadSchema.index({ status: 1 });
+leadSchema.index({ closedAt: 1 });
 leadSchema.index({ assignedTo: 1 });
 leadSchema.index({ team: 1 });
 leadSchema.index({ reporter: 1 });

@@ -700,13 +700,13 @@ export async function toggleMemberAbsentToday(
     ];
     if (!allIds.includes(memberId)) return sendError(res, "User is not a member of this team", 400);
 
-    // AED midnight for today in UTC (GST, UTC+4)
-    const aedOffset = 4 * 60 * 60 * 1000;
-    const nowAED = new Date(Date.now() + aedOffset);
-    const todayMidnightAED = new Date(
-      Date.UTC(nowAED.getUTCFullYear(), nowAED.getUTCMonth(), nowAED.getUTCDate()),
+    // IST midnight for today in UTC (UTC+5:30)
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const nowIST = new Date(Date.now() + istOffset);
+    const todayMidnightIST = new Date(
+      Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate()),
     );
-    const todayMidnightUTC = new Date(todayMidnightAED.getTime() - aedOffset);
+    const todayMidnightUTC = new Date(todayMidnightIST.getTime() - istOffset);
     const tomorrowMidnightUTC = new Date(todayMidnightUTC.getTime() + 86400000);
 
     const memberObjId = new mongoose.default.Types.ObjectId(memberId);
@@ -762,13 +762,13 @@ export async function redistributeToday(
     if (!team) return sendError(res, "Team not found", 404);
     if (!team.settings?.autoAssign) return sendError(res, "Auto-assign is not enabled for this team", 400);
 
-    // Today's AED window in UTC (GST, UTC+4)
-    const aedOffset = 4 * 60 * 60 * 1000;
-    const nowAED = new Date(Date.now() + aedOffset);
-    const todayMidnightAED = new Date(
-      Date.UTC(nowAED.getUTCFullYear(), nowAED.getUTCMonth(), nowAED.getUTCDate()),
+    // Today's IST window in UTC (UTC+5:30)
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const nowIST = new Date(Date.now() + istOffset);
+    const todayMidnightIST = new Date(
+      Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate()),
     );
-    const todayMidnightUTC = new Date(todayMidnightAED.getTime() - aedOffset);
+    const todayMidnightUTC = new Date(todayMidnightIST.getTime() - istOffset);
     const tomorrowMidnightUTC = new Date(todayMidnightUTC.getTime() + 86400000);
 
     // Find absent member IDs for today

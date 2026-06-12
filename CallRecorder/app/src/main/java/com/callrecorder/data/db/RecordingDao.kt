@@ -37,7 +37,33 @@ interface RecordingDao {
     @Query("SELECT * FROM recordings ORDER BY createdAt DESC")
     suspend fun getAllRecordingsSnapshot(): List<RecordingEntity>
 
-    /** Persist CRM sync result — flag + error message (null on success). */
-    @Query("UPDATE recordings SET crmSynced = :synced, syncError = :error WHERE id = :id")
-    suspend fun updateSyncResult(id: Int, synced: Boolean, error: String?)
+    /**
+     * Persist CRM sync result.
+     * Also writes the Android system call log ID and the CRM-assigned call_log_id
+     * so the Recent Calls tab can match calls by ID instead of timestamp.
+     */
+    @Query("""
+        UPDATE recordings
+        SET crmSynced = :synced,
+            syncError = :error,
+            crmCallLogId = :crmCallLogId,
+            systemCallLogId = :systemCallLogId
+        WHERE id = :id
+    """)
+    suspend fun updateSyncResult(
+        id: Int,
+        synced: Boolean,
+        error: String?,
+        crmCallLogId: String?,
+        systemCallLogId: Long?,
+    )
+
+    /** Look up a recording by its Android system call log _ID. */
+    @Query("SELECT * FROM recordings WHERE systemCallLogId = :sysId LIMIT 1")
+    suspend fun getBySystemCallLogId(sysId: Long): RecordingEntity?
+
+    /** Most recent recording created at or after [since] ms — used by CallStateReceiver to
+     *  back-fill crmSynced after the CRM POST completes. */
+    @Query("SELECT * FROM recordings WHERE createdAt >= :since ORDER BY createdAt DESC LIMIT 1")
+    suspend fun getMostRecentAfter(since: Long): RecordingEntity?
 }

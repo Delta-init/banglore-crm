@@ -25,6 +25,9 @@ public final class FragmentCrmLogsBinding implements ViewBinding {
   public final Button btnClear;
 
   @NonNull
+  public final Button btnRetryAll;
+
+  @NonNull
   public final RecyclerView rvCrmLogs;
 
   @NonNull
@@ -34,16 +37,21 @@ public final class FragmentCrmLogsBinding implements ViewBinding {
   public final TextView tvEmpty;
 
   @NonNull
+  public final TextView tvSyncStatus;
+
+  @NonNull
   public final TextView tvTitle;
 
   private FragmentCrmLogsBinding(@NonNull LinearLayout rootView, @NonNull Button btnClear,
-      @NonNull RecyclerView rvCrmLogs, @NonNull TextView tvCount, @NonNull TextView tvEmpty,
-      @NonNull TextView tvTitle) {
+      @NonNull Button btnRetryAll, @NonNull RecyclerView rvCrmLogs, @NonNull TextView tvCount,
+      @NonNull TextView tvEmpty, @NonNull TextView tvSyncStatus, @NonNull TextView tvTitle) {
     this.rootView = rootView;
     this.btnClear = btnClear;
+    this.btnRetryAll = btnRetryAll;
     this.rvCrmLogs = rvCrmLogs;
     this.tvCount = tvCount;
     this.tvEmpty = tvEmpty;
+    this.tvSyncStatus = tvSyncStatus;
     this.tvTitle = tvTitle;
   }
 
@@ -80,6 +88,12 @@ public final class FragmentCrmLogsBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnRetryAll;
+      Button btnRetryAll = ViewBindings.findChildViewById(rootView, id);
+      if (btnRetryAll == null) {
+        break missingId;
+      }
+
       id = R.id.rvCrmLogs;
       RecyclerView rvCrmLogs = ViewBindings.findChildViewById(rootView, id);
       if (rvCrmLogs == null) {
@@ -98,14 +112,20 @@ public final class FragmentCrmLogsBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.tvSyncStatus;
+      TextView tvSyncStatus = ViewBindings.findChildViewById(rootView, id);
+      if (tvSyncStatus == null) {
+        break missingId;
+      }
+
       id = R.id.tvTitle;
       TextView tvTitle = ViewBindings.findChildViewById(rootView, id);
       if (tvTitle == null) {
         break missingId;
       }
 
-      return new FragmentCrmLogsBinding((LinearLayout) rootView, btnClear, rvCrmLogs, tvCount,
-          tvEmpty, tvTitle);
+      return new FragmentCrmLogsBinding((LinearLayout) rootView, btnClear, btnRetryAll, rvCrmLogs,
+          tvCount, tvEmpty, tvSyncStatus, tvTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

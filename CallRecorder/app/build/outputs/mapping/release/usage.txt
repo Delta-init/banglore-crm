@@ -12715,6 +12715,7 @@ androidx.window.layout.WindowMetricsCalculatorDecorator
 com.callrecorder.App:
     public static final java.lang.String CHANNEL_GENERAL
     public static final java.lang.String CHANNEL_RECORDING
+    public static final long SYNC_INTERVAL_SECS
 com.callrecorder.BuildConfig
 com.callrecorder.R$color:
     public static int md_theme_on_primary
@@ -12754,17 +12755,20 @@ com.callrecorder.R$id:
     public static int logsFragment
     public static int nav_graph
     public static int overlayRoot
+    public static int recDot
     public static int recordingsFragment
     public static int settingsFragment
     public static int tvEmail
     public static int tvImported
     public static int tvInitial
+    public static int tvOverlayContact
     private void <init>()
 com.callrecorder.R$layout:
     public static int dial_key
     public static int dialog_add_edit_contact
     public static int fragment_contacts
     public static int item_contact
+    public static int overlay_recording
     private void <init>()
 com.callrecorder.R$menu
 com.callrecorder.R$mipmap
@@ -12782,7 +12786,8 @@ com.callrecorder.data.repository.RecordingRepository:
     public final java.lang.Object getAllSnapshot(kotlin.coroutines.Continuation)
     public final kotlinx.coroutines.flow.Flow getByPhoneNumber(java.lang.String)
     public final java.lang.Object update(com.callrecorder.data.db.RecordingEntity,kotlin.coroutines.Continuation)
-    public final java.lang.Object updateSyncResult(int,boolean,java.lang.String,kotlin.coroutines.Continuation)
+    public final java.lang.Object updateSyncResult(int,boolean,java.lang.String,java.lang.String,java.lang.Long,kotlin.coroutines.Continuation)
+    public static synthetic java.lang.Object updateSyncResult$default(com.callrecorder.data.repository.RecordingRepository,int,boolean,java.lang.String,java.lang.String,java.lang.Long,kotlin.coroutines.Continuation,int,java.lang.Object)
 com.callrecorder.databinding.ActivityDialerBinding:
     public synthetic bridge android.view.View getRoot()
 com.callrecorder.databinding.ActivityInCallBinding:
@@ -12848,17 +12853,35 @@ com.callrecorder.service.CrmSyncService$sync$1
 com.callrecorder.service.CrmSyncService$sync$2
 com.callrecorder.service.CrmSyncService:
     private static final java.lang.String TAG
+    public static final synthetic okhttp3.OkHttpClient access$getClient$p()
+    public static synthetic java.lang.Object logCallEvent$default(com.callrecorder.service.CrmSyncService,android.content.Context,java.lang.String,java.lang.String,long,java.lang.String,java.lang.Long,kotlin.coroutines.Continuation,int,java.lang.Object)
+    static synthetic java.lang.Object saveLog$default(com.callrecorder.service.CrmSyncService,android.content.Context,java.lang.String,java.lang.String,long,boolean,java.lang.String,java.lang.String,java.lang.Long,kotlin.coroutines.Continuation,int,java.lang.Object)
     public final java.lang.Object sync(android.content.Context,com.callrecorder.data.db.RecordingEntity,kotlin.coroutines.Continuation)
 com.callrecorder.service.RecordingOverlayManager:
     private static final java.lang.String TAG
+    private static android.view.View overlayView
+    private static android.animation.ObjectAnimator pulseAnimator
+    private static android.view.WindowManager windowManager
+    public final void hide()
+    private static final void hide$lambda$6()
+    public final void show(android.content.Context,java.lang.String,java.lang.String)
+    private static final void show$lambda$3(java.lang.String,java.lang.String,android.content.Context)
+    private static final void show$lambda$3$lambda$1(android.content.Context,android.view.View)
+    private final void startPulse(android.view.View)
+    public final void update(android.content.Context,java.lang.String,java.lang.String)
+    private static final void update$lambda$4(java.lang.String,java.lang.String)
+    private final void updateLabel(java.lang.String,java.lang.String)
 com.callrecorder.ui.DialerActivity:
     private static final java.lang.String TAG
 com.callrecorder.ui.DialerFragment:
     private static final java.lang.String TAG
 com.callrecorder.ui.IncomingCallActivity:
     public static final java.lang.String EXTRA_PHONE_NUMBER
+com.callrecorder.ui.calls.CallLogAdapter:
+    public synthetic void <init>(kotlin.jvm.functions.Function1,kotlin.jvm.functions.Function1,int,kotlin.jvm.internal.DefaultConstructorMarker)
 com.callrecorder.ui.calls.CallLogEntry:
     public final long component1()
+    public final java.lang.Integer component10()
     public final java.lang.String component2()
     public final java.lang.String component3()
     public final int component4()
@@ -12866,8 +12889,18 @@ com.callrecorder.ui.calls.CallLogEntry:
     public final long component6()
     public final com.callrecorder.ui.calls.CrmSyncStatus component7()
     public final java.lang.String component8()
+    public final java.lang.String component9()
 com.callrecorder.ui.calls.CrmSyncStatus:
     public static kotlin.enums.EnumEntries getEntries()
+com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams:
+    public final com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams copy(java.lang.String,java.lang.String,long,java.lang.String,java.lang.Long,int)
+    public static synthetic com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams copy$default(com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams,java.lang.String,java.lang.String,long,java.lang.String,java.lang.Long,int,int,java.lang.Object)
+    public final java.lang.String getDateIso()
+    public final long getDurSecs()
+    public final int getEntityId()
+    public final java.lang.String getPhone()
+    public final java.lang.Long getSysCallLogId()
+    public final java.lang.String getType()
 com.callrecorder.ui.calls.RecentCallsViewModel:
     private static final long MATCH_WINDOW_MS
     private static final int MAX_ENTRIES
@@ -12920,13 +12953,13 @@ com.callrecorder.utils.AppUpdateChecker$UpdateInfo:
 com.callrecorder.utils.AppUpdateChecker:
     private static final java.lang.String TAG
 com.callrecorder.utils.CallLogQueryHelper$SysCallEntry:
-    public final java.lang.String component1()
-    public final long component2()
-    public final int component3()
-    public final long component4()
-    public final com.callrecorder.utils.CallLogQueryHelper$SysCallEntry copy(java.lang.String,long,int,long)
-    public static synthetic com.callrecorder.utils.CallLogQueryHelper$SysCallEntry copy$default(com.callrecorder.utils.CallLogQueryHelper$SysCallEntry,java.lang.String,long,int,long,int,java.lang.Object)
-    public final long getDate()
+    public final long component1()
+    public final java.lang.String component2()
+    public final long component3()
+    public final int component4()
+    public final long component5()
+    public final com.callrecorder.utils.CallLogQueryHelper$SysCallEntry copy(long,java.lang.String,long,int,long)
+    public static synthetic com.callrecorder.utils.CallLogQueryHelper$SysCallEntry copy$default(com.callrecorder.utils.CallLogQueryHelper$SysCallEntry,long,java.lang.String,long,int,long,int,java.lang.Object)
 com.callrecorder.utils.CallLogQueryHelper:
     public static synthetic com.callrecorder.utils.CallLogQueryHelper$SysCallEntry getLastCall$default(com.callrecorder.utils.CallLogQueryHelper,android.content.Context,long,int,java.lang.Object)
 com.callrecorder.utils.ContactHelper:
@@ -12950,6 +12983,9 @@ com.callrecorder.utils.PrefsHelper:
     public final boolean useVoiceCallSource(android.content.Context)
 com.callrecorder.utils.StorageHelper:
     private static final java.lang.String RECORDING_DIR
+    public final java.lang.String createRecordingFilePath(android.content.Context,java.lang.String)
+    public final long getFileDuration(java.lang.String)
+    public final long getFileSize(java.lang.String)
 com.google.android.material.R$anim
 com.google.android.material.R$animator:
     public static int design_appbar_state_list_animator
@@ -25671,10 +25707,7 @@ kotlin.io.path.PathsKt__PathRecursiveFunctionsKt$copyToRecursively$5
 kotlin.io.path.PathsKt__PathRecursiveFunctionsKt
 kotlin.io.path.PathsKt__PathUtilsKt
 kotlin.jdk7.AutoCloseableKt$AutoCloseable$1
-kotlin.jdk7.AutoCloseableKt:
-    private static final java.lang.AutoCloseable AutoCloseable(kotlin.jvm.functions.Function0)
-    public static synthetic void AutoCloseable$annotations()
-    private static final java.lang.Object use(java.lang.AutoCloseable,kotlin.jvm.functions.Function1)
+kotlin.jdk7.AutoCloseableKt
 kotlin.js.ExperimentalJsCollectionsApi
 kotlin.js.ExperimentalJsExport
 kotlin.js.ExperimentalJsFileName
@@ -36222,7 +36255,7 @@ androidx.fragment.app.strictmode.WrongNestedHierarchyViolation:
     public final androidx.fragment.app.Fragment expectedParentFragment
 androidx.lifecycle.AbstractSavedStateViewModelFactory
 androidx.lifecycle.AndroidViewModel:
-    public abstract android.app.Application getApplication()
+    public final android.app.Application getApplication()
 androidx.lifecycle.ClassesInfoCache$CallbackInfo:
     public static void invokeCallbacks()
 androidx.lifecycle.ClassesInfoCache$MethodReference:
@@ -36326,6 +36359,7 @@ androidx.lifecycle.RepeatOnLifecycleKt$repeatOnLifecycle$3$1:
     public kotlin.jvm.functions.Function2 L$5
     public final java.lang.Object invoke$1()
 androidx.lifecycle.RepeatOnLifecycleKt$repeatOnLifecycle$3:
+    public final synthetic androidx.lifecycle.Lifecycle$State $state
     public final java.lang.Object invoke$1()
 androidx.lifecycle.ReportFragment$ActivityInitializationListener
 androidx.lifecycle.ReportFragment$Companion$$InternalSyntheticThrowCCEIfNotNull$197$6606f6a9d6c00feabd13f693204c7c685bcfd577a1c056fdbb01af5d22a24ba7$0
@@ -38235,6 +38269,7 @@ androidx.room.CoroutinesRoom$Companion$createFlow$1$1$1:
 androidx.room.CoroutinesRoom$Companion$createFlow$1$1:
     public final java.lang.Object invoke$1()
 androidx.room.CoroutinesRoom$Companion$createFlow$1:
+    public final synthetic boolean $inTransaction
     public final java.lang.Object invoke$3()
 androidx.room.CoroutinesRoom$Companion$execute$2:
     public int label
@@ -38817,11 +38852,15 @@ androidx.versionedparcelable.VersionedParcelParcel:
     public final void writeParcelable()
     public final void writeString(java.lang.String)
 com.callrecorder.App$Companion
+com.callrecorder.App$startPeriodicSync$1:
+    public final java.lang.Object invoke$1()
 com.callrecorder.App:
     public static final com.callrecorder.App$Companion Companion
     static void <clinit>()
     public static void createNotificationChannels()
     public final com.callrecorder.data.db.AppDatabase getDatabase()
+    public static kotlinx.coroutines.flow.StateFlow getLastSyncMs()
+    public static void startPeriodicSync()
 com.callrecorder.R$color
 com.callrecorder.R$drawable
 com.callrecorder.R$id
@@ -38865,7 +38904,6 @@ com.callrecorder.databinding.BottomSheetPlayerBinding:
     public static android.widget.LinearLayout getRoot()
 com.callrecorder.databinding.DialKeyBinding
 com.callrecorder.databinding.FragmentCrmLogsBinding:
-    public final android.widget.LinearLayout rootView
     public final android.widget.TextView tvTitle
     public static android.widget.LinearLayout getRoot()
 com.callrecorder.databinding.FragmentLogsBinding:
@@ -38890,24 +38928,15 @@ com.callrecorder.service.CallRecorderInCallService:
     static void <clinit>()
 com.callrecorder.service.CallRecordingService$Companion:
     public static void stopRecording(android.content.Context)
-com.callrecorder.service.CallRecordingService$startRecording$1$1:
-    public int label
-    public final java.lang.Object invoke$1()
-com.callrecorder.service.CallRecordingService$startRecording$1:
-    public final java.lang.Object invoke$1()
 com.callrecorder.service.CallRecordingService$stopRecording$1:
-    public final java.lang.Object invoke$1()
-com.callrecorder.service.CallRecordingService$stopRecording$recorder$1$1:
     public final java.lang.Object invoke$1()
 com.callrecorder.service.CallRecordingService:
     public static final com.callrecorder.service.CallRecordingService$Companion Companion
     static void <clinit>()
-    public static java.lang.Object activateRecording()
-    public static android.app.Notification buildNotification()
-    public static void showSavedNotification()
+    public static android.app.Notification buildActiveNotification()
+    public static void showStoredNotification()
     public static void startRecording()
     public static void stopRecording()
-    public static boolean tryPrivilegedSources()
 com.callrecorder.service.CallStateReceiver$Companion
 com.callrecorder.service.CallStateReceiver$onReceive$1:
     public final java.lang.Object invoke$1()
@@ -38915,18 +38944,16 @@ com.callrecorder.service.CallStateReceiver$onReceive$2:
     public final java.lang.Object invoke$1()
 com.callrecorder.service.CallStateReceiver:
     public static final com.callrecorder.service.CallStateReceiver$Companion Companion
-com.callrecorder.service.CrmSyncService$logCallEvent$2:
+com.callrecorder.service.CrmSyncService$executeCallEvent$2:
+    public int label
     public final java.lang.Object invoke$1()
 com.callrecorder.service.CrmSyncService:
+    public static final okhttp3.OkHttpClient client
     public static java.lang.String parseCallLogId()
-    public static kotlin.Pair readyOrNull()
 com.callrecorder.service.RecordingOverlayManager:
     public static final com.callrecorder.service.RecordingOverlayManager INSTANCE
+    public static final android.os.Handler mainHandler
     public static boolean canShow()
-    public static void hide()
-    public static void show()
-    public static void startPulse()
-    public static void update()
 com.callrecorder.ui.DialerActivity$Companion
 com.callrecorder.ui.DialerActivity:
     public static final com.callrecorder.ui.DialerActivity$Companion Companion
@@ -38980,11 +39007,13 @@ com.callrecorder.ui.calls.CallLogEntry:
     public static com.callrecorder.ui.calls.CallLogEntry copy()
     public static int getCallType()
     public static java.lang.String getContactName()
+    public static java.lang.String getCrmCallLogId()
     public static com.callrecorder.ui.calls.CrmSyncStatus getCrmSyncStatus()
     public static long getDate()
     public static long getDuration()
     public static long getId()
     public static java.lang.String getNumber()
+    public static java.lang.Integer getRecordingId()
     public static java.lang.String getSyncError()
 com.callrecorder.ui.calls.CrmSyncStatus:
     public static final synthetic kotlin.enums.EnumEntries $ENTRIES
@@ -39016,16 +39045,27 @@ com.callrecorder.ui.calls.RecentCallsFragment:
     public final void checkPermissionAndLoad()
     public static void dialNumber()
     public static com.callrecorder.databinding.FragmentRecentCallsBinding getBinding()
-    public final com.callrecorder.ui.calls.RecentCallsViewModel getViewModel()
     public static void observeState()
     public static void showPermissionDenied()
 com.callrecorder.ui.calls.RecentCallsViewModel$Companion
+com.callrecorder.ui.calls.RecentCallsViewModel$SyncParams:
+    public static java.lang.String component1()
+    public static java.lang.String component2()
+    public static long component3()
+    public static java.lang.String component4()
+    public static java.lang.Long component5()
+    public static int component6()
 com.callrecorder.ui.calls.RecentCallsViewModel$fetchCallLog$2:
     public int label
     public final java.lang.Object invoke$1()
 com.callrecorder.ui.calls.RecentCallsViewModel$loadCallLog$1$recordings$1:
     public final java.lang.Object invoke$1()
 com.callrecorder.ui.calls.RecentCallsViewModel$loadCallLog$1:
+    public final java.lang.Object invoke$1()
+com.callrecorder.ui.calls.RecentCallsViewModel$resync$1$1:
+    public int label
+    public final java.lang.Object invoke$1()
+com.callrecorder.ui.calls.RecentCallsViewModel$resync$1:
     public final java.lang.Object invoke$1()
 com.callrecorder.ui.calls.RecentCallsViewModel:
     public static final com.callrecorder.ui.calls.RecentCallsViewModel$Companion Companion
@@ -39034,7 +39074,7 @@ com.callrecorder.ui.calls.RecentCallsViewModel:
     public static java.lang.Object fetchCallLog()
     public static kotlinx.coroutines.flow.StateFlow getCalls()
     public static kotlinx.coroutines.flow.StateFlow getLoading()
-    public final void loadCallLog()
+    public static void resync()
 com.callrecorder.ui.crmlogs.CrmLogAdapter$Companion$DIFF$1:
     public static boolean areContentsTheSame$1()
     public static boolean areItemsTheSame$1()
@@ -39044,18 +39084,32 @@ com.callrecorder.ui.crmlogs.CrmLogAdapter$VH:
 com.callrecorder.ui.crmlogs.CrmLogAdapter:
     public static final com.callrecorder.ui.crmlogs.CrmLogAdapter$Companion Companion
     public static java.lang.String formatDuration$1()
+    public static java.lang.String formatError()
     public static java.lang.String formatTime()
     public static void onBindViewHolder$3()
     public static com.callrecorder.ui.crmlogs.CrmLogAdapter$VH onCreateViewHolder()
 com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$1$1$1:
-    public final java.lang.Object emit$1()
+    public final java.lang.Object invoke$1()
 com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$1$1:
     public final java.lang.Object invoke$1()
-com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$1:
-    public final java.lang.Object invoke$1()
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$2$1$1:
+    public final java.lang.Object emit$1()
 com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$2$1:
     public final java.lang.Object invoke$1()
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$2:
+    public final java.lang.Object invoke$1()
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$3$1$successCount$1:
+    public final java.lang.Object invoke$1()
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$3$1:
+    public final java.lang.Object invoke$1()
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$4$1:
+    public final java.lang.Object invoke$1()
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$5$1:
+    public final java.lang.Object invoke$1()
+com.callrecorder.ui.crmlogs.CrmLogsFragment$onViewCreated$5:
+    public final java.lang.Object invoke$1()
 com.callrecorder.ui.crmlogs.CrmLogsFragment:
+    public static java.lang.String fmtTime()
     public static com.callrecorder.databinding.FragmentCrmLogsBinding getBinding()
 com.callrecorder.ui.logs.LogsFragment:
     public static com.callrecorder.databinding.FragmentLogsBinding getBinding()
@@ -39152,7 +39206,6 @@ com.callrecorder.ui.settings.SettingsFragment:
     public static void setupPreferences()
     public final void updateOverlaySummary(androidx.preference.Preference)
 com.callrecorder.utils.AppLogger:
-    public static final com.callrecorder.utils.AppLogger INSTANCE
     public static void clear(android.content.Context)
     public static java.util.List getLines()
     public static java.io.File logFile(android.content.Context)
@@ -39169,7 +39222,9 @@ com.callrecorder.utils.AppUpdateChecker:
     public static final com.callrecorder.utils.AppUpdateChecker INSTANCE
     public static java.lang.Object check(android.content.Context,kotlin.coroutines.Continuation)
 com.callrecorder.utils.CallLogQueryHelper$SysCallEntry:
+    public static long getDate()
     public static long getDurationSec()
+    public static long getId()
     public static java.lang.String getNumber()
     public static int getType()
 com.callrecorder.utils.CallLogQueryHelper:
@@ -39185,9 +39240,9 @@ com.callrecorder.utils.PermissionHelper:
 com.callrecorder.utils.PrefsHelper
 com.callrecorder.utils.StorageHelper:
     public static final com.callrecorder.utils.StorageHelper INSTANCE
-    public static java.lang.String createRecordingFilePath()
+    public static final java.text.SimpleDateFormat dateFormat
+    public static void deleteFile(java.lang.String)
     public static java.lang.String formatFileSize()
-    public static long getFileSize()
 com.callrecorder.utils.UpdateDialogManager:
     public static final com.callrecorder.utils.UpdateDialogManager INSTANCE
     static void <clinit>()
@@ -41905,6 +41960,7 @@ kotlin.collections.CollectionsKt__CollectionsJVMKt:
 kotlin.collections.CollectionsKt__CollectionsKt:
     public static java.util.List emptyList()
     public static varargs java.util.ArrayList mutableListOf(java.lang.Object[])
+    public static void throwCountOverflow()
 kotlin.collections.CollectionsKt__MutableCollectionsJVMKt:
     public static void sort(java.util.List)
 kotlin.collections.CollectionsKt__MutableCollectionsKt:
@@ -42095,7 +42151,6 @@ kotlin.io.FilesKt__UtilsKt
 kotlin.io.LinesSequence$iterator$1:
     public final java.lang.String next()
 kotlin.io.TextStreamsKt
-kotlin.jdk7.AutoCloseableKt
 kotlin.jvm.JvmClassMappingKt:
     public static final void getKotlinClass(java.lang.Class)
 kotlin.jvm.functions.Function4
@@ -42164,6 +42219,7 @@ kotlin.ranges.IntRange:
     public static java.lang.Integer getEndInclusive()
     public static java.lang.Integer getStart()
 kotlin.ranges.RangesKt:
+    public static long coerceAtLeast(long,long)
     public static long coerceAtMost(long,long)
     public static kotlin.ranges.IntProgression downTo(int,int)
 kotlin.ranges.RangesKt___RangesKt
@@ -42225,9 +42281,11 @@ kotlin.text.StringsKt__StringsKt$rangesDelimitedBy$2:
 kotlin.text.StringsKt__StringsKt$splitToSequence$1:
     public static java.lang.String invoke$5()
 kotlin.text.StringsKt__StringsKt:
+    public static synthetic boolean contains$default(java.lang.CharSequence,java.lang.String)
     public static synthetic int indexOf$StringsKt__StringsKt$default(java.lang.CharSequence,java.lang.CharSequence,int,int,boolean)
     public static int lastIndexOf$default(java.lang.String,java.lang.String,int)
     public static final java.lang.String substring(java.lang.CharSequence,kotlin.ranges.IntRange)
+    public static synthetic java.lang.String substringAfter$default(java.lang.String,java.lang.String)
 kotlin.text.StringsKt___StringsKt
 kotlin.time.Duration$Companion
 kotlin.time.Duration:
@@ -42332,8 +42390,6 @@ kotlinx.coroutines.CoroutineId$Key
 kotlinx.coroutines.CoroutineId
 kotlinx.coroutines.CoroutineName$Key
 kotlinx.coroutines.CoroutineName
-kotlinx.coroutines.CoroutineScopeKt:
-    public static final kotlinx.coroutines.internal.ContextScope CoroutineScope(kotlin.coroutines.CoroutineContext)
 kotlinx.coroutines.CoroutineStart$WhenMappings
 kotlinx.coroutines.CoroutineStart:
     public static final synthetic kotlin.enums.EnumEntries $ENTRIES
@@ -43576,7 +43632,7 @@ okhttp3.OkHttpClient$Builder:
     public okhttp3.internal.connection.RouteDatabase routeDatabase
     public javax.net.ssl.SSLSocketFactory sslSocketFactoryOrNull
     public javax.net.ssl.X509TrustManager x509TrustManagerOrNull
-    public static okhttp3.OkHttpClient build()
+    public final void build()
     public final void connectTimeout(long,java.util.concurrent.TimeUnit)
     public static okhttp3.Authenticator getAuthenticator$okhttp()
     public static void getCache$okhttp()
