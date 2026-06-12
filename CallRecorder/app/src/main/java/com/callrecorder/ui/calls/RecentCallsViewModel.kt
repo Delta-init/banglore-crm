@@ -8,6 +8,7 @@ import com.callrecorder.data.db.AppDatabase
 import com.callrecorder.data.db.RecordingEntity
 import com.callrecorder.service.CrmSyncService
 import com.callrecorder.utils.AppLogger
+import com.callrecorder.utils.ContactHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -84,35 +85,88 @@ class RecentCallsViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
-     * Retry CRM sync for a single call that previously failed.
-     * Calls CrmSyncService.logCallEvent(), updates the RecordingEntity, then
-     * refreshes the list so the UI badge updates immediately.
+     * Manually sync a single call to CRM.
+     *
+     * Two paths:
+     *  • recordingId != null — existing RecordingEntity in Room; update it in-place.
+     *  • recordingId == null — call was NOT_RECORDED (no entity yet); create one now
+     *    from the CallLogEntry data, then sync.
      */
     fun resync(entry: CallLogEntry) {
-        val recordingId = entry.recordingId ?: return
         viewModelScope.launch(Dispatchers.IO) {
-            val rec = db.recordingDao().getById(recordingId) ?: return@launch
-            val callDateIso = Instant.ofEpochMilli(rec.createdAt).toString()
+            val ctx = getApplication<Application>()
+
+            val (phoneNumber, callType, durationSecs, callDateIso, systemCallLogId, entityId) =
+                if (entry.recordingId != null) {
+                    // Path A — existing entity
+                    val rec = db.recordingDao().getById(entry.recordingId) ?: return@launch
+                    SyncParams(
+                        phone        = rec.phoneNumber,
+                        type         = rec.callType,
+                        durSecs      = rec.duration / 1_000L,
+                        dateIso      = Instant.ofEpochMilli(rec.createdAt).toString(),
+                        sysCallLogId = rec.systemCallLogId,
+                        entityId     = rec.id,
+                    )
+                } else {
+                    // Path B — NOT_RECORDED: create entity first, then sync
+                    val type = when (entry.callType) {
+                        CallLog.Calls.INCOMING_TYPE -> "incoming"
+                        CallLog.Calls.OUTGOING_TYPE -> "outgoing"
+                        CallLog.Calls.MISSED_TYPE   -> "missed"
+                        else                        -> "unknown"
+                    }
+                    val contactName = ContactHelper.getContactName(ctx, entry.number)
+                    val newId = db.recordingDao().insert(
+                        RecordingEntity(
+                            phoneNumber = entry.number,
+                            contactName = contactName,
+                            filePath    = "",
+                            duration    = entry.duration * 1_000L,
+                            fileSize    = 0L,
+                            callType    = type,
+                            crmSynced   = false,
+                            createdAt   = entry.date,
+                        )
+                    ).toInt()
+                    SyncParams(
+                        phone        = entry.number,
+                        type         = type,
+                        durSecs      = entry.duration,
+                        dateIso      = Instant.ofEpochMilli(entry.date).toString(),
+                        sysCallLogId = null,
+                        entityId     = newId,
+                    )
+                }
+
             val (synced, crmCallLogId, errMsg) = CrmSyncService.logCallEvent(
-                context         = getApplication(),
-                phoneNumber     = rec.phoneNumber,
-                callType        = rec.callType,
-                durationSecs    = rec.duration / 1_000L,
+                context         = ctx,
+                phoneNumber     = phoneNumber,
+                callType        = callType,
+                durationSecs    = durationSecs,
                 callDateIso     = callDateIso,
-                systemCallLogId = rec.systemCallLogId,
+                systemCallLogId = systemCallLogId,
             )
             db.recordingDao().updateSyncResult(
-                id              = recordingId,
+                id              = entityId,
                 synced          = synced,
                 error           = if (synced) null else errMsg,
                 crmCallLogId    = crmCallLogId,
-                systemCallLogId = rec.systemCallLogId,
+                systemCallLogId = systemCallLogId,
             )
-            AppLogger.i(getApplication(), TAG, "Resync #$recordingId → synced=$synced err=$errMsg")
-            // Refresh UI on main thread
+            AppLogger.i(ctx, TAG, "Resync #$entityId → synced=$synced err=$errMsg")
             withContext(Dispatchers.Main) { loadCallLog() }
         }
     }
+
+    private data class SyncParams(
+        val phone: String,
+        val type: String,
+        val durSecs: Long,
+        val dateIso: String,
+        val sysCallLogId: Long?,
+        val entityId: Int,
+    )
 
     /** Strip all non-digits and take the last 10 characters. */
     private fun phoneLast10(number: String): String =

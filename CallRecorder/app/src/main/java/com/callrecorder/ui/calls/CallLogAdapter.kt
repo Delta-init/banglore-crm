@@ -107,7 +107,23 @@ class CallLogAdapter(
                     }
                 }
                 CrmSyncStatus.NOT_RECORDED -> {
-                    b.tvCrmSync.visibility   = View.GONE
+                    // Show a "Sync to CRM" button so the user can manually trigger a sync
+                    // for calls the automatic system missed.
+                    b.tvCrmSync.visibility  = View.VISIBLE
+                    b.tvCrmSync.text        = "↑ Sync to CRM"
+                    b.tvCrmSync.isClickable = true
+                    b.tvCrmSync.isFocusable = true
+                    b.tvCrmSync.setTextColor(ContextCompat.getColor(ctx, R.color.badge_not_synced_text))
+                    b.tvCrmSync.backgroundTintList =
+                        ColorStateList.valueOf(ContextCompat.getColor(ctx, R.color.badge_not_synced_bg))
+                    b.tvCrmSync.setOnClickListener {
+                        AlertDialog.Builder(ctx)
+                            .setTitle("Sync call to CRM")
+                            .setMessage("This call hasn't been synced yet. Sync it now?")
+                            .setPositiveButton("Sync Now") { _, _ -> onResync?.invoke(entry) }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    }
                     b.tvSyncError.visibility = View.GONE
                 }
             }
