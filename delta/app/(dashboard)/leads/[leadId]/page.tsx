@@ -663,7 +663,7 @@ export default function LeadDetailPage() {
                 )}
 
                 {lead.firstContactTime && (
-                  <InfoRow icon={Clock} label="First Contact Time" value={new Date(lead.firstContactTime).toLocaleString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) + " GST"} />
+                  <InfoRow icon={Clock} label="First Contact Time" value={new Date(lead.firstContactTime).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true }) + " IST"} />
                 )}
 
                 {/* New lead insight fields */}
@@ -700,7 +700,7 @@ export default function LeadDetailPage() {
                 )}
 
                 {lead.lastFollowupDate && (
-                  <InfoRow icon={Calendar} label="Last Follow-up" value={new Date(lead.lastFollowupDate).toLocaleDateString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", year: "numeric" })} />
+                  <InfoRow icon={Calendar} label="Last Follow-up" value={new Date(lead.lastFollowupDate).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" })} />
                 )}
                 {/* Demo badges */}
                 {(lead.demoScheduled != null || lead.demoAttended != null) && (
@@ -973,16 +973,16 @@ export default function LeadDetailPage() {
                         type="datetime-local"
                         className="h-8 text-xs [color-scheme:dark]"
                         defaultValue={lead.firstContactTime
-                          ? new Date(lead.firstContactTime).toLocaleString("sv-SE", { timeZone: "Asia/Dubai" }).slice(0, 16).replace(" ", "T")
+                          ? new Date(lead.firstContactTime).toLocaleString("sv-SE", { timeZone: "Asia/Kolkata" }).slice(0, 16).replace(" ", "T")
                           : ""}
                         key={lead.firstContactTime ?? "fct-none"}
                         onBlur={(e) => {
                           const val = e.target.value;
                           const current = lead.firstContactTime
-                            ? new Date(lead.firstContactTime).toLocaleString("sv-SE", { timeZone: "Asia/Dubai" }).slice(0, 16).replace(" ", "T")
+                            ? new Date(lead.firstContactTime).toLocaleString("sv-SE", { timeZone: "Asia/Kolkata" }).slice(0, 16).replace(" ", "T")
                             : "";
                           if (val !== current) {
-                            const iso = val ? new Date(`${val}:00+04:00`).toISOString() : null;
+                            const iso = val ? new Date(`${val}:00+05:30`).toISOString() : null;
                             updateLead.mutate({ id: lead._id, data: { firstContactTime: iso } });
                           }
                         }}

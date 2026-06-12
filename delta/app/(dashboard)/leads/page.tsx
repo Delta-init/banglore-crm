@@ -350,8 +350,8 @@ function LeadsPageContent() {
         <td key="assignedAt" className="px-4 py-4 hidden xl:table-cell">
           {lead.assignedAt ? (
             <div className="space-y-0.5">
-              <p className="text-xs text-muted-foreground">{new Date(lead.assignedAt).toLocaleDateString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", year: "numeric" })}</p>
-              <p className="text-[11px] text-muted-foreground/60">{new Date(lead.assignedAt).toLocaleTimeString("en-AE", { timeZone: "Asia/Dubai", hour: "2-digit", minute: "2-digit", hour12: true })} GST</p>
+              <p className="text-xs text-muted-foreground">{new Date(lead.assignedAt).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" })}</p>
+              <p className="text-[11px] text-muted-foreground/60">{new Date(lead.assignedAt).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: true })} IST</p>
             </div>
           ) : <span className="text-xs text-muted-foreground/40">—</span>}
         </td>
@@ -369,7 +369,7 @@ function LeadsPageContent() {
       case "lastFollowup": return (
         <td key="lastFollowup" className="px-4 py-4 hidden lg:table-cell">
           {lead.lastFollowupDate
-            ? <span className="text-xs text-muted-foreground">{new Date(lead.lastFollowupDate).toLocaleDateString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", year: "numeric" })}</span>
+            ? <span className="text-xs text-muted-foreground">{new Date(lead.lastFollowupDate).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" })}</span>
             : <span className="text-xs text-muted-foreground/40">—</span>}
         </td>
       );
@@ -390,7 +390,7 @@ function LeadsPageContent() {
       case "firstContactTime": return (
         <td key="firstContactTime" className="px-4 py-4 hidden xl:table-cell">
           {lead.firstContactTime
-            ? <span className="text-xs text-muted-foreground">{new Date(lead.firstContactTime).toLocaleString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true })}</span>
+            ? <span className="text-xs text-muted-foreground">{new Date(lead.firstContactTime).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true })}</span>
             : <span className="text-xs text-muted-foreground/40">—</span>}
         </td>
       );
@@ -1287,7 +1287,7 @@ function LeadsPageContent() {
                                     {getUserName(lead.assignedTo as User | string | null)}
                                     {lead.assignedAt && (
                                       <span className="ml-1 text-muted-foreground/50">
-                                        · {new Date(lead.assignedAt).toLocaleString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true })}
+                                        · {new Date(lead.assignedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true })}
                                       </span>
                                     )}
                                   </span>
@@ -1300,7 +1300,7 @@ function LeadsPageContent() {
                               <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mt-1">
                                 {lead.lastFollowupDate && (
                                   <span className="text-[11px] text-muted-foreground">
-                                    Followup: {new Date(lead.lastFollowupDate).toLocaleDateString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", year: "numeric" })}
+                                    Followup: {new Date(lead.lastFollowupDate).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" })}
                                   </span>
                                 )}
                                 {lead.demoScheduled && (

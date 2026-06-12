@@ -38,11 +38,11 @@ function getReminderState(remindAt: string, isDone: boolean): ReminderState {
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleString("en-AE", {
-    timeZone: "Asia/Dubai",
+  return new Date(iso).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "numeric", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit", hour12: true,
-  }) + " GST";
+  }) + " IST";
 }
 
 function formatRelative(iso: string) {
@@ -60,7 +60,7 @@ function formatRelative(iso: string) {
 
 function toDatetimeLocal(iso: string): string {
   return new Date(iso)
-    .toLocaleString("sv-SE", { timeZone: "Asia/Dubai" })
+    .toLocaleString("sv-SE", { timeZone: "Asia/Kolkata" })
     .slice(0, 16)
     .replace(" ", "T");
 }
@@ -100,9 +100,9 @@ function EditForm({
   const [timeError, setTimeError] = useState("");
 
   function handleSave() {
-    const pickedIST = new Date(`${remindAt}:00+04:00`);
+    const pickedIST = new Date(`${remindAt}:00+05:30`);
     if (isNaN(pickedIST.getTime())) { setTimeError("Invalid date/time"); return; }
-    if (pickedIST.getTime() <= Date.now() - 60_000) { setTimeError("Please choose a future time (GST)"); return; }
+    if (pickedIST.getTime() <= Date.now() - 60_000) { setTimeError("Please choose a future time (IST)"); return; }
     setTimeError("");
     onSave({ title: title || undefined, note: note || undefined, remindAt: pickedIST.toISOString() });
   }
@@ -131,7 +131,7 @@ function EditForm({
         <div className="space-y-1">
           <p className="text-xs text-muted-foreground flex items-center gap-1.5">
             <AlarmClock className="h-3 w-3" /> Remind at
-            <span className="ml-auto text-[10px] text-muted-foreground/60">GST (UTC+4)</span>
+            <span className="ml-auto text-[10px] text-muted-foreground/60">IST (UTC+5:30)</span>
           </p>
           <Input
             type="datetime-local"

@@ -45,10 +45,10 @@ export function CreateStudentModal({ open, lead, onClose, onSkip, onCreated }: P
 
   function toIST(iso?: string | null) {
     if (!iso) return null;
-    return new Date(iso).toLocaleString("en-AE", {
-      timeZone: "Asia/Dubai", day: "2-digit", month: "short",
+    return new Date(iso).toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata", day: "2-digit", month: "short",
       year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true,
-    }) + " GST";
+    }) + " IST";
   }
 
   async function handleCreate() {

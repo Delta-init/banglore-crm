@@ -282,7 +282,7 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-xs text-muted-foreground">
-                At this time (GST) every day, all unassigned leads in this team will be automatically distributed. Leave blank to disable the scheduled split.
+                At this time (IST) every day, all unassigned leads in this team will be automatically distributed. Leave blank to disable the scheduled split.
               </p>
               <div className="flex items-center gap-3">
                 <Input
@@ -307,7 +307,7 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
               </div>
               {splitTime && (
                 <p className="text-xs text-primary/80">
-                  Leads will be auto-split daily at <span className="font-semibold">{splitTime} GST</span>
+                  Leads will be auto-split daily at <span className="font-semibold">{splitTime} IST</span>
                 </p>
               )}
             </CardContent>

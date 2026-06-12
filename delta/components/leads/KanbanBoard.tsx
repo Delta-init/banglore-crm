@@ -106,7 +106,7 @@ function QuickPaymentDialog({ lead, open, onClose }: { lead: Lead; open: boolean
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) return;
     addPayment.mutate(
-      { amount: amt, note: note || undefined, paidAt: `${paidAt}T00:00:00+04:00` },
+      { amount: amt, note: note || undefined, paidAt: `${paidAt}T00:00:00+05:30` },
       { onSuccess: () => { onClose(); setAmount(""); setNote(""); } },
     );
   }
@@ -158,7 +158,7 @@ function QuickReminderDialog({ lead, open, onClose }: { lead: Lead; open: boolea
     e.preventDefault();
     if (!remindAt) return;
     addReminder.mutate(
-      { title: title || undefined, note: note || undefined, remindAt: `${remindAt}:00+04:00` },
+      { title: title || undefined, note: note || undefined, remindAt: `${remindAt}:00+05:30` },
       { onSuccess: () => { onClose(); setTitle(""); setNote(""); setRemindAt(""); } },
     );
   }
@@ -283,8 +283,8 @@ function QuickNotesDialog({ lead, open, onClose }: { lead: Lead; open: boolean; 
                             {authorName}
                           </span>
                           <span className="text-[10px] text-muted-foreground">
-                            {new Date(note.createdAt).toLocaleString("en-AE", {
-                              timeZone: "Asia/Dubai",
+                            {new Date(note.createdAt).toLocaleString("en-IN", {
+                              timeZone: "Asia/Kolkata",
                               day: "2-digit", month: "short", year: "numeric",
                               hour: "2-digit", minute: "2-digit", hour12: true,
                             })}
@@ -501,17 +501,17 @@ function LeadPreviewBody({
         />
         {lead.lastFollowupDate && (
           <Row icon={Calendar} label="Last Follow-up"
-            value={new Date(lead.lastFollowupDate).toLocaleDateString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", year: "numeric" })}
+            value={new Date(lead.lastFollowupDate).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" })}
           />
         )}
         <Row icon={Calendar} label="Created"      value={formatDate(lead.createdAt)} />
         <Row icon={Clock}    label="Last Updated" value={formatDate(lead.updatedAt)} />
         {lead.assignedAt && (
           <Row icon={Clock} label="Assigned At"
-            value={new Date(lead.assignedAt).toLocaleString("en-AE", {
-              timeZone: "Asia/Dubai", day: "2-digit", month: "short",
+            value={new Date(lead.assignedAt).toLocaleString("en-IN", {
+              timeZone: "Asia/Kolkata", day: "2-digit", month: "short",
               year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true,
-            }) + " GST"}
+            }) + " IST"}
           />
         )}
         {/* Demo badges */}

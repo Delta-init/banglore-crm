@@ -54,10 +54,10 @@ function InfoRow({ icon: Icon, label, value, className }: { icon: React.ElementT
 
 function formatIST(iso?: string | null) {
   if (!iso) return null;
-  return new Date(iso).toLocaleString("en-AE", {
-    timeZone: "Asia/Dubai", day: "2-digit", month: "short",
+  return new Date(iso).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata", day: "2-digit", month: "short",
     year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true,
-  }) + " GST";
+  }) + " IST";
 }
 
 export default function StudentDetailPage() {
@@ -318,7 +318,7 @@ export default function StudentDetailPage() {
                     </div>
                   )}
                   <InfoRow icon={Calendar} label="First Contact Time" value={formatIST(student.firstContactTime)} />
-                  <InfoRow icon={Calendar} label="Last Follow-up"     value={student.lastFollowupDate ? new Date(student.lastFollowupDate).toLocaleDateString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", year: "numeric" }) : null} />
+                  <InfoRow icon={Calendar} label="Last Follow-up"     value={student.lastFollowupDate ? new Date(student.lastFollowupDate).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" }) : null} />
                 </CardContent>
               </Card>
             </motion.div>

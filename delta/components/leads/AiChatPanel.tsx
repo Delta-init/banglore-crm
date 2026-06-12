@@ -55,8 +55,8 @@ function MessageBubble({ msg }: { msg: AiMessage }) {
           "mt-1 text-[10px]",
           isUser ? "text-primary-foreground/60 text-right" : "text-muted-foreground",
         )}>
-          {new Date(msg.createdAt).toLocaleTimeString("en-AE", {
-            hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Dubai",
+          {new Date(msg.createdAt).toLocaleTimeString("en-IN", {
+            hour: "2-digit", minute: "2-digit", hour12: true, timeZone: "Asia/Kolkata",
           })}
         </p>
       </div>

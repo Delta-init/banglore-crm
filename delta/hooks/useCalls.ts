@@ -139,10 +139,10 @@ export function fmtDuration(seconds: number): string {
   return m > 0 ? `${m}m ${s}s` : `${s}s`;
 }
 
-/** Format ISO to readable date+time GST (AED, UTC+4) */
+/** Format ISO to readable date+time IST (UTC+5:30) */
 export function fmtCallTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-AE", {
-    timeZone: "Asia/Dubai",
+  return new Date(iso).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit", hour12: true,
   });

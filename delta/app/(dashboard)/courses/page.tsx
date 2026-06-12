@@ -103,11 +103,11 @@ function CourseCard({ course, onEdit, onDelete, index }: CourseCardProps) {
 
         <CardFooter className="pt-3 border-t border-border/50 flex items-center justify-between gap-2">
           <p className="text-xs text-muted-foreground truncate">
-            {new Date(course.createdAt).toLocaleDateString("en-AE", {
+            {new Date(course.createdAt).toLocaleDateString("en-IN", {
               day: "numeric",
               month: "short",
               year: "numeric",
-              timeZone: "Asia/Dubai",
+              timeZone: "Asia/Kolkata",
             })}
           </p>
 

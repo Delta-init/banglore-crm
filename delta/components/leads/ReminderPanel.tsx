@@ -29,27 +29,26 @@ function getReminderState(remindAt: string, isDone: boolean) {
   return "upcoming" as const;
 }
 
-// Always display and compute reminder times in AED (Asia/Dubai, UTC+4)
+// Always display and compute reminder times in IST (Asia/Kolkata, UTC+5:30)
 // regardless of where the browser or server is running.
 
 function formatReminderTime(remindAt: string) {
-  return new Date(remindAt).toLocaleString("en-AE", {
-    timeZone: "Asia/Dubai",
+  return new Date(remindAt).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "numeric", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit", hour12: true,
-  }) + " GST";
+  }) + " IST";
 }
 
-/** Convert an ISO UTC string → "YYYY-MM-DDTHH:mm" expressed in AED for datetime-local inputs */
+/** Convert an ISO UTC string → "YYYY-MM-DDTHH:mm" expressed in IST for datetime-local inputs */
 function toDatetimeLocal(iso: string): string {
-  // "sv-SE" locale gives a sortable "YYYY-MM-DD HH:mm:ss" format in the given timezone
   return new Date(iso)
-    .toLocaleString("sv-SE", { timeZone: "Asia/Dubai" })
+    .toLocaleString("sv-SE", { timeZone: "Asia/Kolkata" })
     .slice(0, 16)
     .replace(" ", "T");
 }
 
-/** Current AED time as "YYYY-MM-DDTHH:mm" — used as the min value on datetime-local inputs */
+/** Current IST time as "YYYY-MM-DDTHH:mm" — used as the min value on datetime-local inputs */
 function nowIST(): string {
   return toDatetimeLocal(new Date().toISOString());
 }
@@ -71,7 +70,7 @@ interface ReminderFormProps {
 }
 
 function ReminderForm({ initial, onSave, onCancel, saving }: ReminderFormProps) {
-  // Default to 30 minutes from now in GST
+  // Default to 30 minutes from now in IST
   const defaultDt = toDatetimeLocal(new Date(Date.now() + 30 * 60 * 1000).toISOString());
 
   const [title,    setTitle]    = useState(initial?.title    ?? "");
@@ -80,16 +79,16 @@ function ReminderForm({ initial, onSave, onCancel, saving }: ReminderFormProps) 
   const [timeError, setTimeError] = useState("");
 
   function handleSave() {
-    // remindAt is "YYYY-MM-DDTHH:mm" in AED.
-    // Appending "+04:00" makes JS parse it as AED (GST) explicitly,
+    // remindAt is "YYYY-MM-DDTHH:mm" in IST.
+    // Appending "+05:30" makes JS parse it as IST explicitly,
     // regardless of the browser's actual local timezone.
-    const pickedIST = new Date(`${remindAt}:00+04:00`);
+    const pickedIST = new Date(`${remindAt}:00+05:30`);
     if (isNaN(pickedIST.getTime())) {
       setTimeError("Invalid date/time");
       return;
     }
     if (pickedIST.getTime() <= Date.now() - 60_000) {
-      setTimeError("Please choose a future time (GST)");
+      setTimeError("Please choose a future time (IST)");
       return;
     }
     setTimeError("");
@@ -119,7 +118,7 @@ function ReminderForm({ initial, onSave, onCancel, saving }: ReminderFormProps) 
       <div className="space-y-1">
         <p className="text-xs text-muted-foreground flex items-center gap-1.5">
           <AlarmClock className="h-3.5 w-3.5" /> Remind at
-          <span className="ml-auto text-[10px] text-muted-foreground/60">GST (UTC+4)</span>
+          <span className="ml-auto text-[10px] text-muted-foreground/60">IST (UTC+5:30)</span>
         </p>
         <Input
           type="datetime-local"

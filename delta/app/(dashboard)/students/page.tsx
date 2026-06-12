@@ -77,7 +77,7 @@ const FEE_STATUS_CONFIG: Record<FeeStatus, { label: string; color: string }> = {
 
 function formatIST(iso?: string | null) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", year: "numeric" });
+  return new Date(iso).toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", year: "numeric" });
 }
 
 function FilterPill({ label, onRemove }: { label: string; onRemove: () => void }) {
@@ -369,7 +369,7 @@ function StudentsPageContent() {
       );
       case "firstContact": return (
         <td key="firstContact" className="px-4 py-3.5 hidden xl:table-cell">
-          <span className="text-xs text-muted-foreground">{s.firstContactTime ? new Date(s.firstContactTime).toLocaleString("en-AE", { timeZone: "Asia/Dubai", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true }) : "—"}</span>
+          <span className="text-xs text-muted-foreground">{s.firstContactTime ? new Date(s.firstContactTime).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: true }) : "—"}</span>
         </td>
       );
       case "lastFollowup": return (

@@ -43,11 +43,11 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function formatIST(iso: string) {
-  return new Date(iso).toLocaleString("en-AE", {
-    timeZone: "Asia/Dubai",
+  return new Date(iso).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit", hour12: true,
-  }) + " GST";
+  }) + " IST";
 }
 
 function isOverdue(remindAt: string, isDone: boolean) {

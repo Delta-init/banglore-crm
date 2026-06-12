@@ -25,23 +25,23 @@ const STATUS_LABEL: Record<string, string> = Object.fromEntries(
 );
 
 function formatIST(iso: string) {
-  return new Date(iso).toLocaleString("en-AE", {
-    timeZone: "Asia/Dubai",
+  return new Date(iso).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "2-digit", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit", hour12: true,
-  }) + " GST";
+  }) + " IST";
 }
 
 function formatTimeShort(iso: string) {
-  return new Date(iso).toLocaleString("en-AE", {
-    timeZone: "Asia/Dubai",
+  return new Date(iso).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     hour: "2-digit", minute: "2-digit", hour12: true,
-  }) + " GST";
+  }) + " IST";
 }
 
 function formatDateShort(iso: string) {
-  return new Date(iso).toLocaleString("en-AE", {
-    timeZone: "Asia/Dubai",
+  return new Date(iso).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
     day: "2-digit", month: "short",
   });
 }
@@ -454,7 +454,7 @@ function BatchHeader({
             <div>
               <p className="text-xs font-medium text-muted-foreground">Next auto-split</p>
               <p className="text-sm font-bold text-foreground">
-                {splitTime} GST
+                {splitTime} IST
                 {nextSplitAt && (
                   <span className="ml-2 text-xs font-normal text-muted-foreground">
                     · {formatTimeShort(nextSplitAt)}
