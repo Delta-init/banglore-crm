@@ -72,25 +72,25 @@ function RankBadge({ rank }: { rank: number }) {
       <motion.div
         animate={{ rotate: [0, -8, 8, -5, 5, 0], scale: [1, 1.15, 1] }}
         transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 shadow-lg shadow-amber-500/40"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 shadow-md shadow-amber-500/40"
       >
-        <Crown className="h-5 w-5 text-amber-900" />
+        <Crown className="h-4 w-4 text-amber-900" />
       </motion.div>
     );
   if (rank === 2)
     return (
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-300 to-slate-400 shadow-lg shadow-slate-400/30">
-        <Medal className="h-5 w-5 text-slate-700" />
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-slate-300 to-slate-400 shadow-md shadow-slate-400/30">
+        <Medal className="h-4 w-4 text-slate-700" />
       </div>
     );
   if (rank === 3)
     return (
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-500 shadow-lg shadow-orange-400/30">
-        <Medal className="h-5 w-5 text-orange-900" />
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-300 to-orange-500 shadow-md shadow-orange-400/30">
+        <Medal className="h-4 w-4 text-orange-900" />
       </div>
     );
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground font-bold text-sm">
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground font-bold text-xs">
       #{rank}
     </div>
   );
@@ -240,10 +240,10 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
       transition={{ type: "spring", stiffness: 260, damping: 28, delay: index * 0.03 }}
       whileHover={{ scale: 1.005, y: -1 }}
       className={cn(
-        "relative rounded-xl px-4 py-3 transition-colors",
+        "relative rounded-lg px-3 py-1.5 transition-colors",
         isTop3 ? "border-2" : "border",
         cardBg,
-        isFullscreen ? "py-4" : "",
+        isFullscreen ? "py-3" : "",
       )}
     >
       {/* Rank-1 glow */}
@@ -256,16 +256,16 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
         />
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {/* Rank badge */}
         <RankBadge rank={entry.rank} />
 
-        {/* Name + email */}
+        {/* Name + extension */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className={cn(
               "font-semibold truncate",
-              isFullscreen ? "text-lg" : "text-sm",
+              isFullscreen ? "text-base" : "text-xs",
               entry.rank === 1 ? "text-amber-700 dark:text-amber-400" : "text-foreground",
             )}>
               {entry.name}
@@ -275,62 +275,62 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
             </AnimatePresence>
           </div>
           {entry.extension && (
-            <span className="text-[11px] text-muted-foreground">Ext {entry.extension}</span>
+            <span className="text-[10px] text-muted-foreground">Ext {entry.extension}</span>
           )}
         </div>
 
         {/* Stats row */}
         <div className={cn(
-          "flex items-center gap-4",
-          isFullscreen ? "gap-6" : "gap-3 md:gap-5",
+          "flex items-center",
+          isFullscreen ? "gap-6" : "gap-2 md:gap-3",
         )}>
           {/* Closings */}
           <div className="flex flex-col items-center">
-            <div className="flex items-center gap-1">
-              <Target className="h-3.5 w-3.5 text-primary/70" />
+            <div className="flex items-center gap-0.5">
+              <Target className="h-3 w-3 text-primary/70" />
               <span className={cn(
                 "font-bold tabular-nums",
-                isFullscreen ? "text-2xl" : "text-lg",
+                isFullscreen ? "text-2xl" : "text-sm",
                 entry.closings > 0 ? "text-primary" : "text-muted-foreground",
               )}>
                 {entry.closings}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground">closings</span>
+            <span className="text-[9px] text-muted-foreground">closings</span>
           </div>
 
           {/* Call count */}
           <div className="flex flex-col items-center hidden sm:flex">
-            <div className="flex items-center gap-1">
-              <Phone className="h-3.5 w-3.5 text-blue-400/70" />
+            <div className="flex items-center gap-0.5">
+              <Phone className="h-3 w-3 text-blue-400/70" />
               <span className={cn(
                 "font-bold tabular-nums",
-                isFullscreen ? "text-2xl" : "text-lg",
+                isFullscreen ? "text-2xl" : "text-sm",
                 entry.callCount > 0 ? "text-blue-400" : "text-muted-foreground",
               )}>
                 {entry.callCount}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground">calls</span>
+            <span className="text-[9px] text-muted-foreground">calls</span>
           </div>
 
           {/* Amount */}
           <div className="flex flex-col items-center hidden sm:flex">
             <div className="flex items-center gap-0.5">
-              <IndianRupee className="h-3 w-3 text-green-500/70" />
+              <IndianRupee className="h-2.5 w-2.5 text-green-500/70" />
               <span className={cn(
                 "font-bold tabular-nums",
-                isFullscreen ? "text-2xl" : "text-lg",
+                isFullscreen ? "text-2xl" : "text-sm",
                 entry.closingAmount > 0 ? "text-green-400" : "text-muted-foreground",
               )}>
                 {fmtAmount(entry.closingAmount).replace("₹", "")}
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground">revenue</span>
+            <span className="text-[9px] text-muted-foreground">revenue</span>
           </div>
 
           {/* Call duration */}
-          <div className={cn("hidden md:block", isFullscreen ? "w-44" : "w-32")}>
+          <div className={cn("hidden md:block", isFullscreen ? "w-44" : "w-24")}>
             <CallBar mins={entry.callDurationMins} hit={entry.callDurationHit} />
           </div>
         </div>
@@ -338,7 +338,7 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
 
       {/* ── Lead status chips ─────────────────────────────────────────────── */}
       {entry.totalLeads > 0 && (
-        <div className="mt-2.5 flex flex-wrap gap-1.5 pl-[52px]">
+        <div className="mt-1 flex flex-wrap gap-1 pl-10">
           {STATUS_CHIP_CONFIG.map(({ key, label, color }) => {
             const count = entry.leadCounts?.[key] ?? 0;
             if (count === 0) return null;
@@ -349,7 +349,7 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 400, damping: 20, delay: 0.05 }}
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold border",
+                  "inline-flex items-center gap-0.5 rounded-full px-1.5 py-px text-[9px] font-semibold border",
                   color,
                 )}
               >
@@ -358,7 +358,7 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
               </motion.span>
             );
           })}
-          <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-muted/60 text-muted-foreground border border-border">
+          <span className="inline-flex items-center rounded-full px-1.5 py-px text-[9px] font-semibold bg-muted/60 text-muted-foreground border border-border">
             {entry.totalLeads} total
           </span>
         </div>
@@ -547,7 +547,7 @@ export default function LeaderboardPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.08 }}
-              className="h-16 rounded-xl bg-muted/40 animate-pulse"
+              className="h-12 rounded-lg bg-muted/40 animate-pulse"
             />
           ))}
         </div>
@@ -580,7 +580,7 @@ export default function LeaderboardPage() {
 
       {/* ── Leaderboard list ─────────────────────────────────────────────────── */}
       {!isLoading && !error && data?.entries && data.entries.length > 0 && (
-        <div className="space-y-2 flex-1">
+        <div className="space-y-1.5 flex-1">
           <AnimatePresence mode="popLayout">
             {data.entries.map((entry, index) => (
               <LeaderboardCard
