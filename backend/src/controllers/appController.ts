@@ -24,7 +24,7 @@ import { sendSuccess } from "../utils/response.js";
 const LATEST_VERSION_CODE = 21;            // must match versionCode in build.gradle
 const LATEST_VERSION_NAME = "1.20";       // human-readable label shown in dialog
 const DOWNLOAD_URL        =
-  "https://github.com/Delta-init/banglore-crm/releases/download/v1.20/delta-call-recorder-v1.20.apk";
+  "https://github.com/Delta-init/banglore-crm/releases/download/v1.20/app-release.apk";
 const CHANGELOG           =
   "• Every call now syncs to CRM — outbound calls fixed\n" +
   "• ↑ Sync to CRM button on every unsync'd call in the log\n" +
