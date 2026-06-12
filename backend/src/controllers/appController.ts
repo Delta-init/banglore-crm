@@ -21,8 +21,8 @@ import { sendSuccess } from "../utils/response.js";
  */
 
 // ── Update these whenever you ship a new APK ─────────────────────────────────
-const LATEST_VERSION_CODE = 8;            // must match versionCode in build.gradle
-const LATEST_VERSION_NAME = "1.7";       // human-readable label shown in dialog
+const LATEST_VERSION_CODE = 20;            // must match versionCode in build.gradle
+const LATEST_VERSION_NAME = "1.20";       // human-readable label shown in dialog
 const DOWNLOAD_URL        =
   "https://github.com/Delta-init/banglore-crm/releases/download/v1.20/app-release.apk";
 const CHANGELOG           =
@@ -32,7 +32,7 @@ const CHANGELOG           =
   "• Default dialer support (Mute / Speaker / End Call screen)\n" +
   "• Popup windows permission fix for Samsung/MIUI";
 const FORCE_UPDATE        = true;
-const RELEASE_DATE        = "2026-06-11";
+const RELEASE_DATE        = "2026-06-12";
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**

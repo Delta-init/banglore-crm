@@ -12979,6 +12979,10 @@ com.callrecorder.utils.PrefsHelper:
     private static final java.lang.String KEY_SHOW_OVERLAY
     private static final java.lang.String KEY_USE_VOICE_CALL_SOURCE
     public static final java.lang.String PREFS_NAME
+    public final boolean forceSpeakerMode(android.content.Context)
+    public final boolean isAutoRecordEnabled(android.content.Context)
+    public final void setAutoRecordEnabled(android.content.Context,boolean)
+    public final void setForceSpeakerMode(android.content.Context,boolean)
     public final void setUseVoiceCallSource(android.content.Context,boolean)
     public final boolean useVoiceCallSource(android.content.Context)
 com.callrecorder.utils.StorageHelper:
@@ -37086,6 +37090,7 @@ androidx.preference.Preference$BaseSavedState$1:
     public static androidx.preference.Preference$BaseSavedState createFromParcel()
     public static androidx.preference.Preference$BaseSavedState[] newArray()
 androidx.preference.Preference$OnPreferenceChangeInternalListener
+androidx.preference.Preference$OnPreferenceChangeListener
 androidx.preference.Preference:
     public androidx.preference.PreferenceDataStore mPreferenceDataStore
     public int mViewId
@@ -37143,7 +37148,7 @@ androidx.preference.Preference:
     public final void setSummaryProvider(androidx.preference.Preference$SummaryProvider)
     public static void setTitle()
     public static void setTitle$1()
-    public static void setVisible()
+    public final void setVisible(boolean)
     public static void unregisterDependency()
     public static void unregisterDependent()
 androidx.preference.PreferenceDataStore
@@ -37373,6 +37378,7 @@ androidx.preference.SeekBarPreference:
     public static void setMax()
     public static void setSeekBarIncrement()
     public static void setValue()
+    public final void syncValueInternal(android.widget.SeekBar)
     public final void updateLabelValue(int)
 androidx.preference.SwitchPreference:
     public final void setSwitchTextOff()
@@ -39179,7 +39185,9 @@ com.callrecorder.ui.recordings.RecordingsViewModel:
     public final void delete(com.callrecorder.data.db.RecordingEntity)
     public static void deleteAll()
     public static kotlinx.coroutines.flow.StateFlow getRecordings()
-com.callrecorder.ui.settings.SettingsFragment$setupPreferences$13$1:
+com.callrecorder.ui.settings.SettingsFragment$$InternalSyntheticLambda$1$b1d16fad7a97008a3836053d2516c50133db79c9d2fc18ef8f0c94dbdd6c12af$6:
+    public static boolean onPreferenceChange()
+com.callrecorder.ui.settings.SettingsFragment$setupPreferences$11$1:
     public final java.lang.Object invoke$1()
 com.callrecorder.ui.settings.SettingsFragment$special$$inlined$viewModels$default$1:
     public final androidx.fragment.app.Fragment invoke()
