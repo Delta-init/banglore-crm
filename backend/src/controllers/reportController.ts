@@ -236,11 +236,17 @@ export const getLeaderboard = async (
     const monthStart = new Date(Date.UTC(year, mon - 1, 1) - IST_OFFSET_MS);
     const monthEnd   = new Date(Date.UTC(year, mon,     1) - IST_OFFSET_MS);
 
+    // IST today boundaries (midnight → midnight) expressed as UTC timestamps
+    const todayStart = new Date(
+      Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate()) - IST_OFFSET_MS,
+    );
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
     // ── Lazy import to avoid circular deps ───────────────────────────────────
     const { User } = await import("../models/User.js");
 
     // Run all aggregations in parallel
-    const [users, closingsAgg, paymentAgg, callDurAgg, statusAgg] = await Promise.all([
+    const [users, closingsAgg, paymentAgg, callDurAgg, statusAgg, callDurTodayAgg] = await Promise.all([
 
       // All active users
       User.find({ status: "active" }).select("_id name email extension").lean(),
@@ -304,6 +310,35 @@ export const getLeaderboard = async (
         { $match: { assignedTo: { $exists: true, $ne: null } } },
         { $group: { _id: { user: "$assignedTo", status: "$status" }, count: { $sum: 1 } } },
       ]),
+
+      // Call count + seconds per assigned user for TODAY (IST midnight → now)
+      CallLog.aggregate([
+        {
+          $match: {
+            callDate: { $gte: todayStart, $lt: todayEnd },
+            callType: { $in: ["Inbound", "Outbound"] },
+            leadId:   { $ne: null },
+          },
+        },
+        {
+          $lookup: {
+            from:         "leads",
+            localField:   "leadId",
+            foreignField: "_id",
+            as:           "lead",
+            pipeline:     [{ $project: { assignedTo: 1 } }],
+          },
+        },
+        { $unwind: "$lead" },
+        { $match: { "lead.assignedTo": { $exists: true, $ne: null } } },
+        {
+          $group: {
+            _id:       "$lead.assignedTo",
+            totalSecs: { $sum: { $cond: [{ $gt: ["$callDuration", 0] }, "$callDuration", 0] } },
+            callCount: { $sum: 1 },
+          },
+        },
+      ]),
     ]);
 
     // Build lookup maps
@@ -317,6 +352,10 @@ export const getLeaderboard = async (
     );
     const callDurMap = new Map<string, { totalSecs: number; callCount: number }>(
       (callDurAgg as { _id: string; totalSecs: number; callCount: number }[])
+        .map((x) => [String(x._id), { totalSecs: x.totalSecs, callCount: x.callCount }]),
+    );
+    const callDurTodayMap = new Map<string, { totalSecs: number; callCount: number }>(
+      (callDurTodayAgg as { _id: string; totalSecs: number; callCount: number }[])
         .map((x) => [String(x._id), { totalSecs: x.totalSecs, callCount: x.callCount }]),
     );
 
@@ -334,27 +373,33 @@ export const getLeaderboard = async (
         const uid              = String(user._id);
         const closings         = closingsMap.get(uid)                    ?? 0;
         const closingAmount    = paymentMap.get(uid)                     ?? 0;
-        const callStats        = callDurMap.get(uid) ?? { totalSecs: 0, callCount: 0 };
-        const callDurationSecs = callStats.totalSecs;
-        const callDurationMins = Math.round(callDurationSecs / 60);
-        const callCount        = callStats.callCount;
-        const statusCounts     = statusCountsMap.get(uid)                ?? {};
-        const totalLeads       = Object.values(statusCounts).reduce((s, n) => s + n, 0);
+        const callStats             = callDurMap.get(uid)      ?? { totalSecs: 0, callCount: 0 };
+        const callStatsToday        = callDurTodayMap.get(uid) ?? { totalSecs: 0, callCount: 0 };
+        const callDurationSecs      = callStats.totalSecs;
+        const callDurationMins      = Math.round(callDurationSecs / 60);
+        const callCount             = callStats.callCount;
+        const callDurationMinsToday = Math.round(callStatsToday.totalSecs / 60);
+        const callCountToday        = callStatsToday.callCount;
+        const statusCounts          = statusCountsMap.get(uid) ?? {};
+        const totalLeads            = Object.values(statusCounts).reduce((s, n) => s + n, 0);
 
         return {
-          userId:          uid,
-          name:            user.name,
-          email:           user.email,
-          extension:       user.extension ?? null,
+          userId:               uid,
+          name:                 user.name,
+          email:                user.email,
+          extension:            user.extension ?? null,
           closings,
           closingAmount,
           callCount,
           callDurationMins,
           callDurationSecs,
-          callDurationHit: callDurationMins >= 100,
+          callDurationHit:      callDurationMins >= 100,
+          callCountToday,
+          callDurationMinsToday,
+          callDurationHitToday: callDurationMinsToday >= 20,
           // All-time lead status breakdown
           totalLeads,
-          leadCounts:      statusCounts,
+          leadCounts:           statusCounts,
         };
       })
       // Only show users who have at least 1 assigned lead; hide specific accounts

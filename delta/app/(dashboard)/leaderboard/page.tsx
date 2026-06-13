@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const REFETCH_INTERVAL_MS = 30_000;
-const CALL_TARGET_MINS    = 100;
 
 const STATUS_CHIP_CONFIG = [
   { key: "new",           label: "New",       color: "bg-blue-500/10 text-blue-400 border-blue-500/20"     },
@@ -123,9 +122,9 @@ function RankChange({ delta }: { delta: number }) {
 
 // ─── Call duration progress bar ───────────────────────────────────────────────
 
-function CallBar({ mins, hit }: { mins: number; hit: boolean }) {
-  const pct = Math.min((mins / CALL_TARGET_MINS) * 100, 100);
-  const over = mins > CALL_TARGET_MINS;
+function CallBar({ mins, hit, target }: { mins: number; hit: boolean; target: number }) {
+  const pct = Math.min((mins / target) * 100, 100);
+  const over = mins > target;
 
   return (
     <div className="flex items-center gap-2 min-w-0">
@@ -165,7 +164,7 @@ function CallBar({ mins, hit }: { mins: number; hit: boolean }) {
       </div>
 
       <span className="text-[10px] text-muted-foreground shrink-0">
-        {hit ? "✓" : `${CALL_TARGET_MINS}m`}
+        {hit ? "✓" : `${target}m`}
       </span>
     </div>
   );
@@ -211,15 +210,24 @@ function LiveCountdown({ intervalMs, onRefetch }: { intervalMs: number; onRefetc
 
 // ─── Leaderboard card ─────────────────────────────────────────────────────────
 
+const DAILY_TARGET_MINS   = 20;
+const MONTHLY_TARGET_MINS = 100;
+
 interface CardProps {
   entry:      LeaderboardEntry;
   delta:      number;
   index:      number;
   isFullscreen: boolean;
+  viewMode:   "daily" | "monthly";
 }
 
-function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
-  const isTop3 = entry.rank <= 3;
+function LeaderboardCard({ entry, delta, index, isFullscreen, viewMode }: CardProps) {
+  const isTop3      = entry.rank <= 3;
+  const isDaily     = viewMode === "daily";
+  const displayMins = isDaily ? entry.callDurationMinsToday : entry.callDurationMins;
+  const displayHit  = isDaily ? entry.callDurationHitToday  : entry.callDurationHit;
+  const displayCalls= isDaily ? entry.callCountToday         : entry.callCount;
+  const callTarget  = isDaily ? DAILY_TARGET_MINS            : MONTHLY_TARGET_MINS;
 
   const cardBg =
     entry.rank === 1
@@ -306,9 +314,9 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
               <span className={cn(
                 "font-bold tabular-nums",
                 isFullscreen ? "text-2xl" : "text-sm",
-                entry.callCount > 0 ? "text-blue-400" : "text-muted-foreground",
+                displayCalls > 0 ? "text-blue-400" : "text-muted-foreground",
               )}>
-                {entry.callCount}
+                {displayCalls}
               </span>
             </div>
             <span className="text-[9px] text-muted-foreground">calls</span>
@@ -331,7 +339,7 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
 
           {/* Call duration */}
           <div className={cn("hidden md:block", isFullscreen ? "w-44" : "w-24")}>
-            <CallBar mins={entry.callDurationMins} hit={entry.callDurationHit} />
+            <CallBar mins={displayMins} hit={displayHit} target={callTarget} />
           </div>
         </div>
       </div>
@@ -372,6 +380,7 @@ function LeaderboardCard({ entry, delta, index, isFullscreen }: CardProps) {
 export default function LeaderboardPage() {
   const [month, setMonth]           = useState(currentMonthStr);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [viewMode, setViewMode]     = useState<"daily" | "monthly">("daily");
   const prevRanksRef = useRef<Map<string, number>>(new Map());
   const [rankDeltas, setRankDeltas] = useState<Map<string, number>>(new Map());
 
@@ -462,6 +471,25 @@ export default function LeaderboardPage() {
 
         {/* Controls */}
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Daily / Monthly toggle */}
+          <div className="flex items-center rounded-lg border border-border bg-muted/40 p-0.5 text-xs font-medium">
+            {(["daily", "monthly"] as const).map((mode) => (
+              <motion.button
+                key={mode}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setViewMode(mode)}
+                className={cn(
+                  "rounded-md px-3 py-1 transition-colors capitalize",
+                  viewMode === mode
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {mode === "daily" ? `Daily (${DAILY_TARGET_MINS}m)` : `Monthly (${MONTHLY_TARGET_MINS}m)`}
+              </motion.button>
+            ))}
+          </div>
+
           {/* Month nav */}
           <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-1">
             <Button
@@ -529,9 +557,9 @@ export default function LeaderboardPage() {
       {/* ── Legend ─────────────────────────────────────────────────────────── */}
       <div className="mb-4 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1"><Target className="h-3 w-3 text-primary" /> Closings this month</span>
-        <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-blue-400" /> Total calls this month</span>
+        <span className="flex items-center gap-1"><Phone className="h-3 w-3 text-blue-400" /> {viewMode === "daily" ? "Calls today" : "Total calls this month"}</span>
         <span className="flex items-center gap-1"><IndianRupee className="h-3 w-3 text-green-400" /> Revenue collected</span>
-        <span className="flex items-center gap-1"><Flame className="h-3 w-3 text-orange-400" /> ≥{CALL_TARGET_MINS} min call target</span>
+        <span className="flex items-center gap-1"><Flame className="h-3 w-3 text-orange-400" /> ≥{viewMode === "daily" ? DAILY_TARGET_MINS : MONTHLY_TARGET_MINS} min {viewMode} target</span>
         <span className="flex items-center gap-1 ml-auto">
           <Zap className="h-3 w-3 text-amber-400" />
           Ranked: revenue → closings → call time → followup → calls
@@ -589,6 +617,7 @@ export default function LeaderboardPage() {
                 delta={rankDeltas.get(entry.userId) ?? 0}
                 index={index}
                 isFullscreen={isFullscreen}
+                viewMode={viewMode}
               />
             ))}
           </AnimatePresence>

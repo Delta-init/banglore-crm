@@ -281,19 +281,22 @@ export interface ReportFilters {
 // ── Leaderboard ───────────────────────────────────────────────────────────────
 
 export interface LeaderboardEntry {
-  rank:             number;
-  userId:           string;
-  name:             string;
-  email:            string;
-  extension:        string | null;
-  closings:         number;
-  closingAmount:    number;
-  callCount:        number;           // total calls (inbound + outbound) this month
-  callDurationMins: number;
-  callDurationSecs: number;
-  callDurationHit:  boolean;          // true when ≥ 100 mins
-  totalLeads:       number;           // all-time assigned leads
-  leadCounts:       Record<string, number>; // status → count
+  rank:                    number;
+  userId:                  string;
+  name:                    string;
+  email:                   string;
+  extension:               string | null;
+  closings:                number;
+  closingAmount:           number;
+  callCount:               number;   // total calls this month
+  callDurationMins:        number;   // call minutes this month
+  callDurationSecs:        number;
+  callDurationHit:         boolean;  // true when ≥ 100 mins (monthly)
+  callCountToday:          number;   // total calls today (IST)
+  callDurationMinsToday:   number;   // call minutes today (IST)
+  callDurationHitToday:    boolean;  // true when ≥ 20 mins today
+  totalLeads:              number;   // all-time assigned leads
+  leadCounts:              Record<string, number>; // status → count
 }
 
 export interface LeaderboardData {
