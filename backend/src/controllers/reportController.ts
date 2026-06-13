@@ -393,10 +393,10 @@ export const getLeaderboard = async (
           callCount,
           callDurationMins,
           callDurationSecs,
-          callDurationHit:      callDurationMins >= 100,
+          callDurationHit:      callDurationMins >= 1000,
           callCountToday,
           callDurationMinsToday,
-          callDurationHitToday: callDurationMinsToday >= 20,
+          callDurationHitToday: callDurationMinsToday >= 100,
           // All-time lead status breakdown
           totalLeads,
           leadCounts:           statusCounts,

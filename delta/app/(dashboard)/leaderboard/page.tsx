@@ -210,8 +210,8 @@ function LiveCountdown({ intervalMs, onRefetch }: { intervalMs: number; onRefetc
 
 // ─── Leaderboard card ─────────────────────────────────────────────────────────
 
-const DAILY_TARGET_MINS   = 20;
-const MONTHLY_TARGET_MINS = 100;
+const DAILY_TARGET_MINS   = 100;
+const MONTHLY_TARGET_MINS = 1000;
 
 interface CardProps {
   entry:      LeaderboardEntry;
