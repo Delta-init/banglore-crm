@@ -2,7 +2,7 @@
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Plus, Search, Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, X, ExternalLink } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Loader2, ChevronLeft, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, X, ExternalLink, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,9 @@ import { useRolesSimple } from "@/hooks/useRoles";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuthStore } from "@/lib/store/authStore";
 import { formatDate, getInitials } from "@/lib/utils";
-import type { User } from "@/types";
+import { toast } from "@/lib/toast";
+import api from "@/lib/axios";
+import type { User, AuthUser } from "@/types";
 import Link from "next/link";
 
 type SortField = "name" | "email" | "createdAt" | "status";
@@ -25,7 +27,7 @@ type SortOrder = "asc" | "desc";
 function UsersPageContent() {
   const sp = useSearchParams();
   const router = useRouter();
-  const { hasPermission } = useAuthStore();
+  const { hasPermission, user: currentUser, startImpersonation } = useAuthStore();
   const [search, setSearch] = useState(() => sp.get("q") ?? "");
   const [page, setPage] = useState(() => Number(sp.get("page") ?? "1"));
   const [status, setStatus] = useState<string>(() => sp.get("status") ?? "all");
@@ -102,6 +104,30 @@ function UsersPageContent() {
     setSelectedUser(user);
     setDeleteOpen(true);
   };
+
+  const isSuperAdmin =
+    typeof currentUser?.role === "object" &&
+    currentUser.role.isSystemRole &&
+    currentUser.role.roleName === "Super Admin";
+
+  const [impersonatingId, setImpersonatingId] = useState<string | null>(null);
+
+  async function handleImpersonate(target: User) {
+    if (impersonatingId) return;
+    setImpersonatingId(target._id);
+    try {
+      const res = await api.post<{ success: boolean; data: { accessToken: string; user: AuthUser } }>(
+        `/users/${target._id}/impersonate`,
+      );
+      startImpersonation(res.data.data.user, res.data.data.accessToken);
+      toast.success(`Now viewing as ${target.name}`, { description: "Click the banner to exit." });
+      router.push("/dashboard");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message ?? "Failed to impersonate");
+    } finally {
+      setImpersonatingId(null);
+    }
+  }
 
   const canCreate = hasPermission("users", "create");
   const canEdit = hasPermission("users", "edit");
@@ -324,6 +350,21 @@ function UsersPageContent() {
                                   <ExternalLink className="h-4 w-4" />
                                 </Button>
                               </Link>
+                              {isSuperAdmin && user._id !== currentUser?._id && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 md:opacity-0 group-hover:opacity-100 transition-opacity text-amber-500 hover:text-amber-400 hover:bg-amber-500/10"
+                                  title={`Impersonate ${user.name}`}
+                                  disabled={impersonatingId === user._id}
+                                  onClick={() => handleImpersonate(user)}
+                                >
+                                  {impersonatingId === user._id
+                                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                                    : <UserCheck className="h-4 w-4" />
+                                  }
+                                </Button>
+                              )}
                               {canEdit && (
                                 <Button
                                   variant="ghost"

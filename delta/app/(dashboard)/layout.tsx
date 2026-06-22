@@ -8,6 +8,7 @@ import { navItems } from "@/components/layout/Sidebar";
 import { useReminderNotifications } from "@/hooks/useReminderNotifications";
 import { useCallRecordingNotifications } from "@/hooks/useCallRecordingNotifications";
 import { RecentPageTracker } from "@/components/shared/CommandPalette";
+import { ImpersonationBanner } from "@/components/shared/ImpersonationBanner";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, hasPermission } = useAuthStore();
@@ -51,6 +52,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <RecentPageTracker />
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
+        <ImpersonationBanner />
         <Header />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>

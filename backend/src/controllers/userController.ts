@@ -3,6 +3,7 @@ import type { AuthenticatedRequest } from "../types/index.js";
 import { UserService } from "../services/userService.js";
 import { createUserSchema, updateUserSchema } from "../validations/userValidation.js";
 import { sendSuccess, sendError } from "../utils/response.js";
+import { signAccessToken } from "../utils/jwt.js";
 
 const userService = new UserService();
 
@@ -69,6 +70,35 @@ export const deleteUser = async (req: AuthenticatedRequest, res: Response, next:
   try {
     const result = await userService.deleteUser(req.params.id, req.user!.userId);
     sendSuccess(res, result.message);
+  } catch (error) {
+    next(error);
+  }
+};
+
+/** POST /users/:id/impersonate — Super Admin only. Returns a short-lived token for the target user. */
+export const impersonateUser = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const callerRole = req.user?.role;
+    const isSuperAdmin = callerRole?.isSystemRole && callerRole?.roleName === "Super Admin";
+    if (!isSuperAdmin) {
+      sendError(res, "Forbidden — Super Admin only", 403);
+      return;
+    }
+
+    if (req.user!.userId === req.params.id) {
+      sendError(res, "Cannot impersonate yourself", 400);
+      return;
+    }
+
+    const target = await userService.getUserById(req.params.id);
+    const roleId = typeof (target as any).role === "object"
+      ? (target as any).role._id.toString()
+      : (target as any).role;
+
+    // 2-hour token so the admin can browse comfortably before it expires
+    const accessToken = signAccessToken({ userId: (target as any)._id.toString(), email: (target as any).email, roleId });
+
+    sendSuccess(res, "Impersonation token generated", { accessToken, user: target });
   } catch (error) {
     next(error);
   }
