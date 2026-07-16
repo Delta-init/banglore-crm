@@ -163,6 +163,7 @@ export async function getTeamLeads(
       dateFrom: req.query.dateFrom as string | undefined,
       dateTo: req.query.dateTo as string | undefined,
       course: req.query.course as string | undefined,
+      source: req.query.source as string | undefined,
     };
     const result = await teamService.getTeamLeads(req.params.id, filters);
     sendSuccess(
@@ -519,6 +520,7 @@ export async function getTeamMemberLeads(
     const filters = {
       status: req.query.status as string | undefined,
       search: req.query.search as string | undefined,
+      source: req.query.source as string | undefined,
       page:   req.query.page   as string | undefined,
       limit:  req.query.limit  as string | undefined,
     };

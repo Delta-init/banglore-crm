@@ -80,6 +80,7 @@ export const useTeamLeads = (teamId: string, filters?: LeadFilters & { unassigne
       if (filters?.dateFrom)       params.dateFrom       = filters.dateFrom;
       if (filters?.dateTo)         params.dateTo         = filters.dateTo;
       if (filters?.course)         params.course         = filters.course;
+      if (filters?.source)         params.source         = filters.source;
       if (filters?.unassignedOnly) params.unassignedOnly = "true";
       const res = await api.get<ApiResponse<Lead[]>>(`/teams/${teamId}/leads`, { params });
       return { data: res.data.data ?? [], pagination: res.data.pagination };
@@ -456,7 +457,7 @@ export const useTeamMember = (teamId: string, memberId: string) =>
 export const useTeamMemberLeads = (
   teamId: string,
   memberId: string,
-  filters?: { page?: number; limit?: number; status?: string; search?: string; dateFrom?: string; dateTo?: string },
+  filters?: { page?: number; limit?: number; status?: string; source?: string; search?: string; dateFrom?: string; dateTo?: string },
 ) =>
   useQuery({
     queryKey: [...TEAMS_KEY, teamId, "members", memberId, "leads", filters],
@@ -465,6 +466,7 @@ export const useTeamMemberLeads = (
       if (filters?.page)     params.page     = String(filters.page);
       if (filters?.limit)    params.limit    = String(filters.limit);
       if (filters?.status)   params.status   = filters.status;
+      if (filters?.source)   params.source   = filters.source;
       if (filters?.search)   params.search   = filters.search;
       if (filters?.dateFrom) params.dateFrom = filters.dateFrom;
       if (filters?.dateTo)   params.dateTo   = filters.dateTo;

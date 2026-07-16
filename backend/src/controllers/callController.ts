@@ -6,7 +6,23 @@ import { sendSuccess, sendError } from "../utils/response.js";
 import path from "path";
 import { mkdirSync, existsSync } from "fs";
 import multer from "multer";
+import mongoose from "mongoose";
 import { emitToUser } from "../socket.js";
+
+// ─── Shared: auto-count a logged call on its lead ─────────────────────────────
+// Whenever a CallLog is created for a matched lead, bump the lead's call count
+// and stamp the call-initiated time. Called from every call-creation path
+// (click-to-call, 3CX journal, 3CX webhook, CallRecorder upload).
+async function bumpLeadCallCount(
+  leadId: mongoose.Types.ObjectId | string | null,
+  callDate: Date,
+): Promise<void> {
+  if (!leadId) return;
+  await Lead.updateOne(
+    { _id: leadId },
+    { $inc: { callCount: 1 }, $set: { lastCallAt: callDate, updatedAt: new Date() } },
+  );
+}
 
 // ─── Multer setup for recording uploads ───────────────────────────────────────
 
@@ -291,13 +307,8 @@ export const journalCall = async (req: Request, res: Response): Promise<void> =>
     threecxCallId:  body.threecx_call_id ?? null,
   });
 
-  // Update lead's last activity
-  if (leadId) {
-    await Lead.updateOne(
-      { _id: leadId },
-      { $set: { updatedAt: new Date() } },
-    );
-  }
+  // Auto-count the call on the lead + stamp initiated time
+  await bumpLeadCallCount(leadId, callDate);
 
   res.status(201).json({ success: true, call_log_id: log._id.toString() });
   } catch (err: unknown) {
@@ -374,9 +385,7 @@ export const webhookJournal = async (req: Request, res: Response): Promise<void>
       source:         "3cx_journal",
     });
 
-    if (leadId) {
-      await Lead.updateOne({ _id: leadId }, { $set: { updatedAt: new Date() } });
-    }
+    await bumpLeadCallCount(leadId, log.callDate);
 
     res.json({ success: true, call_log_id: log._id.toString() });
   } catch (err: unknown) {
@@ -553,55 +562,6 @@ export const get3cxTemplate = (_req: Request, res: Response): void => {
   res.send(xml);
 };
 
-// ─── POST /api/v1/calls/click  (auth — log outbound click-to-call) ────────────
-
-export const logClickToCall = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
-    const phoneNumber = (req.query.phone_number as string)?.trim();
-    const leadId      = (req.query.lead_id as string)?.trim() || null;
-
-    if (!phoneNumber) {
-      sendError(res, "phone_number is required", 400);
-      return;
-    }
-
-    const { User } = await import("../models/User.js");
-    const user = await User.findById(req.user!.userId).select("name extension").lean() as { name?: string; extension?: string } | null;
-    const extension = user?.extension ?? null;
-    const agentName = user?.name ?? req.user!.email;
-
-    // Persist to CallLog
-    const log = await CallLog.create({
-      leadId:         leadId ?? null,
-      phoneNumber,
-      callType:       "Outbound",
-      callDirection:  "outbound",
-      callDuration:   0,
-      callDate:       new Date(),
-      agentExtension: extension,
-      agentName,
-      initiatedBy:    req.user!.userId,
-      source:         "click_to_call",
-    });
-
-    sendSuccess(res, "Call logged", {
-      callLogId:       log._id.toString(),
-      phoneNumber,
-      leadId,
-      extension,
-      initiatedBy:     req.user!.userId,
-      initiatedByName: agentName,
-      timestamp:       new Date().toISOString(),
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
 // ─── GET /api/v1/calls/lead/:leadId  (auth — call history for a lead) ─────────
 
 export const getLeadCalls = async (
@@ -616,14 +576,13 @@ export const getLeadCalls = async (
     const phone = lead.phone;
 
     // First: try our own CallLog collection (populated by journal endpoint)
-    const norm = normalisePhone(phone);
+    const norm = normalisePhone(phone ?? "");
     const tail = norm.slice(-9);
-    const localLogs = await CallLog.find({
-      $or: [
-        { leadId: lead._id },
-        { phoneNumber: { $regex: tail, $options: "i" } },
-      ],
-    })
+    // Always match by leadId; only add the phone-tail clause when we actually
+    // have a phone tail (an empty regex would match EVERY call log).
+    const orClauses: Record<string, unknown>[] = [{ leadId: lead._id }];
+    if (tail) orClauses.push({ phoneNumber: { $regex: tail, $options: "i" } });
+    const localLogs = await CallLog.find({ $or: orClauses })
       .sort({ callDate: -1 })
       .limit(100)
       .lean();
@@ -644,7 +603,9 @@ export const getLeadCalls = async (
       return;
     }
 
-    // Fallback: try 3CX XAPI (requires Admin role on service principal)
+    // Fallback: try 3CX XAPI (requires Admin role on service principal).
+    // Any failure here (auth, network, misconfig) must degrade to an empty
+    // result with a hint — never a 500 that breaks the lead's Call History.
     let rawData: unknown;
     try {
       rawData = await threecxGet(
@@ -652,15 +613,12 @@ export const getLeadCalls = async (
       );
     } catch (err: unknown) {
       const e = err as { statusCode?: number; message?: string };
-      if (e.statusCode === 403 || e.statusCode === 401) {
-        sendSuccess(res, "Call logs unavailable — check 3CX service principal role", {
-          calls: [],
-          phone,
-          hint: "Set Role = Admin in 3CX Admin → Integrations → API → Edit Service Principal",
-        });
-        return;
-      }
-      throw err;
+      const hint =
+        e.statusCode === 403 || e.statusCode === 401
+          ? "Set Role = Admin in 3CX Admin → Integrations → API → Edit Service Principal"
+          : "3CX call sync is unavailable right now — showing logged calls only.";
+      sendSuccess(res, "Call logs fetched", { calls: [], phone, total: 0, hint });
+      return;
     }
 
     type CdrRow = {
@@ -917,10 +875,8 @@ export const uploadRecording = async (
       source:         "call_recorder_app",
     });
 
-    // ── Update lead's last activity ───────────────────────────────────────
-    if (leadId) {
-      await Lead.updateOne({ _id: leadId }, { $set: { updatedAt: new Date() } });
-    }
+    // ── Auto-count the call on the lead + stamp initiated time ────────────
+    await bumpLeadCallCount(leadId, callDate);
 
     // ── Emit real-time notification ───────────────────────────────────────
     if (agent_extension) {

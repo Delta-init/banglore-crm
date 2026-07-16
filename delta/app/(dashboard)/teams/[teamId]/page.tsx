@@ -100,6 +100,7 @@ import {
   ResponsiveDialogDescription,
   ResponsiveDialogFooter,
 } from "@/components/ui/responsive-dialog";
+import { useLeadSources } from "@/hooks/useLeads";
 import {
   useTeam,
   useTeamLeads,
@@ -804,14 +805,14 @@ function MembersTab({
   // Build absent-today set from team data (matches today's AED date)
   const absentTodayIds = useMemo(() => {
     if (!team.absentToday?.length) return new Set<string>();
-    const nowAED = new Date(Date.now() + 4 * 60 * 60 * 1000);
-    const todayStr = `${nowAED.getUTCFullYear()}-${String(nowAED.getUTCMonth() + 1).padStart(2, "0")}-${String(nowAED.getUTCDate()).padStart(2, "0")}`;
+    const nowIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+    const todayStr = `${nowIST.getUTCFullYear()}-${String(nowIST.getUTCMonth() + 1).padStart(2, "0")}-${String(nowIST.getUTCDate()).padStart(2, "0")}`;
     return new Set(
       team.absentToday
         .filter((a) => {
           const d = new Date(a.date);
-          const dAED = new Date(d.getTime() + 4 * 60 * 60 * 1000);
-          const dStr = `${dAED.getUTCFullYear()}-${String(dAED.getUTCMonth() + 1).padStart(2, "0")}-${String(dAED.getUTCDate()).padStart(2, "0")}`;
+          const dIST = new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
+          const dStr = `${dIST.getUTCFullYear()}-${String(dIST.getUTCMonth() + 1).padStart(2, "0")}-${String(dIST.getUTCDate()).padStart(2, "0")}`;
           return dStr === todayStr;
         })
         .map((a) => (typeof a.userId === "string" ? a.userId : (a.userId as { _id?: string })._id ?? String(a.userId))),
@@ -1063,9 +1064,11 @@ function LeadsTab({
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [assigneeFilter, setAssigneeFilter] = useState<string>("all");
   const [reporterFilter, setReporterFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<string>("");
   const [dateTo, setDateTo] = useState<string>("");
   const [unassignedOnly, setUnassignedOnly] = useState(false);
+  const { data: allSources = [] } = useLeadSources();
 
   function todayISO() { return new Date().toISOString().slice(0, 10); }
   const isTodayActive = dateFrom === todayISO() && dateTo === todayISO();
@@ -1120,7 +1123,7 @@ function LeadsTab({
   }
 
   // Clear selection when filters change
-  useEffect(() => { setSelectedIds(new Set()); }, [page, debouncedSearch, statusFilter, assigneeFilter, reporterFilter, dateFrom, dateTo, unassignedOnly]);
+  useEffect(() => { setSelectedIds(new Set()); }, [page, debouncedSearch, statusFilter, assigneeFilter, reporterFilter, sourceFilter, dateFrom, dateTo, unassignedOnly]);
 
   function applyFilter(setter: (v: string) => void, value: string) {
     setter(value);
@@ -1133,6 +1136,7 @@ function LeadsTab({
     setStatusFilter("all");
     setAssigneeFilter("all");
     setReporterFilter("all");
+    setSourceFilter("all");
     setDateFrom("");
     setDateTo("");
     setUnassignedOnly(false);
@@ -1143,6 +1147,7 @@ function LeadsTab({
     statusFilter !== "all",
     assigneeFilter !== "all",
     reporterFilter !== "all",
+    sourceFilter !== "all",
     !!dateFrom,
     !!dateTo,
     unassignedOnly,
@@ -1156,6 +1161,7 @@ function LeadsTab({
     status: statusFilter !== "all" ? (statusFilter as LeadStatus) : undefined,
     assignedTo: assigneeFilter !== "all" ? assigneeFilter : undefined,
     reporter: reporterFilter !== "all" ? reporterFilter : undefined,
+    source: sourceFilter !== "all" ? sourceFilter : undefined,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     unassignedOnly,
@@ -1292,7 +1298,7 @@ function LeadsTab({
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="overflow-hidden"
               >
-                <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2 lg:grid-cols-6">
 
                   {/* Status */}
                   <div className="space-y-1">
@@ -1321,6 +1327,22 @@ function LeadsTab({
                         <SelectItem value="all">All Members</SelectItem>
                         {allMembers.map((m) => (
                           <SelectItem key={m._id} value={m._id}>{m.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Source */}
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground">Source</p>
+                    <Select value={sourceFilter} onValueChange={(v) => applyFilter(setSourceFilter, v)}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder="All Sources" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        <SelectItem value="all">All Sources</SelectItem>
+                        {allSources.map((s) => (
+                          <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1415,6 +1437,12 @@ function LeadsTab({
                 <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                   Assigned: {allMembers.find((m) => m._id === assigneeFilter)?.name ?? assigneeFilter}
                   <button onClick={() => applyFilter(setAssigneeFilter, "all")} className="ml-0.5 hover:text-primary/60"><X className="h-3 w-3" /></button>
+                </span>
+              )}
+              {sourceFilter !== "all" && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary capitalize">
+                  Source: {sourceFilter}
+                  <button onClick={() => applyFilter(setSourceFilter, "all")} className="ml-0.5 hover:text-primary/60"><X className="h-3 w-3" /></button>
                 </span>
               )}
               {unassignedOnly && (

@@ -20,6 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useTeamMember, useTeamMemberLeads } from "@/hooks/useTeams";
+import { useLeadSources } from "@/hooks/useLeads";
 import { formatDate, getInitials } from "@/lib/utils";
 import { LeadsDateFilter, TodayLeadsButton } from "@/components/leads/LeadsDateFilter";
 import Link from "next/link";
@@ -73,6 +74,8 @@ export default function TeamMemberPage() {
   const [page, setPage]               = useState(1);
   const [limit, setLimit]             = useState(10);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const { data: allSources = [] } = useLeadSources();
   const [search, setSearch]           = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [dateFrom, setDateFrom]       = useState("");
@@ -99,6 +102,7 @@ export default function TeamMemberPage() {
     page,
     limit,
     status: statusFilter !== "all" ? statusFilter : undefined,
+    source: sourceFilter !== "all" ? sourceFilter : undefined,
     search: search || undefined,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
@@ -359,6 +363,19 @@ export default function TeamMemberPage() {
                     {(Object.keys(STATUS_CONFIG) as LeadStatus[]).map((s) => (
                       <SelectItem key={s} value={s} className="text-xs">
                         {STATUS_CONFIG[s].label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={sourceFilter} onValueChange={(v) => { setSourceFilter(v); setPage(1); }}>
+                  <SelectTrigger className="w-[130px] h-8 text-xs">
+                    <SelectValue placeholder="All Sources" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    <SelectItem value="all">All Sources</SelectItem>
+                    {allSources.map((s) => (
+                      <SelectItem key={s} value={s} className="text-xs capitalize">
+                        {s}
                       </SelectItem>
                     ))}
                   </SelectContent>

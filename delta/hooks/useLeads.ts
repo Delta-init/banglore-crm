@@ -72,6 +72,7 @@ export const useUserLeads = (userId: string, filters?: LeadFilters) => {
       if (filters?.page)     params.page     = String(filters.page);
       if (filters?.limit)    params.limit    = String(filters.limit);
       if (filters?.status)   params.status   = filters.status;
+      if (filters?.source)   params.source   = filters.source;
       if (filters?.search)   params.search   = filters.search;
       if (filters?.dateFrom) params.dateFrom = filters.dateFrom;
       if (filters?.dateTo)   params.dateTo   = filters.dateTo;

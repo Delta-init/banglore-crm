@@ -260,6 +260,13 @@ async function autoSplitLead(
       },
     );
 
+    // Guard: activityLogs.performedBy is an ObjectId ref. If a caller passes a
+    // non-ObjectId (e.g. the legacy "system" string), fall back to the assignee
+    // so the log write never throws.
+    const performer = /^[0-9a-fA-F]{24}$/.test(performedById)
+      ? performedById
+      : assigneeId;
+
     await Lead.updateOne(
       { _id: leadId },
       {
@@ -267,7 +274,7 @@ async function autoSplitLead(
           activityLogs: {
             action: "lead_assigned",
             description: `Auto-assigned to "${user.name}" via ${team.settings.splitMode === "equal_load" ? "equal load" : "round robin"}`,
-            performedBy: performedById,
+            performedBy: performer,
             createdAt: new Date(),
           },
         },
@@ -373,7 +380,11 @@ export class LeadService {
     }
 
     if (filters.status) query.status = filters.status;
-    if (filters.assignedTo) query.assignedTo = filters.assignedTo;
+    if (filters.assignedTo) {
+      // "unassigned" is a sentinel meaning "no counsellor" → match null/missing.
+      // Passing the raw string to Mongoose would throw an ObjectId CastError.
+      query.assignedTo = filters.assignedTo === "unassigned" ? null : filters.assignedTo;
+    }
     if (filters.team) query.team = filters.team;
     if (filters.reporter) query.reporter = filters.reporter;
     if (filters.course) query.course = filters.course;
@@ -719,6 +730,9 @@ export class LeadService {
 
     const query: Record<string, unknown> = { assignedTo: userId };
     if (filters.status) query.status = filters.status;
+    if (filters.source && filters.source !== "all") {
+      query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    }
 
     if (filters.search) {
       const regex = new RegExp(filters.search, "i");

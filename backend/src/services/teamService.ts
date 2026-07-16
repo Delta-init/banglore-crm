@@ -161,6 +161,7 @@ export class TeamService {
       dateFrom?: string;
       dateTo?: string;
       course?: string;
+      source?: string;
     }
   ) {
     const page  = Math.max(1, parseInt(filters.page  ?? "1",  10));
@@ -172,6 +173,9 @@ export class TeamService {
     if (filters.assignedTo && filters.assignedTo !== "all") query.assignedTo = filters.assignedTo;
     if (filters.reporter   && filters.reporter   !== "all") query.reporter   = filters.reporter;
     if (filters.course     && filters.course     !== "all") query.course     = filters.course;
+    if (filters.source     && filters.source     !== "all") {
+      query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    }
     if (filters.unassignedOnly === "true") query.assignedTo = null;
     if (filters.search) {
       const regex = new RegExp(filters.search, "i");
@@ -1075,7 +1079,7 @@ export class TeamService {
     memberId: string,
     requesterId: string,
     requesterRole: { isSystemRole?: boolean; roleName?: string },
-    filters: { status?: string; search?: string; page?: string; limit?: string },
+    filters: { status?: string; search?: string; source?: string; page?: string; limit?: string },
   ) {
     const team = await Team.findById(teamId).lean();
     if (!team) throw Object.assign(new Error("Team not found"), { statusCode: 404 });
@@ -1105,6 +1109,9 @@ export class TeamService {
       assignedTo: memberId,
     };
     if (filters.status && filters.status !== "all") query.status = filters.status;
+    if (filters.source && filters.source !== "all") {
+      query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    }
     if (filters.search) {
       const regex = new RegExp(filters.search, "i");
       query.$or = [{ name: regex }, { email: regex }, { phone: regex }];

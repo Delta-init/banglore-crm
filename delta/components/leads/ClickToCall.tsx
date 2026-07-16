@@ -16,7 +16,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "@/lib/toast";
-import api from "@/lib/axios";
 import { useAuthStore } from "@/lib/store/authStore";
 
 // ── Package of the in-house call recorder app ──────────────────────────────────
@@ -84,20 +83,10 @@ export function ClickToCall({
 
   const clean = cleanPhone(phoneNumber);
 
-  function logClick() {
-    api
-      .post(
-        `/calls/click?phone_number=${encodeURIComponent(phoneNumber)}` +
-        (leadId ? `&lead_id=${leadId}` : ""),
-      )
-      .catch(() => {/* non-fatal */});
-  }
-
   function handleNormalCall() {
     if (isDialing) return;
     setOpen(false);
     setIsDialing(true);
-    logClick();
     window.location.href = buildNormalCallUrl(clean);
     toast.success(`Calling ${leadName || phoneNumber}…`, {
       description: isAndroid() ? "Opening CallRecorder app…" : "Opening phone dialer…",
@@ -110,7 +99,6 @@ export function ClickToCall({
     if (isDialing) return;
     setOpen(false);
     setIsDialing(true);
-    logClick();
     window.open(build3cxUrl(clean), "_blank", "noopener,noreferrer");
     toast.success(`Calling via 3CX…`, {
       description: `${leadName || phoneNumber} — Ext ${user?.extension}`,

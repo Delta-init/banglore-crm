@@ -224,6 +224,12 @@ const leadSchema = new Schema<ILead>(
       default: 0,
       min: [0, "Call count cannot be negative"],
     },
+    // Time the most recent call to this lead was initiated (auto-set when a
+    // CallLog is created for the lead). Null until the first call is logged.
+    lastCallAt: {
+      type: Date,
+      default: null,
+    },
     firstContactTime: {
       type: Date,
       default: null,

@@ -2,13 +2,15 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
-  Users, Shield, Activity, TrendingUp, FileText, UserX,
+  Users, Shield, Activity, CalendarClock, FileText, UserX,
   Trophy, Crown, Medal,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useLeads } from "@/hooks/useLeads";
+import { useUsers } from "@/hooks/useUsers";
+import { useRoles } from "@/hooks/useRoles";
 import { useReportTeamRankings } from "@/hooks/useReports";
 import { cn } from "@/lib/utils";
 import { useCurrencyStore } from "@/lib/store/currencyStore";
@@ -34,62 +36,75 @@ export default function DashboardPage() {
   useCurrencyStore(); // subscribe so component re-renders on currency change
   const { user } = useAuthStore();
 
+  // Today (local date) — matches the Leads page "Today" filter (UTC day window)
+  const today = new Date().toISOString().slice(0, 10);
+
   const { data: allLeadsData }        = useLeads({ page: 1, limit: 1 });
+  const { data: todayLeadsData }      = useLeads({ page: 1, limit: 1, dateFrom: today, dateTo: today });
   const { data: unassignedLeadsData } = useLeads({ page: 1, limit: 1, assignedTo: "unassigned" });
+  const { data: usersData }           = useUsers({ page: "1", limit: "1" });
+  const { data: activeUsersData }     = useUsers({ page: "1", limit: "1", status: "active" });
+  const { data: rolesData }           = useRoles({ page: "1", limit: "1" });
   const teamRanks                     = useReportTeamRankings("", "");
 
   const totalLeads      = allLeadsData?.pagination?.total;
+  const todayLeads      = todayLeadsData?.pagination?.total;
   const unassignedLeads = unassignedLeadsData?.pagination?.total;
+  const totalUsers      = usersData?.pagination?.total;
+  const activeUsers     = activeUsersData?.pagination?.total;
+  const totalRoles      = rolesData?.pagination?.total;
   const topTeams        = teamRanks.data?.slice(0, 5) ?? [];
+
+  const fmt = (n: number | undefined) => (n !== undefined ? String(n) : "—");
 
   const stats = [
     {
-      title: "Total Users",
-      value: "—",
-      description: "Manage team members",
-      icon: Users,
-      color: "text-blue-400",
-      bg: "bg-blue-500/10",
-    },
-    {
-      title: "Roles",
-      value: "—",
-      description: "Permission groups",
-      icon: Shield,
-      color: "text-purple-400",
-      bg: "bg-purple-500/10",
-    },
-    {
-      title: "Active Users",
-      value: "—",
-      description: "Currently active",
-      icon: Activity,
-      color: "text-green-400",
-      bg: "bg-green-500/10",
-    },
-    {
-      title: "Modules",
-      value: "9",
-      description: "System modules",
-      icon: TrendingUp,
-      color: "text-amber-400",
-      bg: "bg-amber-500/10",
-    },
-    {
       title: "Total Leads",
-      value: totalLeads !== undefined ? String(totalLeads) : "—",
+      value: fmt(totalLeads),
       description: "All leads in system",
       icon: FileText,
       color: "text-cyan-400",
       bg: "bg-cyan-500/10",
     },
     {
+      title: "Today's Leads",
+      value: fmt(todayLeads),
+      description: "Created today",
+      icon: CalendarClock,
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10",
+    },
+    {
       title: "Unassigned Leads",
-      value: unassignedLeads !== undefined ? String(unassignedLeads) : "—",
+      value: fmt(unassignedLeads),
       description: "Pending assignment",
       icon: UserX,
       color: "text-rose-400",
       bg: "bg-rose-500/10",
+    },
+    {
+      title: "Total Users",
+      value: fmt(totalUsers),
+      description: "Manage team members",
+      icon: Users,
+      color: "text-blue-400",
+      bg: "bg-blue-500/10",
+    },
+    {
+      title: "Active Users",
+      value: fmt(activeUsers),
+      description: "Currently active",
+      icon: Activity,
+      color: "text-green-400",
+      bg: "bg-green-500/10",
+    },
+    {
+      title: "Roles",
+      value: fmt(totalRoles),
+      description: "Permission groups",
+      icon: Shield,
+      color: "text-purple-400",
+      bg: "bg-purple-500/10",
     },
   ];
 

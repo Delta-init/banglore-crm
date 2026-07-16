@@ -11,6 +11,7 @@
 
 import { Team } from "../models/Team.js";
 import { Lead } from "../models/Lead.js";
+import { User } from "../models/User.js";
 import { autoSplitLeadPublic } from "./leadService.js";
 
 const INTERVAL_MS = 60_000; // every 60 seconds
@@ -42,6 +43,16 @@ async function tick() {
       .select("_id name")
       .lean();
 
+    if (teams.length === 0) return;
+
+    // Resolve a real system actor for activity logs (Super Admin). The old code
+    // passed the literal string "system", which is not a valid ObjectId and made
+    // the activity-log write throw. Fall back to "system" only if not found.
+    const systemActor = await User.findOne({ email: process.env.SUPER_ADMIN_EMAIL })
+      .select("_id")
+      .lean();
+    const systemActorId = systemActor?._id?.toString() ?? "system";
+
     for (const team of teams) {
       const teamId = team._id.toString();
 
@@ -68,8 +79,11 @@ async function tick() {
         { $set: { "settings.lastSplitAt": new Date() } },
       );
 
+      // bypassSplitTime=true — the scheduler IS the batch trigger, so it must
+      // skip the "hold until splitTime" gate (otherwise every lead is held and
+      // nothing is ever assigned).
       for (const lead of unassignedLeads) {
-        await autoSplitLeadPublic(teamId, lead._id.toString(), "system");
+        await autoSplitLeadPublic(teamId, lead._id.toString(), systemActorId, undefined, true);
       }
 
       console.log(

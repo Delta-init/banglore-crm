@@ -7,7 +7,6 @@ import {
   getQcQueue,
   updateQc,
   getCallById,
-  logClickToCall,
   contactLookup,
   contactSearch,
   contactCreate,
@@ -39,7 +38,6 @@ router.post(
 );
 
 // ── Authenticated routes — static BEFORE parameterised /:callId ──────────────
-router.post("/click",           authenticate, logClickToCall);
 router.get("/recent",           authenticate, getRecentCalls);
 router.get("/qc-queue",         authenticate, getQcQueue);
 router.get("/lead/:leadId",     authenticate, getLeadCalls);
