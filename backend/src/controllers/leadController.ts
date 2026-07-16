@@ -56,6 +56,8 @@ const updateLeadSchema = z.object({
   hasWhatsapp: z.boolean().optional().nullable(),
   sellingAmount: z.number().optional().nullable(),
   followupStrategyType: z.string().optional().nullable(),
+  exactConcern: z.string().max(1000).optional().nullable(),
+  comments: z.string().max(2000).optional().nullable(),
 });
 
 const updateStatusSchema = z.object({
