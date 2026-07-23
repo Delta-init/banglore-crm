@@ -200,51 +200,24 @@ async function autoSplitLead(
 
     if (pool.length === 0) return;
 
-    let assigneeId: string;
-
-    if (team.settings.splitMode === "equal_load") {
-      const counts = await Promise.all(
-        pool.map((id) =>
-          Lead.countDocuments({
-            assignedTo: id,
-            status: {
-              $in: ["new", "assigned", "followup", "interested", "cnc", "callback", "rnr", "whatsapp"],
-            },
-          }),
-        ),
-      );
-      const minIndex = counts.indexOf(Math.min(...counts));
-      assigneeId = pool[minIndex];
-    } else {
-      // round_robin — if roundRobinStartDate is set, pick the member with fewest
-      // leads assigned since that date (fair start-date-bounded distribution).
-      // Otherwise fall back to stored index.
-      const startDate = team.settings.roundRobinStartDate
-        ? new Date(team.settings.roundRobinStartDate)
-        : null;
-
-      if (startDate) {
-        const counts = await Promise.all(
-          pool.map((id) =>
-            Lead.countDocuments({
-              assignedTo: id,
-              assignedAt: { $gte: startDate },
-            }),
-          ),
-        );
-        const minCount = Math.min(...counts);
-        // Among tied members, prefer the one earliest in pool order (deterministic)
-        const minIndex = counts.indexOf(minCount);
-        assigneeId = pool[minIndex];
-      } else {
-        const idx = (team.settings.roundRobinIndex ?? 0) % pool.length;
-        assigneeId = pool[idx];
-        await Team.updateOne(
-          { _id: teamId },
-          { $set: { "settings.roundRobinIndex": (idx + 1) % pool.length } },
-        );
-      }
-    }
+    // ── Assignee selection — EVEN ROUND-ROBIN PER BATCH ─────────────────────────
+    // Rotate a stored pointer across the present pool, one step per lead. Over a
+    // batch of N this hands ~N/pool.length leads to each present member, and the
+    // pointer persists across batches so consecutive batches stay balanced.
+    //
+    // We deliberately do NOT pick "the member with the fewest cumulative leads"
+    // (the old equal_load and roundRobinStartDate paths). Cumulative balancing
+    // dumps the ENTIRE catch-up backlog onto a returning-absent member in a
+    // single batch — e.g. someone back from one day off received 74 of 97 leads.
+    // See scripts/test-split-scheduler.ts (Case 2) for the reproduction, and
+    // scripts/report-daily-splits.ts for the production evidence. Even round-robin
+    // gives a returning member only their fair share of today's batch instead.
+    const idx = (team.settings.roundRobinIndex ?? 0) % pool.length;
+    const assigneeId = pool[idx];
+    await Team.updateOne(
+      { _id: teamId },
+      { $set: { "settings.roundRobinIndex": (idx + 1) % pool.length } },
+    );
 
     const user = await User.findById(assigneeId).select("_id name").lean();
     if (!user) return;
