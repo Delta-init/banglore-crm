@@ -32,8 +32,8 @@ export class AuthService {
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 
-    // Return user without password
-    const userObj = user.toJSON() as Omit<IUser, "password">;
+    // Return user without password (toJSON strips it via the schema transform)
+    const userObj = user.toJSON() as unknown as Omit<IUser, "password">;
 
     return { accessToken, refreshToken, user: userObj };
   }
