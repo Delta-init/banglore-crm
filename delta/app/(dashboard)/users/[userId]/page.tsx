@@ -8,7 +8,7 @@ import {
   FileText, Users, Clock, CheckCircle2, XCircle,
   TrendingUp, Search, Mail, Phone, Shield, Calendar,
   Activity, StickyNote, ExternalLink, PhoneMissed,
-  BookMarked, Sparkles, Star, Filter, X as XIcon,
+  BookMarked, Sparkles, Star, Filter, X as XIcon, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +17,11 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@/hooks/useUsers";
-import { useUserLeads, useUserLeadStats } from "@/hooks/useLeads";
+import { useUserLeads, useUserLeadStats, useLeadSources, fetchAllUserLeads } from "@/hooks/useLeads";
 import { RevenueCard } from "@/components/leads/RevenueCard";
+import { LeadStatusChart } from "@/components/leads/LeadStatusChart";
+import { toCsv, downloadCsv } from "@/lib/exportCsv";
+import { toast } from "@/lib/toast";
 import { formatDate, getInitials } from "@/lib/utils";
 import { ExportPdfDialog } from "@/components/reports/ExportPdfDialog";
 import { LeadsDateFilter, TodayLeadsButton } from "@/components/leads/LeadsDateFilter";
@@ -76,11 +79,51 @@ export default function UserDetailPage() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [showDateFilter, setShowDateFilter] = useState(false);
+
+  const { data: sources = [] } = useLeadSources();
+  const [exporting, setExporting] = useState(false);
+  const hasActiveFilters = statusFilter !== "all" || sourceFilter !== "all" || !!search || !!dateFrom || !!dateTo;
+  function clearAllFilters() {
+    setStatusFilter("all"); setSourceFilter("all");
+    setSearch(""); setSearchInput("");
+    setDateFrom(""); setDateTo(""); setPage(1);
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const rows = await fetchAllUserLeads(userId, {
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        source: sourceFilter !== "all" ? sourceFilter : undefined,
+        search: search || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+      });
+      const csv = toCsv(rows as unknown as Record<string, unknown>[], [
+        { key: "name", label: "Name" },
+        { key: "phone", label: "Phone" },
+        { key: "email", label: "Email" },
+        { key: "status", label: "Status" },
+        { key: "source", label: "Source" },
+        { key: "course", label: "Course", get: (r) => (typeof r.course === "object" && r.course ? (r.course as { name?: string }).name : r.course) },
+        { key: "callCount", label: "Calls", get: (r) => r.callCount ?? 0 },
+        { key: "sellingAmount", label: "Selling Amount", get: (r) => r.sellingAmount ?? "" },
+        { key: "createdAt", label: "Created", get: (r) => (r.createdAt ? new Date(r.createdAt as string).toISOString().slice(0, 10) : "") },
+      ]);
+      downloadCsv(`${user?.name ?? "user"}-leads-${todayISO()}`, csv);
+      toast.success(`Exported ${rows.length} lead${rows.length === 1 ? "" : "s"}`);
+    } catch {
+      toast.error("Export failed");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   function todayISO() { return new Date().toISOString().slice(0, 10); }
   const isTodayActive = dateFrom === todayISO() && dateTo === todayISO();
@@ -93,7 +136,12 @@ export default function UserDetailPage() {
   }
 
   const { data: user, isLoading: userLoading } = useUser(userId);
-  const { data: statsData, isLoading: statsLoading } = useUserLeadStats(userId);
+  // Stats reflect date + source (not status — each tile IS a status count).
+  const { data: statsData, isLoading: statsLoading } = useUserLeadStats(userId, {
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+    source: sourceFilter !== "all" ? sourceFilter : undefined,
+  });
   const {
     data: leadsData,
     isLoading: leadsLoading,
@@ -102,6 +150,7 @@ export default function UserDetailPage() {
     page,
     limit,
     status: statusFilter !== "all" ? statusFilter : undefined,
+    source: sourceFilter !== "all" ? sourceFilter : undefined,
     search: search || undefined,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
@@ -402,8 +451,14 @@ export default function UserDetailPage() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
+        className="grid gap-4 lg:grid-cols-2"
       >
         <RevenueCard userId={userId} />
+        <LeadStatusChart
+          stats={stats}
+          loading={statsLoading}
+          subtitle={dateFrom || dateTo ? "in selected range" : undefined}
+        />
       </motion.div>
 
       {/* Leads Table */}
@@ -476,6 +531,26 @@ export default function UserDetailPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Select value={sourceFilter} onValueChange={(v) => { setSourceFilter(v); setPage(1); }}>
+                  <SelectTrigger className="w-[130px] h-8 text-xs">
+                    <SelectValue placeholder="All Sources" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sources</SelectItem>
+                    {sources.map((s) => (
+                      <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground" onClick={clearAllFilters}>
+                    <XIcon className="h-3.5 w-3.5" /> Clear
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={handleExport} disabled={exporting}>
+                  {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+                  Export
+                </Button>
               </div>
             </div>
 

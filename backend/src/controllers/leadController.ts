@@ -850,7 +850,10 @@ export const getUserLeadStats = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const stats = await leadService.getUserLeadStats(req.params.userId);
+    const stats = await leadService.getUserLeadStats(
+      req.params.userId,
+      req.query as Record<string, string>,
+    );
     sendSuccess(res, "User lead stats retrieved successfully", stats);
   } catch (error) {
     next(error);

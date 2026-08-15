@@ -12,7 +12,7 @@ import {
   TrendingUp, Users, UsersRound, Target, Award,
   Calendar, RefreshCw, BarChart2, Activity, Layers,
   GitFork, DollarSign, Trophy, ChevronDown, ChevronUp,
-  Loader2, Tag, X, ArrowUpRight, AlertTriangle,
+  Loader2, Tag, X, ArrowUpRight, AlertTriangle, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { toCsv, downloadCsv } from "@/lib/exportCsv";
 import { ExportPdfDialog } from "@/components/reports/ExportPdfDialog";
 import { AiChatPanel } from "@/components/leads/AiChatPanel";
 import {
@@ -505,9 +506,30 @@ function OverviewTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string })
         <motion.div initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.42 }}>
           <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Award className="h-4 w-4 text-primary" /> User Rankings
-              </CardTitle>
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Award className="h-4 w-4 text-primary" /> User Rankings
+                </CardTitle>
+                <Button
+                  variant="outline" size="sm" className="h-7 gap-1.5 text-xs"
+                  disabled={!userRanks.data?.length}
+                  onClick={() => {
+                    const csv = toCsv((userRanks.data ?? []) as unknown as Record<string, unknown>[], [
+                      { key: "rank", label: "Rank" },
+                      { key: "name", label: "Agent" },
+                      { key: "designation", label: "Designation" },
+                      { key: "total", label: "Total" },
+                      { key: "closed", label: "Closed" },
+                      { key: "revenue", label: "Revenue", get: (r) => r.revenue ?? 0 },
+                      { key: "pendingAmount", label: "Pending", get: (r) => r.pendingAmount ?? 0 },
+                      { key: "conversionRate", label: "Conv%" },
+                    ]);
+                    downloadCsv(`user-rankings-${dateFrom || "all"}_${dateTo || "all"}`, csv);
+                  }}
+                >
+                  <Download className="h-3.5 w-3.5" /> CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="overflow-x-auto -mx-2 px-2">
@@ -574,9 +596,29 @@ function OverviewTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string })
         <motion.div initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.48 }}>
           <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <UsersRound className="h-4 w-4 text-primary" /> Team Rankings
-              </CardTitle>
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <UsersRound className="h-4 w-4 text-primary" /> Team Rankings
+                </CardTitle>
+                <Button
+                  variant="outline" size="sm" className="h-7 gap-1.5 text-xs"
+                  disabled={!teamRanks.data?.length}
+                  onClick={() => {
+                    const csv = toCsv((teamRanks.data ?? []) as unknown as Record<string, unknown>[], [
+                      { key: "rank", label: "Rank" },
+                      { key: "name", label: "Team" },
+                      { key: "memberCount", label: "Members" },
+                      { key: "total", label: "Total" },
+                      { key: "closed", label: "Closed", get: (r) => r.closed ?? 0 },
+                      { key: "totalPayments", label: "Revenue", get: (r) => r.totalPayments ?? 0 },
+                      { key: "conversionRate", label: "Conv%" },
+                    ]);
+                    downloadCsv(`team-rankings-${dateFrom || "all"}_${dateTo || "all"}`, csv);
+                  }}
+                >
+                  <Download className="h-3.5 w-3.5" /> CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="overflow-x-auto -mx-2 px-2">

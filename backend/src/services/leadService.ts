@@ -134,6 +134,34 @@ function istMidnightUTC(): Date {
   return new Date(istMidnight.getTime() - istOffset);
 }
 
+// Build a createdAt range object ({ $gte, $lte }) from date-only strings.
+// Returns null when neither bound is a valid date, so callers can skip the
+// filter entirely. Used by getLeads, getLeadsByUser and getUserLeadStats so the
+// date filter behaves identically everywhere.
+function buildCreatedAtRange(dateFrom?: string, dateTo?: string): Record<string, Date> | null {
+  const range: Record<string, Date> = {};
+  if (dateFrom) {
+    const from = new Date(dateFrom);
+    from.setUTCHours(0, 0, 0, 0);
+    if (!isNaN(from.getTime())) range.$gte = from;
+  }
+  if (dateTo) {
+    const to = new Date(dateTo);
+    to.setUTCHours(23, 59, 59, 999);
+    if (!isNaN(to.getTime())) range.$lte = to;
+  }
+  return Object.keys(range).length > 0 ? range : null;
+}
+
+// Normalize a status filter into a Mongo matcher. Accepts a single status or a
+// comma-separated list ("followup,mia") -> { $in: [...] } for multi-select.
+function buildStatusMatch(status?: string): string | { $in: string[] } | undefined {
+  if (!status || status === "all") return undefined;
+  const parts = status.split(",").map((s) => s.trim()).filter(Boolean);
+  if (parts.length === 0) return undefined;
+  return parts.length === 1 ? parts[0] : { $in: parts };
+}
+
 // ── Auto-split a lead to a team member based on team settings ────────────────
 async function autoSplitLead(
   teamId: string,
@@ -364,24 +392,8 @@ export class LeadService {
     if (filters.source) query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 
     // ── Date range filter on createdAt ──────────────────────────────────────────
-    if (filters.dateFrom || filters.dateTo) {
-      const dateRange: Record<string, Date> = {};
-      if (filters.dateFrom) {
-        const from = new Date(filters.dateFrom);
-        // Start of the given day (00:00:00 UTC)
-        from.setUTCHours(0, 0, 0, 0);
-        if (!isNaN(from.getTime())) dateRange.$gte = from;
-      }
-      if (filters.dateTo) {
-        const to = new Date(filters.dateTo);
-        // End of the given day (23:59:59.999 UTC)
-        to.setUTCHours(23, 59, 59, 999);
-        if (!isNaN(to.getTime())) dateRange.$lte = to;
-      }
-      if (Object.keys(dateRange).length > 0) {
-        query.createdAt = dateRange;
-      }
-    }
+    const createdAtRange = buildCreatedAtRange(filters.dateFrom, filters.dateTo);
+    if (createdAtRange) query.createdAt = createdAtRange;
 
     if (filters.search) {
       const regex = new RegExp(filters.search, "i");
@@ -702,10 +714,17 @@ export class LeadService {
     const skip = (page - 1) * limit;
 
     const query: Record<string, unknown> = { assignedTo: userId };
-    if (filters.status) query.status = filters.status;
+    const statusMatch = buildStatusMatch(filters.status);
+    if (statusMatch !== undefined) query.status = statusMatch;
     if (filters.source && filters.source !== "all") {
       query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     }
+    if (filters.course && filters.course !== "all") query.course = filters.course;
+
+    // Date range on createdAt — previously omitted here, so the per-user lead
+    // tables silently ignored the date filter (unlike the main list). Fixed.
+    const range = buildCreatedAtRange(filters.dateFrom, filters.dateTo);
+    if (range) query.createdAt = range;
 
     if (filters.search) {
       const regex = new RegExp(filters.search, "i");
@@ -730,7 +749,10 @@ export class LeadService {
     return { leads, pagination: buildPagination(total, page, limit) };
   }
 
-  async getUserLeadStats(userId: string): Promise<LeadStats> {
+  async getUserLeadStats(
+    userId: string,
+    filters: Pick<LeadFilters, "dateFrom" | "dateTo" | "source" | "course"> = {},
+  ): Promise<LeadStats> {
     const statuses: LeadStatus[] = [
       "new",
       "assigned",
@@ -746,11 +768,20 @@ export class LeadService {
       "not_connected",
 
     ];
+
+    // Base match reflects the same date/source/course filters as the lead table,
+    // so the stat cards recompute for the selected range instead of all-time.
+    const base: Record<string, unknown> = { assignedTo: userId };
+    if (filters.source && filters.source !== "all") {
+      base.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    }
+    if (filters.course && filters.course !== "all") base.course = filters.course;
+    const range = buildCreatedAtRange(filters.dateFrom, filters.dateTo);
+    if (range) base.createdAt = range;
+
     const [total, ...statusCounts] = await Promise.all([
-      Lead.countDocuments({ assignedTo: userId }),
-      ...statuses.map((s) =>
-        Lead.countDocuments({ assignedTo: userId, status: s }),
-      ),
+      Lead.countDocuments(base),
+      ...statuses.map((s) => Lead.countDocuments({ ...base, status: s })),
     ]);
 
     return {

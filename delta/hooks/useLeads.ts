@@ -83,16 +83,52 @@ export const useUserLeads = (userId: string, filters?: LeadFilters) => {
   });
 };
 
-export const useUserLeadStats = (userId: string) => {
+export interface UserStatsFilters {
+  dateFrom?: string;
+  dateTo?: string;
+  source?: string;
+  course?: string;
+}
+
+export const useUserLeadStats = (userId: string, filters?: UserStatsFilters) => {
   return useQuery({
-    queryKey: [...LEADS_KEY, "stats", userId],
+    queryKey: [...LEADS_KEY, "stats", userId, filters],
     queryFn: async () => {
-      const response = await api.get<ApiResponse<LeadStats>>(`/users/${userId}/lead-stats`);
+      const params: Record<string, string> = {};
+      if (filters?.dateFrom) params.dateFrom = filters.dateFrom;
+      if (filters?.dateTo)   params.dateTo   = filters.dateTo;
+      if (filters?.source)   params.source   = filters.source;
+      if (filters?.course)   params.course   = filters.course;
+      const response = await api.get<ApiResponse<LeadStats>>(`/users/${userId}/lead-stats`, { params });
       return response.data.data!;
     },
     enabled: !!userId,
   });
 };
+
+/**
+ * Fetch every lead matching the given filters for one user, paging through the
+ * API (300/page, capped for safety). Used by the CSV export, which needs the
+ * whole filtered set rather than just the current page.
+ */
+export async function fetchAllUserLeads(userId: string, filters: LeadFilters): Promise<Lead[]> {
+  const all: Lead[] = [];
+  const limit = 300;
+  let page = 1;
+  for (let i = 0; i < 100; i++) {
+    const params: Record<string, string> = { page: String(page), limit: String(limit) };
+    if (filters.status)   params.status   = filters.status;
+    if (filters.source)   params.source   = filters.source;
+    if (filters.search)   params.search   = filters.search;
+    if (filters.dateFrom) params.dateFrom = filters.dateFrom;
+    if (filters.dateTo)   params.dateTo   = filters.dateTo;
+    const res = await api.get<ApiResponse<Lead[]>>(`/users/${userId}/leads`, { params });
+    all.push(...(res.data.data ?? []));
+    if (!res.data.pagination?.hasNextPage) break;
+    page++;
+  }
+  return all;
+}
 
 export type RevenuePeriod = "today" | "week" | "month" | "year" | "custom" | "all";
 
