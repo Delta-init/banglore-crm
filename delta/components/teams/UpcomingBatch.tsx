@@ -242,7 +242,7 @@ export function UpcomingBatch({ teamId, canEdit }: UpcomingBatchProps) {
 
   if (!data) return null;
 
-  const { totalUnassigned, splitTime, nextSplitAt, autoAssign, unassignedLeads, previewDistribution } = data;
+  const { totalUnassigned, splitTime, splitTimes, nextSplitAt, autoAssign, unassignedLeads, previewDistribution } = data;
 
   // ── Empty state — no split time configured ──
   if (!splitTime || !autoAssign) {
@@ -275,7 +275,7 @@ export function UpcomingBatch({ teamId, canEdit }: UpcomingBatchProps) {
       >
         {/* Header still shows next split time */}
         <BatchHeader
-          splitTime={splitTime}
+          splitTime={splitTime} splitTimes={splitTimes}
           nextSplitAt={nextSplitAt}
           totalUnassigned={0}
           canEdit={canEdit}
@@ -310,7 +310,7 @@ export function UpcomingBatch({ teamId, canEdit }: UpcomingBatchProps) {
     >
       {/* ── Header banner ── */}
       <BatchHeader
-        splitTime={splitTime}
+        splitTime={splitTime} splitTimes={splitTimes}
         nextSplitAt={nextSplitAt}
         totalUnassigned={totalUnassigned}
         canEdit={canEdit}
@@ -426,10 +426,11 @@ export function UpcomingBatch({ teamId, canEdit }: UpcomingBatchProps) {
 // ─── Header banner (extracted for reuse) ─────────────────────────────────────
 
 function BatchHeader({
-  splitTime, nextSplitAt, totalUnassigned, canEdit,
+  splitTime, splitTimes, nextSplitAt, totalUnassigned, canEdit,
   splitting, isFetching, onSplitNow, onRefresh,
 }: {
   splitTime: string;
+  splitTimes?: string[];
   nextSplitAt: string | null;
   totalUnassigned: number;
   canEdit: boolean;
@@ -438,6 +439,7 @@ function BatchHeader({
   onSplitNow: () => void;
   onRefresh: () => void;
 }) {
+  const allTimes = splitTimes?.length ? splitTimes : (splitTime ? [splitTime] : []);
   return (
     <motion.div
       initial={{ opacity: 0, y: -6 }}
@@ -454,13 +456,13 @@ function BatchHeader({
             <div>
               <p className="text-xs font-medium text-muted-foreground">Next auto-split</p>
               <p className="text-sm font-bold text-foreground">
-                {splitTime} IST
-                {nextSplitAt && (
-                  <span className="ml-2 text-xs font-normal text-muted-foreground">
-                    · {formatTimeShort(nextSplitAt)}
-                  </span>
-                )}
+                {nextSplitAt ? formatTimeShort(nextSplitAt) : `${allTimes[0] ?? ""} IST`}
               </p>
+              {allTimes.length > 1 && (
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  Daily at {allTimes.map((t) => `${t}`).join(", ")} IST
+                </p>
+              )}
             </div>
           </div>
 

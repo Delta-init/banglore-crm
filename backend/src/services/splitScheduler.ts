@@ -87,34 +87,46 @@ async function tick() {
     // Instead: fire when NOW is at or past today's split instant AND we have not
     // already split for today's window. That is still exactly one split per day,
     // but it self-heals a missed minute instead of losing the whole day.
+    // A team is a candidate if EITHER the legacy single time OR the multi-time
+    // array is set. Effective times are resolved per-team below.
     const candidates = await Team.find({
       status: "active",
       "settings.autoAssign": true,
-      "settings.splitTime": { $nin: [null, ""] },
+      $or: [
+        { "settings.splitTime": { $nin: [null, ""] } },
+        { "settings.splitTimes.0": { $exists: true } },
+      ],
     })
-      .select("_id name settings.splitTime settings.lastSplitAt")
+      .select("_id name settings.splitTime settings.splitTimes settings.lastSplitAt")
       .lean();
 
     const teams = candidates.filter((t) => {
       const settings = (t as unknown as {
-        settings?: { splitTime?: string | null; lastSplitAt?: Date | null };
+        settings?: { splitTime?: string | null; splitTimes?: string[]; lastSplitAt?: Date | null };
       }).settings;
 
-      const splitTime = settings?.splitTime;
-      if (!splitTime) return false;
+      // Effective times: the multi-time array wins; else the legacy single time.
+      const times = (settings?.splitTimes?.length ? settings.splitTimes : (settings?.splitTime ? [settings.splitTime] : []));
+      if (times.length === 0) return false;
 
-      const fireAt = istSplitInstantUTC(splitTime, nowMs);
-      if (!fireAt) {
-        console.warn(`[splitScheduler] ${t.name}: invalid splitTime "${splitTime}" — skipped`);
-        return false;
+      // Latest split instant that has already passed today, across all times.
+      // Firing against the most-recent passed window means several overdue
+      // windows (e.g. after downtime) collapse into a single catch-up split.
+      let latestDue = -Infinity;
+      for (const time of times) {
+        const fireAt = istSplitInstantUTC(time, nowMs);
+        if (!fireAt) {
+          console.warn(`[splitScheduler] ${t.name}: invalid split time "${time}" — skipped`);
+          continue;
+        }
+        const ms = fireAt.getTime();
+        if (ms <= nowMs && ms > latestDue) latestDue = ms;
       }
+      if (latestDue === -Infinity) return false; // no window has passed yet today
 
-      // Not yet due today.
-      if (nowMs < fireAt.getTime()) return false;
-
-      // Already split for today's window.
+      // Already split for (or after) that window.
       const lastSplitAt = settings?.lastSplitAt;
-      if (lastSplitAt && new Date(lastSplitAt).getTime() >= fireAt.getTime()) return false;
+      if (lastSplitAt && new Date(lastSplitAt).getTime() >= latestDue) return false;
 
       return true;
     });

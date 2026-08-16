@@ -623,11 +623,14 @@ export async function getUpcomingBatch(
 
 // ─── Team Settings ────────────────────────────────────────────────────────────
 
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 const teamSettingsSchema = z.object({
   autoAssign:            z.boolean(),
   splitMode:             z.enum(["round_robin", "equal_load"]),
   includedMembers:       z.array(z.string()).optional(),
-  splitTime:             z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Must be a valid time HH:mm (00:00–23:59)").nullable().optional(),
+  splitTime:             z.string().regex(HHMM, "Must be a valid time HH:mm (00:00–23:59)").nullable().optional(),
+  splitTimes:            z.array(z.string().regex(HHMM, "Each time must be HH:mm (00:00–23:59)")).optional(),
   roundRobinStartDate:   z.string().nullable().optional(),  // ISO date string
 });
 
@@ -657,14 +660,22 @@ export async function updateTeamSettings(
     const team = await Team.findById(req.params.id);
     if (!team) return sendError(res, "Team not found", 404);
 
-    const { autoAssign, splitMode, includedMembers, splitTime, roundRobinStartDate } = parsed.data;
+    const { autoAssign, splitMode, includedMembers, splitTime, splitTimes, roundRobinStartDate } = parsed.data;
+
+    // Effective times: prefer the multi-time array; fall back to the legacy
+    // single field. Dedupe + sort so the schedule is deterministic, and mirror
+    // the first time into splitTime so any legacy reader keeps working.
+    const rawTimes = splitTimes ?? (splitTime ? [splitTime] : []);
+    const normalizedTimes = Array.from(new Set(rawTimes)).sort();
+    const primaryTime = normalizedTimes[0] ?? null;
 
     await Team.findByIdAndUpdate(req.params.id, {
       $set: {
         "settings.autoAssign":            autoAssign,
         "settings.splitMode":             splitMode,
         "settings.includedMembers":       includedMembers ?? [],
-        "settings.splitTime":             splitTime ?? null,
+        "settings.splitTimes":            normalizedTimes,
+        "settings.splitTime":             primaryTime,
         "settings.roundRobinStartDate":   roundRobinStartDate ? new Date(roundRobinStartDate) : null,
         "settings.roundRobinIndex":       0,
       },
@@ -674,7 +685,8 @@ export async function updateTeamSettings(
       autoAssign,
       splitMode,
       includedMembers: includedMembers ?? [],
-      splitTime: splitTime ?? null,
+      splitTimes: normalizedTimes,
+      splitTime: primaryTime,
       roundRobinStartDate: roundRobinStartDate ?? null,
     });
   } catch (err) {

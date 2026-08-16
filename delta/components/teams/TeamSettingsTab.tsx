@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, Reorder, useDragControls } from "framer-motion";
+import { motion, AnimatePresence, Reorder, useDragControls } from "framer-motion";
 import { Settings, Shuffle, Users, CheckCircle2, Loader2, RefreshCw, Info, Clock, CalendarDays, RotateCcw, Zap, GripVertical, Plus, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -99,7 +99,7 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
 
   const [autoAssign, setAutoAssign]         = useState(false);
   const [splitMode, setSplitMode]           = useState<"round_robin" | "equal_load">("round_robin");
-  const [splitTime, setSplitTime]           = useState<string>("");
+  const [splitTimes, setSplitTimes]         = useState<string[]>([]);
   const [roundRobinStartDate, setStartDate] = useState<string>("");
 
   // orderedPool = the ordered list of User objects currently selected for auto-split
@@ -121,7 +121,12 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
     if (!settings) return;
     setAutoAssign(settings.autoAssign ?? false);
     setSplitMode(settings.splitMode ?? "round_robin");
-    setSplitTime(settings.splitTime ?? "");
+    // Prefer the multi-time array; fall back to the legacy single time.
+    setSplitTimes(
+      settings.splitTimes?.length
+        ? [...settings.splitTimes]
+        : (settings.splitTime ? [settings.splitTime] : []),
+    );
     setStartDate(
       settings.roundRobinStartDate
         ? settings.roundRobinStartDate.slice(0, 10)
@@ -148,12 +153,26 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
     setOrderedPool((prev) => prev.filter((m) => m._id !== id));
   }
 
+  // Dedupe, drop blanks, sort — the schedule is order-independent.
+  const cleanedTimes = Array.from(new Set(splitTimes.filter(Boolean))).sort();
+
+  function updateTime(index: number, value: string) {
+    setSplitTimes((prev) => prev.map((t, i) => (i === index ? value : t)));
+  }
+  function addTime() {
+    setSplitTimes((prev) => [...prev, ""]);
+  }
+  function removeTime(index: number) {
+    setSplitTimes((prev) => prev.filter((_, i) => i !== index));
+  }
+
   function handleSave() {
     save({
       autoAssign,
       splitMode,
       includedMembers,
-      splitTime: splitTime || null,
+      splitTimes: cleanedTimes,
+      splitTime: cleanedTimes[0] ?? null,
       roundRobinStartDate: roundRobinStartDate || null,
     });
   }
@@ -282,32 +301,66 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-xs text-muted-foreground">
-                At this time (IST) every day, all unassigned leads in this team will be automatically distributed. Leave blank to disable the scheduled split.
+                At each time (IST) every day, all unassigned leads in this team will be automatically distributed. Add as many times as you need — remove them all to disable the scheduled split.
               </p>
-              <div className="flex items-center gap-3">
-                <Input
-                  type="time"
-                  value={splitTime}
-                  onChange={(e) => isLeaderOrAdmin && setSplitTime(e.target.value)}
-                  disabled={!isLeaderOrAdmin}
-                  className="w-36"
-                />
-                {splitTime && (
+
+              <div className="space-y-2">
+                <AnimatePresence initial={false}>
+                  {splitTimes.map((t, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -8 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex items-center gap-2"
+                    >
+                      <Input
+                        type="time"
+                        value={t}
+                        onChange={(e) => isLeaderOrAdmin && updateTime(i, e.target.value)}
+                        disabled={!isLeaderOrAdmin}
+                        className="w-36"
+                      />
+                      {isLeaderOrAdmin && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => removeTime(i)}
+                          className="h-8 w-8 text-muted-foreground hover:text-red-400"
+                          title="Remove time"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {isLeaderOrAdmin && (
                   <Button
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    onClick={() => setSplitTime("")}
-                    disabled={!isLeaderOrAdmin}
-                    className="text-xs text-muted-foreground"
+                    onClick={addTime}
+                    className="gap-1.5 text-xs"
                   >
-                    Clear
+                    <Plus className="h-3.5 w-3.5" /> Add time
                   </Button>
                 )}
               </div>
-              {splitTime && (
+
+              {cleanedTimes.length > 0 ? (
                 <p className="text-xs text-primary/80">
-                  Leads will be auto-split daily at <span className="font-semibold">{splitTime} IST</span>
+                  Leads will be auto-split daily at{" "}
+                  <span className="font-semibold">
+                    {cleanedTimes.map((t) => `${t} IST`).join(", ")}
+                  </span>
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No times set — scheduled auto-split is disabled for this team.
                 </p>
               )}
             </CardContent>

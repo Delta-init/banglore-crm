@@ -428,8 +428,13 @@ export class TeamService {
       .lean();
     if (!team) throw Object.assign(new Error("Team not found"), { statusCode: 404 });
 
-    const splitTime: string | null = (team.settings as any)?.splitTime ?? null;
-    const autoAssign: boolean      = (team.settings as any)?.autoAssign ?? false;
+    const settings = team.settings as any;
+    const autoAssign: boolean = settings?.autoAssign ?? false;
+    // Effective times: multi-time array wins; else the legacy single time.
+    const splitTimes: string[] = (settings?.splitTimes?.length
+      ? settings.splitTimes
+      : (settings?.splitTime ? [settings.splitTime] : [])) as string[];
+    const splitTime: string | null = splitTimes[0] ?? null;
 
     // Unassigned leads for this team
     const unassignedLeads = await Lead.find({ team: teamId, assignedTo: null })
@@ -437,23 +442,25 @@ export class TeamService {
       .sort({ createdAt: 1 })
       .lean();
 
-    // Calculate nextSplitAt in IST (UTC+5:30)
+    // Calculate nextSplitAt in IST (UTC+5:30) — the nearest upcoming instant
+    // across all configured times (today's future ones, else tomorrow's earliest).
     let nextSplitAt: string | null = null;
-    if (splitTime) {
-      const [hh, mm] = splitTime.split(":").map(Number);
+    if (splitTimes.length > 0) {
       const istOffset = 5.5 * 60 * 60 * 1000; // UTC+5:30
       const nowUTC    = Date.now();
       const nowIST    = new Date(nowUTC + istOffset);
-
-      // Build today's split instant in IST then convert to UTC
-      const todaySplitIST = new Date(
-        Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate(), hh, mm, 0, 0),
-      );
-      const todaySplitUTC = new Date(todaySplitIST.getTime() - istOffset);
-
-      // If split time for today has already passed, next fire is tomorrow
-      const fireUTC = todaySplitUTC.getTime() > nowUTC ? todaySplitUTC : new Date(todaySplitUTC.getTime() + 86400000);
-      nextSplitAt = fireUTC.toISOString();
+      let soonest = Infinity;
+      for (const t of splitTimes) {
+        const [hh, mm] = t.split(":").map(Number);
+        if (Number.isNaN(hh) || Number.isNaN(mm)) continue;
+        const todaySplitIST = new Date(
+          Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate(), hh, mm, 0, 0),
+        );
+        const todaySplitUTC = todaySplitIST.getTime() - istOffset;
+        const fireUTC = todaySplitUTC > nowUTC ? todaySplitUTC : todaySplitUTC + 86400000;
+        if (fireUTC < soonest) soonest = fireUTC;
+      }
+      if (soonest !== Infinity) nextSplitAt = new Date(soonest).toISOString();
     }
 
     // Build eligible member pool (same logic as autoAssignTeamLeadsToMembers)
@@ -499,6 +506,7 @@ export class TeamService {
     return {
       totalUnassigned: unassignedLeads.length,
       splitTime,
+      splitTimes,
       nextSplitAt,
       autoAssign,
       unassignedLeads,

@@ -111,7 +111,8 @@ export interface ITeamSettings {
   splitMode: "round_robin" | "equal_load";
   roundRobinIndex: number;
   includedMembers: Types.Array<Types.ObjectId | IUser>;
-  splitTime?: string | null;           // "HH:mm" IST, e.g. "09:00"
+  splitTime?: string | null;           // legacy single "HH:mm" IST (mirror of splitTimes[0])
+  splitTimes?: string[];               // multiple daily "HH:mm" IST split times
   roundRobinStartDate?: Date | null;   // count leads from this date for fair round-robin
   lastSplitAt?: Date | null;           // cron dedup — last time scheduled split ran
 }

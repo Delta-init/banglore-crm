@@ -586,6 +586,7 @@ export const useUpdateTeamSettings = (teamId: string) => {
       splitMode: "round_robin" | "equal_load";
       includedMembers: string[];
       splitTime?: string | null;
+      splitTimes?: string[];
       roundRobinStartDate?: string | null;
     }) => {
       const res = await api.patch<ApiResponse<TeamSettings>>(`/teams/${teamId}/settings`, settings);
@@ -663,6 +664,7 @@ export interface UpcomingBatchMemberPreview {
 export interface UpcomingBatchData {
   totalUnassigned: number;
   splitTime: string | null;
+  splitTimes?: string[];
   nextSplitAt: string | null;
   autoAssign: boolean;
   unassignedLeads: UpcomingBatchLead[];
