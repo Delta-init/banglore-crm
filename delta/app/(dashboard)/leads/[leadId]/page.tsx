@@ -526,9 +526,9 @@ export default function LeadDetailPage() {
         animate={{ opacity: 1, y: 0 }}
         className="flex items-center justify-between gap-4 flex-wrap"
       >
-        <Button variant="ghost" size="sm" onClick={() => router.push("/leads")} className="gap-2 -ml-2">
+        <Button variant="ghost" size="sm" onClick={() => router.back()} className="gap-2 -ml-2">
           <ArrowLeft className="h-4 w-4" />
-          Back to Leads
+          Back
         </Button>
         {canEdit && (
           <Button onClick={() => setEditOpen(true)} size="sm" variant="outline" className="gap-2">
