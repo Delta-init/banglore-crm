@@ -125,6 +125,10 @@ export interface LeadFilters {
   dateFrom?: string;
   /** YYYY-MM-DD — leads created on or before this date */
   dateTo?: string;
+  /** YYYY-MM-DD — leads SPLIT/assigned (assignedAt) on or after this date */
+  splitDateFrom?: string;
+  /** YYYY-MM-DD — leads SPLIT/assigned (assignedAt) on or before this date */
+  splitDateTo?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 }

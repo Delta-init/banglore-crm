@@ -124,17 +124,47 @@ export interface TeamMemberSplitItem {
   student: number;
 }
 
-export const useTeamMemberSplit = (teamId: string, dateFrom: string, dateTo: string) => {
+export const useTeamMemberSplit = (
+  teamId: string,
+  dateFrom: string,
+  dateTo: string,
+  basis: "created" | "split" = "created",
+) => {
   return useQuery<TeamMemberSplitItem[]>({
-    queryKey: [...TEAMS_KEY, teamId, "member-split", dateFrom, dateTo],
+    queryKey: [...TEAMS_KEY, teamId, "member-split", dateFrom, dateTo, basis],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo)   params.set("dateTo",   dateTo);
+      params.set("basis", basis);
       const res = await api.get<ApiResponse<TeamMemberSplitItem[]>>(
         `/teams/${teamId}/member-split?${params}`,
       );
       return res.data.data ?? [];
+    },
+    enabled: !!teamId,
+    staleTime: 60_000,
+  });
+};
+
+export interface DailySplitBySource {
+  sources: string[];
+  rows: { date: string; counts: Record<string, number>; total: number }[];
+  totalsBySource: Record<string, number>;
+  grandTotal: number;
+}
+
+export const useTeamDailySplitBySource = (teamId: string, dateFrom: string, dateTo: string) => {
+  return useQuery<DailySplitBySource>({
+    queryKey: [...TEAMS_KEY, teamId, "daily-split-by-source", dateFrom, dateTo],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo)   params.set("dateTo",   dateTo);
+      const res = await api.get<ApiResponse<DailySplitBySource>>(
+        `/teams/${teamId}/daily-split-by-source?${params}`,
+      );
+      return res.data.data!;
     },
     enabled: !!teamId,
     staleTime: 60_000,

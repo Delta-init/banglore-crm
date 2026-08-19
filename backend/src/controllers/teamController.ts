@@ -197,9 +197,28 @@ export async function getTeamMemberSplit(
   next: NextFunction,
 ) {
   try {
-    const { dateFrom, dateTo } = req.query as { dateFrom?: string; dateTo?: string };
-    const data = await teamService.getTeamMemberSplit(req.params.id, dateFrom, dateTo);
+    const { dateFrom, dateTo, basis } = req.query as { dateFrom?: string; dateTo?: string; basis?: string };
+    const data = await teamService.getTeamMemberSplit(
+      req.params.id,
+      dateFrom,
+      dateTo,
+      basis === "split" ? "split" : "created",
+    );
     sendSuccess(res, "Team member split fetched successfully", data);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getTeamDailySplitBySource(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { dateFrom, dateTo } = req.query as { dateFrom?: string; dateTo?: string };
+    const data = await teamService.getTeamDailySplitBySource(req.params.id, dateFrom, dateTo);
+    sendSuccess(res, "Team daily split by source fetched successfully", data);
   } catch (err) {
     next(err);
   }

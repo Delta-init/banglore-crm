@@ -418,6 +418,11 @@ export class LeadService {
     if (filters.course) query.course = filters.course;
     if (filters.source) query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 
+    // ── Split-date filter — matches assignedAt (when the lead was distributed),
+    // independent of the created/assigned OR filter below. ──────────────────────
+    const splitRange = buildCreatedAtRange(filters.splitDateFrom, filters.splitDateTo);
+    if (splitRange) query.assignedAt = splitRange;
+
     // ── Date range (createdAt OR assignedAt/split date) + search ────────────────
     const dateConds = leadDateOrConditions(filters.dateFrom, filters.dateTo);
     const searchConds = filters.search

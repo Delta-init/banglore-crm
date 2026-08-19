@@ -214,16 +214,23 @@ export class TeamService {
   }
 
   // ── Get team member split by date (date-filtered aggregation) ────────────────
-  async getTeamMemberSplit(teamId: string, dateFrom?: string, dateTo?: string) {
+  async getTeamMemberSplit(
+    teamId: string,
+    dateFrom?: string,
+    dateTo?: string,
+    basis: "created" | "split" = "created",
+  ) {
     const teamObjId = new mongoose.Types.ObjectId(teamId);
 
-    // Build date range filter on createdAt
+    // Date range filter — on createdAt (when the lead came in) or assignedAt
+    // (when it was split/distributed), depending on `basis`.
+    const dateField = basis === "split" ? "assignedAt" : "createdAt";
     const dateMatch: Record<string, unknown> = {};
     if (dateFrom || dateTo) {
       const range: Record<string, Date> = {};
       if (dateFrom) range.$gte = new Date(dateFrom + "T00:00:00.000Z");
       if (dateTo)   range.$lte = new Date(dateTo   + "T23:59:59.999Z");
-      dateMatch.createdAt = range;
+      dateMatch[dateField] = range;
     }
 
     const ALL_STATUSES = [
@@ -290,6 +297,54 @@ export class TeamService {
     ]);
 
     return agg.map((item, i) => ({ ...item, rank: i + 1 }));
+  }
+
+  // ── Daily split count by source ───────────────────────────────────────────────
+  // For a team, count leads by the IST day they were SPLIT (assignedAt) broken
+  // down by source. Returns per-day rows (newest first), the source list, and
+  // per-source + grand totals for a rows=days × columns=sources table.
+  async getTeamDailySplitBySource(teamId: string, dateFrom?: string, dateTo?: string) {
+    const teamObjId = new mongoose.Types.ObjectId(teamId);
+
+    const assignedAtRange: Record<string, unknown> = { $ne: null };
+    if (dateFrom) (assignedAtRange as Record<string, Date>).$gte = new Date(dateFrom + "T00:00:00.000Z");
+    if (dateTo)   (assignedAtRange as Record<string, Date>).$lte = new Date(dateTo   + "T23:59:59.999Z");
+
+    const agg = await Lead.aggregate<{ _id: { day: string; source: string }; count: number }>([
+      { $match: { team: teamObjId, assignedTo: { $ne: null }, assignedAt: assignedAtRange } },
+      {
+        $group: {
+          _id: {
+            day:    { $dateToString: { format: "%Y-%m-%d", date: "$assignedAt", timezone: "+05:30" } },
+            source: { $ifNull: ["$source", "unknown"] },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const sourceSet = new Set<string>();
+    const dayMap = new Map<string, Record<string, number>>();
+    for (const r of agg) {
+      sourceSet.add(r._id.source);
+      if (!dayMap.has(r._id.day)) dayMap.set(r._id.day, {});
+      dayMap.get(r._id.day)![r._id.source] = r.count;
+    }
+
+    const sources = [...sourceSet].sort();
+    const rows = [...dayMap.entries()]
+      .sort((a, b) => (a[0] < b[0] ? 1 : -1)) // newest day first
+      .map(([date, counts]) => ({
+        date,
+        counts,
+        total: Object.values(counts).reduce((s, n) => s + n, 0),
+      }));
+
+    const totalsBySource: Record<string, number> = {};
+    for (const s of sources) totalsBySource[s] = rows.reduce((sum, r) => sum + (r.counts[s] ?? 0), 0);
+    const grandTotal = rows.reduce((s, r) => s + r.total, 0);
+
+    return { sources, rows, totalsBySource, grandTotal };
   }
 
   // ── Get team member stats ─────────────────────────────────────────────────────

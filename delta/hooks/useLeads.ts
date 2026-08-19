@@ -32,6 +32,8 @@ export const useLeads = (filters?: LeadFilters) => {
       if (filters?.course)     params.course     = filters.course;
       if (filters?.dateFrom)   params.dateFrom   = filters.dateFrom;
       if (filters?.dateTo)     params.dateTo     = filters.dateTo;
+      if (filters?.splitDateFrom) params.splitDateFrom = filters.splitDateFrom;
+      if (filters?.splitDateTo)   params.splitDateTo   = filters.splitDateTo;
       if (filters?.sortBy)     params.sortBy     = filters.sortBy;
       if (filters?.sortOrder)  params.sortOrder  = filters.sortOrder;
       if (filters?.source)     params.source     = filters.source;

@@ -59,6 +59,7 @@ import {
   ChevronUp,
   Award,
   UserX,
+  GitFork,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,6 +129,7 @@ import {
   useTeamRevenue,
   useTeamRevenueTimeline,
   useTeamMemberSplit,
+  useTeamDailySplitBySource,
   type TeamMemberSplitItem,
   type TeamUpdatesFilters,
 } from "@/hooks/useTeams";
@@ -3258,6 +3260,7 @@ function ReportTab({ teamId }: { teamId: string }) {
   const [period, setPeriod]   = useState<ReportPeriod>("month");
   const [customFrom, setFrom] = useState("");
   const [customTo, setTo]     = useState("");
+  const [basis, setBasis]     = useState<"created" | "split">("created");
 
   const range = period === "custom"
     ? { from: customFrom, to: customTo }
@@ -3265,6 +3268,12 @@ function ReportTab({ teamId }: { teamId: string }) {
 
   const enabled = period !== "custom" || (!!customFrom && !!customTo);
   const { data, isLoading } = useTeamMemberSplit(
+    teamId,
+    enabled ? range.from : "",
+    enabled ? range.to   : "",
+    basis,
+  );
+  const dailySplit = useTeamDailySplitBySource(
     teamId,
     enabled ? range.from : "",
     enabled ? range.to   : "",
@@ -3284,8 +3293,21 @@ function ReportTab({ teamId }: { teamId: string }) {
               Member Lead Split
             </CardTitle>
 
-            {/* Period Dropdown */}
+            {/* Basis toggle + Period Dropdown */}
             <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex rounded-lg border border-border/50 overflow-hidden">
+                {(["created", "split"] as const).map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    onClick={() => setBasis(b)}
+                    className={`px-2.5 py-1 text-xs font-medium transition-colors ${basis === b ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/50"}`}
+                    title={b === "created" ? "Count by created date" : "Count by split (assigned) date"}
+                  >
+                    {b === "created" ? "By created" : "By split"}
+                  </button>
+                ))}
+              </div>
               <Select value={period} onValueChange={(v) => { setPeriod(v as ReportPeriod); }}>
                 <SelectTrigger className="h-8 w-36 text-xs border-border/50">
                   <CalendarDays className="h-3.5 w-3.5 text-muted-foreground mr-1.5" />
@@ -3472,6 +3494,58 @@ function ReportTab({ teamId }: { teamId: string }) {
                         {totalLeads > 0 ? `${((totalClosed / totalLeads) * 100).toFixed(1)}%` : "—"}
                       </span>
                     </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Daily Split by Source (counts by assignedAt/split date) */}
+      <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <GitFork className="h-4 w-4 text-primary" />
+            Daily Split by Source
+            <span className="text-xs font-normal text-muted-foreground">· by split date</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {dailySplit.isLoading ? (
+            <div className="space-y-2">{[1, 2, 3, 4].map((i) => <div key={i} className="h-8 w-full animate-pulse rounded bg-muted/50" />)}</div>
+          ) : !dailySplit.data?.rows.length ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">No leads split in this period.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs min-w-[560px]">
+                <thead>
+                  <tr className="border-b border-border/50 text-muted-foreground">
+                    <th className="pb-2 pr-3 text-left font-medium">Date</th>
+                    {dailySplit.data.sources.map((s) => (
+                      <th key={s} className="pb-2 px-2 text-right font-medium capitalize">{s}</th>
+                    ))}
+                    <th className="pb-2 pl-2 text-right font-semibold text-foreground">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/30">
+                  {dailySplit.data.rows.map((r) => (
+                    <tr key={r.date} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-2 pr-3 text-left font-medium text-foreground whitespace-nowrap">{formatDate(r.date)}</td>
+                      {dailySplit.data!.sources.map((s) => (
+                        <td key={s} className="py-2 px-2 text-right tabular-nums text-muted-foreground">{r.counts[s] ?? 0}</td>
+                      ))}
+                      <td className="py-2 pl-2 text-right font-bold tabular-nums text-foreground">{r.total}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t border-border/50">
+                    <td className="pt-2 pr-3 text-left font-semibold text-foreground">Total</td>
+                    {dailySplit.data.sources.map((s) => (
+                      <td key={s} className="pt-2 px-2 text-right font-semibold tabular-nums text-foreground">{dailySplit.data!.totalsBySource[s] ?? 0}</td>
+                    ))}
+                    <td className="pt-2 pl-2 text-right font-bold tabular-nums text-primary">{dailySplit.data.grandTotal}</td>
                   </tr>
                 </tfoot>
               </table>

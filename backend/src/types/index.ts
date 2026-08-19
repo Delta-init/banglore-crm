@@ -264,6 +264,10 @@ export interface LeadFilters {
   dateFrom?: string;
   /** ISO date string – filter leads created on or before this date (inclusive, end of day) */
   dateTo?: string;
+  /** ISO date string – filter leads SPLIT/assigned (assignedAt) on or after this date */
+  splitDateFrom?: string;
+  /** ISO date string – filter leads SPLIT/assigned (assignedAt) on or before this date */
+  splitDateTo?: string;
   page?: string;
   limit?: string;
   sortBy?: string;
