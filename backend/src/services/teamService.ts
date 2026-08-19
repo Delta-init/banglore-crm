@@ -1087,7 +1087,7 @@ export class TeamService {
     memberId: string,
     requesterId: string,
     requesterRole: { isSystemRole?: boolean; roleName?: string },
-    filters: { status?: string; search?: string; source?: string; page?: string; limit?: string },
+    filters: { status?: string; search?: string; source?: string; dateFrom?: string; dateTo?: string; page?: string; limit?: string },
   ) {
     const team = await Team.findById(teamId).lean();
     if (!team) throw Object.assign(new Error("Team not found"), { statusCode: 404 });
@@ -1120,10 +1120,28 @@ export class TeamService {
     if (filters.source && filters.source !== "all") {
       query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     }
-    if (filters.search) {
-      const regex = new RegExp(filters.search, "i");
-      query.$or = [{ name: regex }, { email: regex }, { phone: regex }];
+    // Date range matches createdAt OR assignedAt (split date) — previously the
+    // date filter was omitted here entirely (same bug as getLeadsByUser).
+    // Combined with the optional name/phone search via $and.
+    const range: Record<string, Date> = {};
+    if (filters.dateFrom) {
+      const from = new Date(filters.dateFrom);
+      from.setUTCHours(0, 0, 0, 0);
+      if (!isNaN(from.getTime())) range.$gte = from;
     }
+    if (filters.dateTo) {
+      const to = new Date(filters.dateTo);
+      to.setUTCHours(23, 59, 59, 999);
+      if (!isNaN(to.getTime())) range.$lte = to;
+    }
+    const dateConds: Record<string, unknown>[] | null =
+      Object.keys(range).length > 0 ? [{ createdAt: range }, { assignedAt: range }] : null;
+    const searchConds: Record<string, unknown>[] | null = filters.search
+      ? (() => { const r = new RegExp(filters.search, "i"); return [{ name: r }, { email: r }, { phone: r }]; })()
+      : null;
+    const orGroups = [dateConds, searchConds].filter((g): g is Record<string, unknown>[] => Boolean(g && g.length));
+    if (orGroups.length === 1) query.$or = orGroups[0];
+    else if (orGroups.length === 2) query.$and = orGroups.map((g) => ({ $or: g }));
 
     const [leads, total] = await Promise.all([
       Lead.find(query)

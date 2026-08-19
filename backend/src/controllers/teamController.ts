@@ -518,11 +518,13 @@ export async function getTeamMemberLeads(
     const requesterRole = req.user!.role as { isSystemRole?: boolean; roleName?: string };
 
     const filters = {
-      status: req.query.status as string | undefined,
-      search: req.query.search as string | undefined,
-      source: req.query.source as string | undefined,
-      page:   req.query.page   as string | undefined,
-      limit:  req.query.limit  as string | undefined,
+      status:   req.query.status   as string | undefined,
+      search:   req.query.search   as string | undefined,
+      source:   req.query.source   as string | undefined,
+      dateFrom: req.query.dateFrom as string | undefined,
+      dateTo:   req.query.dateTo   as string | undefined,
+      page:     req.query.page     as string | undefined,
+      limit:    req.query.limit    as string | undefined,
     };
 
     const result = await teamService.getTeamMemberLeads(

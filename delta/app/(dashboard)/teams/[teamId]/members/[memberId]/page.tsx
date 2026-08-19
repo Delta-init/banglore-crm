@@ -20,7 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useTeamMember, useTeamMemberLeads } from "@/hooks/useTeams";
-import { useLeadSources } from "@/hooks/useLeads";
+import { useLeadSources, useUserLeadStats } from "@/hooks/useLeads";
 import { formatDate, getInitials } from "@/lib/utils";
 import { LeadsDateFilter, TodayLeadsButton } from "@/components/leads/LeadsDateFilter";
 import Link from "next/link";
@@ -94,6 +94,14 @@ export default function TeamMemberPage() {
 
   const { data, isLoading, isError, error } = useTeamMember(teamId, memberId);
 
+  // Filter-aware stat tiles (same endpoint the user-by-id page uses). Falls back
+  // to the all-time member-detail stats until this resolves.
+  const { data: filteredStats } = useUserLeadStats(memberId, {
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+    source: sourceFilter !== "all" ? sourceFilter : undefined,
+  });
+
   const {
     data: leadsData,
     isLoading: leadsLoading,
@@ -153,18 +161,20 @@ export default function TeamMemberPage() {
       : (member.role as string | null) ?? "—";
 
   // ── Stat cards (click to filter) ─────────────────────────────────────────────
+  // Use the filter-aware stats when available; fall back to all-time member stats.
+  const s = filteredStats ?? stats;
   const statCards: {
     title: string; value: number; icon: React.ElementType;
     color: string; bg: string; border: string; activeRing: string; filterKey: string;
   }[] = [
-    { title: "Total",            value: stats.total,                icon: FileText,     color: "text-primary",    bg: "bg-primary/10",    border: "border-primary/20",    activeRing: "ring-primary/40",    filterKey: "all"              },
-    { title: "Assigned",         value: stats.assigned,             icon: Users,        color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", activeRing: "ring-yellow-400/40", filterKey: "assigned"         },
-    { title: "Pending Response", value: stats.pending_response ?? 0,icon: Sparkles,     color: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20", activeRing: "ring-violet-400/40", filterKey: "pending_response" },
-    { title: "Follow Up",        value: stats.followup,             icon: Clock,        color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", activeRing: "ring-orange-400/40", filterKey: "followup"         },
-    { title: "CNC",              value: stats.cnc,                  icon: PhoneMissed,  color: "text-amber-400",  bg: "bg-amber-500/10",  border: "border-amber-500/20",  activeRing: "ring-amber-400/40",  filterKey: "cnc"              },
-    { title: "Not Connected",    value: stats.not_connected ?? 0,   icon: PhoneMissed,  color: "text-slate-400",  bg: "bg-slate-500/10",  border: "border-slate-500/20",  activeRing: "ring-slate-400/40",  filterKey: "not_connected"    },
-    { title: "Closed",           value: stats.closed,               icon: CheckCircle2, color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20",  activeRing: "ring-green-400/40",  filterKey: "closed"           },
-    { title: "Lost",             value: stats.lost ?? 0,            icon: XCircle,      color: "text-red-400",    bg: "bg-red-500/10",    border: "border-red-500/20",    activeRing: "ring-red-400/40",    filterKey: "lost"             },
+    { title: "Total",            value: s.total,                icon: FileText,     color: "text-primary",    bg: "bg-primary/10",    border: "border-primary/20",    activeRing: "ring-primary/40",    filterKey: "all"              },
+    { title: "Assigned",         value: s.assigned,             icon: Users,        color: "text-yellow-400", bg: "bg-yellow-500/10", border: "border-yellow-500/20", activeRing: "ring-yellow-400/40", filterKey: "assigned"         },
+    { title: "Pending Response", value: s.pending_response ?? 0,icon: Sparkles,     color: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20", activeRing: "ring-violet-400/40", filterKey: "pending_response" },
+    { title: "Follow Up",        value: s.followup,             icon: Clock,        color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20", activeRing: "ring-orange-400/40", filterKey: "followup"         },
+    { title: "CNC",              value: s.cnc,                  icon: PhoneMissed,  color: "text-amber-400",  bg: "bg-amber-500/10",  border: "border-amber-500/20",  activeRing: "ring-amber-400/40",  filterKey: "cnc"              },
+    { title: "Not Connected",    value: s.not_connected ?? 0,   icon: PhoneMissed,  color: "text-slate-400",  bg: "bg-slate-500/10",  border: "border-slate-500/20",  activeRing: "ring-slate-400/40",  filterKey: "not_connected"    },
+    { title: "Closed",           value: s.closed,               icon: CheckCircle2, color: "text-green-400",  bg: "bg-green-500/10",  border: "border-green-500/20",  activeRing: "ring-green-400/40",  filterKey: "closed"           },
+    { title: "Lost",             value: s.lost ?? 0,            icon: XCircle,      color: "text-red-400",    bg: "bg-red-500/10",    border: "border-red-500/20",    activeRing: "ring-red-400/40",    filterKey: "lost"             },
   ];
 
   const closureRate = stats.closureRate;

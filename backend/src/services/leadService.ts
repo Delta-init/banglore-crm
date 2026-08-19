@@ -153,6 +153,33 @@ function buildCreatedAtRange(dateFrom?: string, dateTo?: string): Record<string,
   return Object.keys(range).length > 0 ? range : null;
 }
 
+// A lead "belongs to" a date range if it was either CREATED or last
+// ASSIGNED/SPLIT (assignedAt) within it. This makes "today's leads" include
+// leads distributed (split) today even when they were created earlier, and is
+// applied consistently by every lead-list + stats query. Returns the two
+// conditions to OR together, or null when no range is given.
+export function leadDateOrConditions(dateFrom?: string, dateTo?: string): Record<string, unknown>[] | null {
+  const range = buildCreatedAtRange(dateFrom, dateTo);
+  if (!range) return null;
+  return [{ createdAt: range }, { assignedAt: range }];
+}
+
+// Merge one or more $or groups into a query. Two independent $or groups (e.g.
+// the date match and the name/phone search) cannot both live at the top level,
+// so when more than one group is present they are combined with $and.
+export function applyOrGroups(
+  query: Record<string, unknown>,
+  ...groups: (Record<string, unknown>[] | null | undefined)[]
+): void {
+  const nonEmpty = groups.filter((g): g is Record<string, unknown>[] => Boolean(g && g.length));
+  if (nonEmpty.length === 0) return;
+  if (nonEmpty.length === 1) {
+    query.$or = nonEmpty[0];
+    return;
+  }
+  query.$and = nonEmpty.map((g) => ({ $or: g }));
+}
+
 // Normalize a status filter into a Mongo matcher. Accepts a single status or a
 // comma-separated list ("followup,mia") -> { $in: [...] } for multi-select.
 function buildStatusMatch(status?: string): string | { $in: string[] } | undefined {
@@ -391,14 +418,12 @@ export class LeadService {
     if (filters.course) query.course = filters.course;
     if (filters.source) query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
 
-    // ── Date range filter on createdAt ──────────────────────────────────────────
-    const createdAtRange = buildCreatedAtRange(filters.dateFrom, filters.dateTo);
-    if (createdAtRange) query.createdAt = createdAtRange;
-
-    if (filters.search) {
-      const regex = new RegExp(filters.search, "i");
-      query.$or = [{ name: regex }, { email: regex }, { phone: regex }];
-    }
+    // ── Date range (createdAt OR assignedAt/split date) + search ────────────────
+    const dateConds = leadDateOrConditions(filters.dateFrom, filters.dateTo);
+    const searchConds = filters.search
+      ? (() => { const r = new RegExp(filters.search, "i"); return [{ name: r }, { email: r }, { phone: r }]; })()
+      : null;
+    applyOrGroups(query, dateConds, searchConds);
 
     const sortField = filters.sortBy ?? "createdAt";
     const sortOrder = filters.sortOrder === "asc" ? 1 : -1;
@@ -721,15 +746,13 @@ export class LeadService {
     }
     if (filters.course && filters.course !== "all") query.course = filters.course;
 
-    // Date range on createdAt — previously omitted here, so the per-user lead
-    // tables silently ignored the date filter (unlike the main list). Fixed.
-    const range = buildCreatedAtRange(filters.dateFrom, filters.dateTo);
-    if (range) query.createdAt = range;
-
-    if (filters.search) {
-      const regex = new RegExp(filters.search, "i");
-      query.$or = [{ name: regex }, { email: regex }, { phone: regex }];
-    }
+    // Date range matches createdAt OR assignedAt (split date); combined with the
+    // optional name/phone search via $and.
+    const dateConds = leadDateOrConditions(filters.dateFrom, filters.dateTo);
+    const searchConds = filters.search
+      ? (() => { const r = new RegExp(filters.search, "i"); return [{ name: r }, { email: r }, { phone: r }]; })()
+      : null;
+    applyOrGroups(query, dateConds, searchConds);
 
     const sortField = filters.sortBy ?? "createdAt";
     const sortOrder = filters.sortOrder === "asc" ? 1 : -1;
@@ -776,8 +799,9 @@ export class LeadService {
       base.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     }
     if (filters.course && filters.course !== "all") base.course = filters.course;
-    const range = buildCreatedAtRange(filters.dateFrom, filters.dateTo);
-    if (range) base.createdAt = range;
+    // Date range matches createdAt OR assignedAt (split date).
+    const dateConds = leadDateOrConditions(filters.dateFrom, filters.dateTo);
+    if (dateConds) base.$or = dateConds;
 
     const [total, ...statusCounts] = await Promise.all([
       Lead.countDocuments(base),
