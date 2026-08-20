@@ -1584,6 +1584,203 @@ function CampaignPanel({
   );
 }
 
+// ─── By-source overview (Lead volume · Status distribution · User rankings) ──────
+function SourceOverview({ source, dateFrom, dateTo }: { source: string; dateFrom: string; dateTo: string }) {
+  const [period, setPeriod] = useState<TimelinePeriod>("daily");
+  const overview  = useReportOverview(dateFrom, dateTo, source);
+  const timeline  = useReportTimeline(period, dateFrom, dateTo, source);
+  const userRanks = useReportUserRankings(dateFrom, dateTo, source);
+
+  const statusDist = overview.data?.statusDistribution ?? [];
+  const totalLeads = statusDist.reduce((s, d) => s + d.count, 0);
+  const pieData = statusDist
+    .filter((s) => s.count > 0)
+    .map((s) => ({ name: STATUS_META[s.status]?.label ?? s.status, value: s.count, color: STATUS_META[s.status]?.color ?? "#64748b" }));
+
+  const timelineSeries = [
+    { key: "total",  label: "Total",   color: "#94a3b8" },
+    { key: "closed", label: "Closed",  color: "#22c55e" },
+    { key: "pending_response", label: "Pending", color: "#8b5cf6" },
+    { key: "lost",   label: "Lost",    color: "#ef4444" },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+      className="space-y-4 rounded-xl border border-primary/20 bg-primary/[0.03] p-4"
+    >
+      <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+        <Layers className="h-4 w-4 text-primary" />
+        <span className="capitalize">{source}</span> · overview
+        <span className="text-xs font-normal text-muted-foreground">({totalLeads} leads)</span>
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        {/* Lead Volume Over Time */}
+        <Card className="lg:col-span-3 border-border/50 bg-card/80">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Activity className="h-4 w-4 text-primary" /> Lead Volume Over Time
+              </CardTitle>
+              <div className="flex rounded-lg border border-border/50 overflow-hidden">
+                {(["daily","weekly","monthly"] as TimelinePeriod[]).map((p) => (
+                  <button key={p} onClick={() => setPeriod(p)}
+                    className={cn("px-2.5 py-1 text-xs capitalize font-medium transition-colors",
+                      period === p ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted/50")}>
+                    {p === "daily" ? "D" : p === "weekly" ? "W" : "M"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {timeline.isLoading ? <Skeleton className="h-[240px] w-full" /> : (
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={timeline.data ?? []} margin={{ top:5, right:10, left:-20, bottom:0 }}>
+                  <defs>
+                    {timelineSeries.map((s) => (
+                      <linearGradient key={s.key} id={`sgrad-${source}-${s.key}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={s.color} stopOpacity={0.25} />
+                        <stop offset="95%" stopColor={s.color} stopOpacity={0.02} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+                  <XAxis dataKey="label" tick={{ fontSize:10, fill:"hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize:10, fill:"hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <RechartsTooltip content={<ChartTooltip />} />
+                  <Legend wrapperStyle={{ fontSize:"11px", paddingTop:"8px" }}
+                    formatter={(v) => <span style={{ color:"hsl(var(--muted-foreground))" }}>{v}</span>} />
+                  {timelineSeries.map((s) => (
+                    <Area key={s.key} type="monotone" dataKey={s.key} name={s.label}
+                      stroke={s.color} strokeWidth={2} fill={`url(#sgrad-${source}-${s.key})`}
+                      dot={false} activeDot={{ r:4, strokeWidth:0 }} />
+                  ))}
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Status Distribution donut */}
+        <Card className="lg:col-span-2 border-border/50 bg-card/80">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Layers className="h-4 w-4 text-primary" /> Status Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {overview.isLoading ? <Skeleton className="h-[220px] w-full" /> : pieData.length === 0 ? <Empty /> : (
+              <>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={52} outerRadius={80} paddingAngle={2} dataKey="value">
+                      {pieData.map((e, i) => <Cell key={i} fill={e.color} strokeWidth={0} />)}
+                    </Pie>
+                    <RechartsTooltip content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      return <div className="rounded-lg border border-border bg-card p-2 text-xs shadow-lg"><span className="font-semibold">{payload[0].name}</span>: {payload[0].value}</div>;
+                    }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 mt-1">
+                  {statusDist.filter((s) => s.count > 0).map((s) => (
+                    <div key={s.status} className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <div className={cn("h-2 w-2 shrink-0 rounded-full", STATUS_META[s.status]?.dot)} />
+                        <span className="text-xs text-muted-foreground truncate">{STATUS_META[s.status]?.label}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-foreground tabular-nums shrink-0">{s.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Leads by Status bars */}
+      <Card className="border-border/50 bg-card/80">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Target className="h-4 w-4 text-primary" /> Leads by Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0 space-y-2">
+          {overview.isLoading ? <Skeleton className="h-[240px] w-full" /> : totalLeads === 0 ? <Empty /> : (
+            ALL_STATUSES.map((st) => {
+              const count = statusDist.find((d) => d.status === st)?.count ?? 0;
+              const pct = totalLeads > 0 ? (count / totalLeads) * 100 : 0;
+              return (
+                <div key={st} className="flex items-center gap-3">
+                  <span className="w-24 shrink-0 text-right text-xs text-muted-foreground">{STATUS_META[st]?.label}</span>
+                  <div className="relative h-5 flex-1 rounded-full bg-muted/40 overflow-hidden">
+                    <div className={cn("h-full rounded-full", STATUS_META[st]?.bar)} style={{ width: `${Math.max(pct, count > 0 ? 3 : 0)}%` }} />
+                  </div>
+                  <span className="w-10 shrink-0 text-right text-xs font-bold tabular-nums text-foreground">{count}</span>
+                  <span className="w-12 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">{pct.toFixed(1)}%</span>
+                </div>
+              );
+            })
+          )}
+        </CardContent>
+      </Card>
+
+      {/* User Rankings (source-scoped) */}
+      <Card className="border-border/50 bg-card/80">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <Award className="h-4 w-4 text-primary" /> User Rankings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="overflow-x-auto -mx-2 px-2">
+            {userRanks.isLoading
+              ? <div className="space-y-2">{[1,2,3,4,5].map((i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
+              : !userRanks.data?.length ? <Empty />
+              : (
+                <table className="w-full text-xs min-w-[560px]">
+                  <thead>
+                    <tr className="border-b border-border/50 text-muted-foreground">
+                      <th className="pb-2 text-left font-medium w-8">#</th>
+                      <th className="pb-2 text-left font-medium">Agent</th>
+                      <th className="pb-2 text-right font-medium">Total</th>
+                      <th className="pb-2 text-right font-medium text-green-500">Closed</th>
+                      <th className="pb-2 text-right font-medium text-emerald-500">Revenue</th>
+                      <th className="pb-2 text-right font-medium">Conv%</th>
+                      <th className="pb-2 text-left font-medium pl-3 hidden sm:table-cell">Breakdown</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/30">
+                    {userRanks.data.map((u) => (
+                      <tr key={u.userId} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-2.5 pr-2"><RankBadge rank={u.rank} /></td>
+                        <td className="py-2.5 pr-3">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-xs uppercase">{u.name.charAt(0)}</div>
+                            <span className="font-semibold text-foreground truncate max-w-[120px]">{u.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 text-right font-semibold tabular-nums">{u.total}</td>
+                        <td className="py-2.5 text-right"><span className="font-bold text-green-500 tabular-nums">{u.closed}</span></td>
+                        <td className="py-2.5 text-right"><span className="font-semibold text-emerald-500 tabular-nums">{fmtUSD(u.revenue ?? 0)}</span></td>
+                        <td className="py-2.5 text-right"><span className={cn("font-semibold tabular-nums", u.conversionRate>=50?"text-green-500":u.conversionRate>=25?"text-yellow-500":"text-muted-foreground")}>{u.conversionRate}%</span></td>
+                        <td className="py-2.5 pl-3 hidden sm:table-cell"><MiniStatusBars item={u as unknown as Record<string,number>} total={u.total} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )
+            }
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
 function SourceAnalyticsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
   useCurrencyStore(); // subscribe so component re-renders on currency change
   const { user } = useAuthStore();
@@ -1793,6 +1990,11 @@ function SourceAnalyticsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: st
             </Card>
           </motion.div>
         </>
+      )}
+
+      {/* By-source overview — appears when a source row is selected */}
+      {selectedSource && (
+        <SourceOverview source={selectedSource} dateFrom={dateFrom} dateTo={dateTo} />
       )}
     </div>
   );

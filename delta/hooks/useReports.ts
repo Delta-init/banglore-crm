@@ -25,13 +25,14 @@ interface ApiResponse<T> {
 
 // ── Overview ─────────────────────────────────────────────────────────────────
 
-export function useReportOverview(dateFrom: string, dateTo: string) {
+export function useReportOverview(dateFrom: string, dateTo: string, source?: string) {
   return useQuery<OverviewReport>({
-    queryKey: ["reports", "overview", dateFrom, dateTo],
+    queryKey: ["reports", "overview", dateFrom, dateTo, source],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo)   params.set("dateTo",   dateTo);
+      if (source)   params.set("source",   source);
       const { data } = await api.get<ApiResponse<OverviewReport>>(
         `/reports/overview?${params}`,
       );
@@ -47,13 +48,15 @@ export function useReportTimeline(
   period: TimelinePeriod,
   dateFrom: string,
   dateTo: string,
+  source?: string,
 ) {
   return useQuery<TimelinePoint[]>({
-    queryKey: ["reports", "timeline", period, dateFrom, dateTo],
+    queryKey: ["reports", "timeline", period, dateFrom, dateTo, source],
     queryFn: async () => {
       const params = new URLSearchParams({ period });
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo)   params.set("dateTo",   dateTo);
+      if (source)   params.set("source",   source);
       const { data } = await api.get<ApiResponse<TimelinePoint[]>>(
         `/reports/timeline?${params}`,
       );
@@ -65,13 +68,14 @@ export function useReportTimeline(
 
 // ── User Rankings ─────────────────────────────────────────────────────────────
 
-export function useReportUserRankings(dateFrom: string, dateTo: string) {
+export function useReportUserRankings(dateFrom: string, dateTo: string, source?: string) {
   return useQuery<UserRankItem[]>({
-    queryKey: ["reports", "users", dateFrom, dateTo],
+    queryKey: ["reports", "users", dateFrom, dateTo, source],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: "20" });
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo)   params.set("dateTo",   dateTo);
+      if (source)   params.set("source",   source);
       const { data } = await api.get<ApiResponse<UserRankItem[]>>(
         `/reports/users?${params}`,
       );

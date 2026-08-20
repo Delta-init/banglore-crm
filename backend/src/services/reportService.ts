@@ -25,6 +25,14 @@ export class ReportService {
     return { createdAt: f };
   }
 
+  // Optional source scope. "other" collapses null/missing/empty source, mirroring
+  // the source-analytics bucket so a by-source view lines up with the table.
+  private sourceMatch(source?: string): Record<string, unknown> {
+    if (!source) return {};
+    if (source === "other") return { source: { $in: [null, ""] } };
+    return { source };
+  }
+
   // Build per-status $sum expressions for $group stage
   private statusSumFields() {
     return ALL_STATUSES.reduce<Record<string, unknown>>((acc, s) => {
@@ -35,8 +43,8 @@ export class ReportService {
 
   // ── 1. Overview KPIs + status & source distributions ────────────────────────
 
-  async getOverview(dateFrom?: string, dateTo?: string) {
-    const match = this.buildDateFilter(dateFrom, dateTo);
+  async getOverview(dateFrom?: string, dateTo?: string, source?: string) {
+    const match = { ...this.buildDateFilter(dateFrom, dateTo), ...this.sourceMatch(source) };
 
     // Status distribution
     const statusAgg = await Lead.aggregate([
@@ -96,8 +104,9 @@ export class ReportService {
     period: "daily" | "weekly" | "monthly",
     dateFrom?: string,
     dateTo?: string,
+    source?: string,
   ) {
-    const match = this.buildDateFilter(dateFrom, dateTo);
+    const match = { ...this.buildDateFilter(dateFrom, dateTo), ...this.sourceMatch(source) };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let groupId: any;
@@ -150,8 +159,8 @@ export class ReportService {
 
   // ── 3. User rankings ─────────────────────────────────────────────────────────
 
-  async getUserRankings(dateFrom?: string, dateTo?: string, limit = 20) {
-    const match = this.buildDateFilter(dateFrom, dateTo);
+  async getUserRankings(dateFrom?: string, dateTo?: string, limit = 20, source?: string) {
+    const match = { ...this.buildDateFilter(dateFrom, dateTo), ...this.sourceMatch(source) };
 
     const agg = await Lead.aggregate([
       { $match: { ...match, assignedTo: { $exists: true, $ne: null } } },

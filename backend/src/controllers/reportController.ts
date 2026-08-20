@@ -24,8 +24,9 @@ export const getOverview = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const { dateFrom, dateTo } = getDateParams(req.query as Record<string, string>);
-    const data = await svc.getOverview(dateFrom, dateTo);
+    const q = req.query as Record<string, string>;
+    const { dateFrom, dateTo } = getDateParams(q);
+    const data = await svc.getOverview(dateFrom, dateTo, q.source?.trim() || undefined);
     sendSuccess(res, "Overview fetched successfully", data);
   } catch (err) {
     next(err);
@@ -51,7 +52,7 @@ export const getTimeline = async (
     }
 
     const { dateFrom, dateTo } = getDateParams(q);
-    const data = await svc.getTimeline(period, dateFrom, dateTo);
+    const data = await svc.getTimeline(period, dateFrom, dateTo, q.source?.trim() || undefined);
     sendSuccess(res, "Timeline fetched successfully", data);
   } catch (err) {
     next(err);
@@ -68,7 +69,7 @@ export const getUserRankings = async (
     const q     = req.query as Record<string, string>;
     const limit = Math.min(parseInt(q.limit || "20", 10), 50);
     const { dateFrom, dateTo } = getDateParams(q);
-    const data = await svc.getUserRankings(dateFrom, dateTo, limit);
+    const data = await svc.getUserRankings(dateFrom, dateTo, limit, q.source?.trim() || undefined);
     sendSuccess(res, "User rankings fetched successfully", data);
   } catch (err) {
     next(err);
