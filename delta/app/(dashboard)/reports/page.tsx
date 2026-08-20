@@ -1813,12 +1813,6 @@ function SourceAnalyticsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: st
     [data, sortKey, sortAsc],
   );
 
-  // Default to the top source so the by-source overview is visible without a
-  // click; the user can still click any row to switch it.
-  useEffect(() => {
-    if (!selectedSource && sorted.length > 0) setSelectedSource(sorted[0].source);
-  }, [sorted, selectedSource]);
-
   function toggleSort(key: keyof SourceAnalyticsItem) {
     if (sortKey === key) setSortAsc((v) => !v);
     else { setSortKey(key); setSortAsc(false); }
@@ -1893,11 +1887,6 @@ function SourceAnalyticsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: st
                 </CardContent>
               </Card>
             </motion.div>
-          )}
-
-          {/* By-source overview — shows the selected source (defaults to top source) */}
-          {selectedSource && (
-            <SourceOverview source={selectedSource} dateFrom={dateFrom} dateTo={dateTo} />
           )}
 
           {/* Sortable table with campaign drill-down */}
@@ -2001,6 +1990,11 @@ function SourceAnalyticsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: st
             </Card>
           </motion.div>
         </>
+      )}
+
+      {/* By-source overview — appears when a source row is selected */}
+      {selectedSource && (
+        <SourceOverview source={selectedSource} dateFrom={dateFrom} dateTo={dateTo} />
       )}
     </div>
   );
