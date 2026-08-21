@@ -113,6 +113,7 @@ export interface ITeamSettings {
   includedMembers: Types.Array<Types.ObjectId | IUser>;
   splitTime?: string | null;           // legacy single "HH:mm" IST (mirror of splitTimes[0])
   splitTimes?: string[];               // multiple daily "HH:mm" IST split times
+  sourceExclusions?: Map<string, string[]>; // userId → sources never auto-assigned to them
   roundRobinStartDate?: Date | null;   // count leads from this date for fair round-robin
   lastSplitAt?: Date | null;           // cron dedup — last time scheduled split ran
 }

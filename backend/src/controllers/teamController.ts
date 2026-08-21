@@ -652,6 +652,7 @@ const teamSettingsSchema = z.object({
   includedMembers:       z.array(z.string()).optional(),
   splitTime:             z.string().regex(HHMM, "Must be a valid time HH:mm (00:00–23:59)").nullable().optional(),
   splitTimes:            z.array(z.string().regex(HHMM, "Each time must be HH:mm (00:00–23:59)")).optional(),
+  sourceExclusions:      z.record(z.string(), z.array(z.string().min(1).max(100)).max(50)).optional(), // userId → excluded sources
   roundRobinStartDate:   z.string().nullable().optional(),  // ISO date string
 });
 
@@ -663,7 +664,12 @@ export async function getTeamSettings(
   try {
     const team = await Team.findById(req.params.id).select("settings").lean();
     if (!team) return sendError(res, "Team not found", 404);
-    sendSuccess(res, "Team settings fetched", team.settings ?? {});
+    const settings = (team.settings ?? {}) as Record<string, unknown>;
+    // Normalize the sourceExclusions Map to a plain object for the client.
+    const rawEx = settings.sourceExclusions;
+    settings.sourceExclusions =
+      rawEx instanceof Map ? Object.fromEntries(rawEx) : (rawEx ?? {});
+    sendSuccess(res, "Team settings fetched", settings);
   } catch (err) {
     next(err);
   }
@@ -681,7 +687,7 @@ export async function updateTeamSettings(
     const team = await Team.findById(req.params.id);
     if (!team) return sendError(res, "Team not found", 404);
 
-    const { autoAssign, splitMode, includedMembers, splitTime, splitTimes, roundRobinStartDate } = parsed.data;
+    const { autoAssign, splitMode, includedMembers, splitTime, splitTimes, sourceExclusions, roundRobinStartDate } = parsed.data;
 
     // Effective times: prefer the multi-time array; fall back to the legacy
     // single field. Dedupe + sort so the schedule is deterministic, and mirror
@@ -690,6 +696,13 @@ export async function updateTeamSettings(
     const normalizedTimes = Array.from(new Set(rawTimes)).sort();
     const primaryTime = normalizedTimes[0] ?? null;
 
+    // Normalize source exclusions: drop empty source lists so the map stays clean.
+    const cleanedExclusions: Record<string, string[]> = {};
+    for (const [userId, sources] of Object.entries(sourceExclusions ?? {})) {
+      const uniq = Array.from(new Set((sources ?? []).map((s) => s.trim()).filter(Boolean)));
+      if (uniq.length > 0) cleanedExclusions[userId] = uniq;
+    }
+
     await Team.findByIdAndUpdate(req.params.id, {
       $set: {
         "settings.autoAssign":            autoAssign,
@@ -697,6 +710,7 @@ export async function updateTeamSettings(
         "settings.includedMembers":       includedMembers ?? [],
         "settings.splitTimes":            normalizedTimes,
         "settings.splitTime":             primaryTime,
+        "settings.sourceExclusions":      cleanedExclusions,
         "settings.roundRobinStartDate":   roundRobinStartDate ? new Date(roundRobinStartDate) : null,
         "settings.roundRobinIndex":       0,
       },
@@ -708,6 +722,7 @@ export async function updateTeamSettings(
       includedMembers: includedMembers ?? [],
       splitTimes: normalizedTimes,
       splitTime: primaryTime,
+      sourceExclusions: cleanedExclusions,
       roundRobinStartDate: roundRobinStartDate ?? null,
     });
   } catch (err) {

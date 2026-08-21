@@ -9,6 +9,7 @@ const teamSettingsSchema = new Schema(
     includedMembers: [{ type: Schema.Types.ObjectId, ref: "User" }],
     splitTime: { type: String, default: null },             // legacy single "HH:mm" IST (kept in sync with splitTimes[0])
     splitTimes: { type: [String], default: [] },            // multiple daily "HH:mm" IST split times
+    sourceExclusions: { type: Map, of: [String], default: {} }, // userId → sources never auto-assigned to them
     roundRobinStartDate: { type: Date, default: null },     // count leads from this date
     lastSplitAt: { type: Date, default: null },             // cron dedup
   },

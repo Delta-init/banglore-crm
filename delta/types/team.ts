@@ -7,6 +7,7 @@ export interface TeamSettings {
   includedMembers: string[];
   splitTime?: string | null;
   splitTimes?: string[];
+  sourceExclusions?: Record<string, string[]>;
   roundRobinStartDate?: string | null;
   lastSplitAt?: string | null;
 }

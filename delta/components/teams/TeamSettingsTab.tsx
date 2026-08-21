@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useTeamSettings, useUpdateTeamSettings, useAutoAssignTeamLeads } from "@/hooks/useTeams";
+import { useLeadSources } from "@/hooks/useLeads";
 import type { Team } from "@/types/team";
 import type { User } from "@/types";
 
@@ -101,6 +102,9 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
   const [splitMode, setSplitMode]           = useState<"round_robin" | "equal_load">("round_robin");
   const [splitTimes, setSplitTimes]         = useState<string[]>([]);
   const [roundRobinStartDate, setStartDate] = useState<string>("");
+  // userId → sources that must never be auto-assigned to them
+  const [sourceExclusions, setSourceExclusions] = useState<Record<string, string[]>>({});
+  const { data: leadSources = [] } = useLeadSources();
 
   // orderedPool = the ordered list of User objects currently selected for auto-split
   const [orderedPool, setOrderedPool] = useState<User[]>([]);
@@ -132,6 +136,7 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
         ? settings.roundRobinStartDate.slice(0, 10)
         : "",
     );
+    setSourceExclusions(settings.sourceExclusions ?? {});
     // Build ordered User list from saved includedMembers order
     const savedIds = settings.includedMembers ?? [];
     if (savedIds.length > 0) {
@@ -166,6 +171,25 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
     setSplitTimes((prev) => prev.filter((_, i) => i !== index));
   }
 
+  // ── Per-member source exclusions ────────────────────────────────────────────
+  function addExclusion(userId: string, source: string) {
+    if (!source) return;
+    setSourceExclusions((prev) => {
+      const current = prev[userId] ?? [];
+      if (current.includes(source)) return prev;
+      return { ...prev, [userId]: [...current, source] };
+    });
+  }
+  function removeExclusion(userId: string, source: string) {
+    setSourceExclusions((prev) => {
+      const next = (prev[userId] ?? []).filter((s) => s !== source);
+      const clone = { ...prev };
+      if (next.length > 0) clone[userId] = next;
+      else delete clone[userId];
+      return clone;
+    });
+  }
+
   function handleSave() {
     save({
       autoAssign,
@@ -173,6 +197,7 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
       includedMembers,
       splitTimes: cleanedTimes,
       splitTime: cleanedTimes[0] ?? null,
+      sourceExclusions,
       roundRobinStartDate: roundRobinStartDate || null,
     });
   }
@@ -507,6 +532,98 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
                   No members in this team yet.
                 </p>
               )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Source exclusions — per-member sources that never get auto-assigned */}
+      {autoAssign && (
+        <motion.div variants={itemVariants}>
+          <Card className="border-border/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10">
+                  <X className="h-4 w-4 text-red-400" />
+                </div>
+                Source Exclusions
+                {Object.values(sourceExclusions).reduce((a, b) => a + b.length, 0) > 0 && (
+                  <span className="rounded-full bg-red-500/10 text-red-400 px-2 py-0.5 text-xs font-medium">
+                    {Object.values(sourceExclusions).reduce((a, b) => a + b.length, 0)} rules
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Leads from an excluded source are never auto-assigned to that member — their turn passes to the next member in rotation. Manual assignment is still allowed.
+              </p>
+
+              {leadSources.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">No lead sources found yet.</p>
+              ) : effectivePool.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">No eligible members.</p>
+              ) : (
+                <div className="divide-y divide-border/30">
+                  {effectivePool.map((member) => {
+                    const excluded = sourceExclusions[member._id] ?? [];
+                    const available = leadSources.filter((s) => !excluded.includes(s));
+                    return (
+                      <div key={member._id} className="flex flex-wrap items-center gap-2 py-2">
+                        <span className="w-40 shrink-0 text-sm font-medium text-foreground truncate">{member.name}</span>
+                        <div className="flex flex-1 flex-wrap gap-1.5">
+                          {excluded.length === 0 && (
+                            <span className="text-xs text-muted-foreground italic">receives all sources</span>
+                          )}
+                          {excluded.map((source) => (
+                            <span key={source} className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-xs font-medium capitalize text-red-400">
+                              {source}
+                              {isLeaderOrAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeExclusion(member._id, source)}
+                                  aria-label={`Remove ${source} exclusion for ${member.name}`}
+                                  className="hover:text-red-300"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                        {isLeaderOrAdmin && available.length > 0 && (
+                          <select
+                            value=""
+                            onChange={(e) => { addExclusion(member._id, e.target.value); e.currentTarget.value = ""; }}
+                            className="h-8 rounded-md border border-border bg-background px-2 text-xs [color-scheme:dark]"
+                          >
+                            <option value="">+ Exclude source…</option>
+                            {available.map((s) => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Warn when a source is excluded by EVERY eligible member */}
+              {(() => {
+                const eligibleIds = effectivePool.map((m) => m._id);
+                const fullyExcluded = leadSources.filter(
+                  (src) => eligibleIds.length > 0 && eligibleIds.every((id) => (sourceExclusions[id] ?? []).includes(src)),
+                );
+                if (fullyExcluded.length === 0) return null;
+                return (
+                  <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
+                    <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    <span>
+                      Every eligible member excludes: <span className="font-semibold capitalize">{fullyExcluded.join(", ")}</span>.
+                      Leads from {fullyExcluded.length === 1 ? "this source" : "these sources"} will stay unassigned.
+                    </span>
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </motion.div>

@@ -428,6 +428,15 @@ export class TeamService {
     const leadsToAssign = await Lead.find(query);
     if (leadsToAssign.length === 0) return { assigned: 0, results: [] as { leadId: string; assignedTo: string }[] };
 
+    // Per-member source exclusions — a member never receives an excluded source.
+    const exRaw = (team.settings as any)?.sourceExclusions;
+    const exclusions: Record<string, string[]> =
+      exRaw instanceof Map ? Object.fromEntries(exRaw) : (exRaw ?? {});
+    const isExcluded = (memberId: string, source: string): boolean => {
+      const src = source.trim().toLowerCase();
+      return !!src && !!exclusions[memberId]?.some((s) => s.trim().toLowerCase() === src);
+    };
+
     // Count current loads per member for fair distribution
     const memberLoads = await Promise.all(
       membersList.map(async (m) => ({
@@ -435,15 +444,24 @@ export class TeamService {
         count:  await Lead.countDocuments({ team: teamId, assignedTo: m._id, status: { $in: ["new", "assigned", "followup", "cnc", "booking", "interested", "rnr", "callback", "whatsapp", "student"] } }),
       }))
     );
-    memberLoads.sort((a, b) => a.count - b.count);
 
     const results: { leadId: string; assignedTo: string }[] = [];
     const updates: Promise<unknown>[] = [];
+    let skippedByExclusion = 0;
 
     for (let i = 0; i < leadsToAssign.length; i++) {
-      const { member } = memberLoads[i % memberLoads.length];
       const lead = leadsToAssign[i];
+      const source = ((lead as unknown as { source?: string }).source ?? "").trim();
 
+      // Least-loaded member NOT excluded for this lead's source.
+      let chosen: (typeof memberLoads)[number] | null = null;
+      for (const ml of memberLoads) {
+        if (isExcluded(ml.member._id.toString(), source)) continue;
+        if (!chosen || ml.count < chosen.count) chosen = ml;
+      }
+      if (!chosen) { skippedByExclusion++; continue; } // every member excludes this source
+
+      const member = chosen.member;
       updates.push(
         Lead.findByIdAndUpdate(lead._id, {
           $set: { assignedTo: member._id, status: "assigned", assignedAt: new Date() },
@@ -459,7 +477,10 @@ export class TeamService {
       );
 
       results.push({ leadId: lead._id.toString(), assignedTo: member._id.toString() });
-      memberLoads[i % memberLoads.length].count += 1;
+      chosen.count += 1;
+    }
+    if (skippedByExclusion > 0) {
+      console.log(`[autoAssign] ${skippedByExclusion} lead(s) left unassigned — every eligible member excludes their source`);
     }
 
     await Promise.all(updates);
@@ -539,8 +560,18 @@ export class TeamService {
         return true;
       });
 
-    // Preview distribution — simulate round-robin based on current load
+    // Per-member source exclusions (same rule as the real assignment).
+    const exRaw = (team.settings as any)?.sourceExclusions;
+    const exclusions: Record<string, string[]> =
+      exRaw instanceof Map ? Object.fromEntries(exRaw) : (exRaw ?? {});
+    const isExcluded = (memberId: string, source: string): boolean => {
+      const src = (source ?? "").trim().toLowerCase();
+      return !!src && !!exclusions[memberId]?.some((s) => s.trim().toLowerCase() === src);
+    };
+
+    // Preview distribution — simulate least-loaded, source-aware assignment.
     const previewDistribution: { memberId: string; memberName: string; leadsToReceive: number; currentLoad: number }[] = [];
+    let previewSkipped = 0;
     if (eligibleMembers.length > 0 && unassignedLeads.length > 0) {
       const memberLoads = await Promise.all(
         eligibleMembers.map(async (m) => ({
@@ -550,10 +581,17 @@ export class TeamService {
           leadsToReceive: 0,
         }))
       );
-      memberLoads.sort((a, b) => a.currentLoad - b.currentLoad);
 
-      for (let i = 0; i < unassignedLeads.length; i++) {
-        memberLoads[i % memberLoads.length].leadsToReceive += 1;
+      for (const lead of unassignedLeads as unknown as Array<{ source?: string }>) {
+        const source = (lead.source ?? "").trim();
+        let chosen: (typeof memberLoads)[number] | null = null;
+        for (const ml of memberLoads) {
+          if (isExcluded(ml.memberId, source)) continue;
+          const projected = ml.currentLoad + ml.leadsToReceive;
+          if (!chosen || projected < (chosen.currentLoad + chosen.leadsToReceive)) chosen = ml;
+        }
+        if (!chosen) { previewSkipped++; continue; }
+        chosen.leadsToReceive += 1;
       }
       previewDistribution.push(...memberLoads);
     }
@@ -566,6 +604,8 @@ export class TeamService {
       autoAssign,
       unassignedLeads,
       previewDistribution,
+      previewSkipped,
+      sourceExclusions: exclusions,
     };
   }
 

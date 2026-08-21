@@ -249,11 +249,20 @@ async function autoSplitLead(
         .map((id) => id.toString())
         .filter((id) => allMemberIds.includes(id));
     }
+    // Per-member source exclusions — a member never receives this lead's source.
+    const leadSrcDoc = await Lead.findById(leadId).select("source").lean();
+    const srcNorm = ((leadSrcDoc?.source as string | undefined) ?? "").trim().toLowerCase();
+    const exRaw = (team.settings as any)?.sourceExclusions;
+    const exclusions: Record<string, string[]> =
+      exRaw instanceof Map ? Object.fromEntries(exRaw) : (exRaw ?? {});
+    const isExcludedForSource = (id: string): boolean =>
+      !!srcNorm && !!exclusions[id]?.some((s) => s.trim().toLowerCase() === srcNorm);
+
     const pool = (includedSet.length > 0 ? includedSet : allMemberIds).filter(
-      (id) => !inactiveSet.has(id) && !absentSet.has(id),
+      (id) => !inactiveSet.has(id) && !absentSet.has(id) && !isExcludedForSource(id),
     );
 
-    if (pool.length === 0) return;
+    if (pool.length === 0) return; // nobody eligible (e.g. all exclude this source) → stays unassigned
 
     // ── Assignee selection — EVEN ROUND-ROBIN PER BATCH ─────────────────────────
     // Rotate a stored pointer across the present pool, one step per lead. Over a

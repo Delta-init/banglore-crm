@@ -617,6 +617,7 @@ export const useUpdateTeamSettings = (teamId: string) => {
       includedMembers: string[];
       splitTime?: string | null;
       splitTimes?: string[];
+      sourceExclusions?: Record<string, string[]>;
       roundRobinStartDate?: string | null;
     }) => {
       const res = await api.patch<ApiResponse<TeamSettings>>(`/teams/${teamId}/settings`, settings);
