@@ -82,4 +82,50 @@ export class AuthService {
 
     return { message: "Password changed successfully" };
   }
+
+  /**
+   * Sign in the Root portal's pre-provisioned service account.
+   *
+   * The caller has already verified the handoff token with the portal; this
+   * turns the verified identity into a normal CRM session.
+   *
+   * Deliberately does NOT create the user if it is missing. The service account
+   * is provisioned in this CRM ahead of time, so a missing one means something
+   * is wrong. Auto-creating would mean that anyone who could make this server's
+   * verify call return an arbitrary email — a spoofed ROOT_ERP_API_URL, a
+   * hijacked DNS record, a compromised portal — would be handed a Super Admin
+   * account here, silently.
+   */
+  async ssoLogin(admin: { email: string; name: string; role: string }) {
+    const user = await User.findOne({ email: admin.email.toLowerCase() }).populate("role");
+
+    if (!user) {
+      throw Object.assign(
+        new Error(
+          `No account for ${admin.email} in this CRM. Create it before using SSO.`,
+        ),
+        { statusCode: 401 },
+      );
+    }
+
+    // Same gate as a password login: deactivating a user must lock every door,
+    // not just the one with the password on it.
+    if (user.status === "inactive") {
+      throw Object.assign(new Error("Your account has been deactivated"), {
+        statusCode: 403,
+      });
+    }
+
+    const payload = {
+      userId: user._id.toString(),
+      email: user.email,
+      roleId: (user.role as { _id: { toString(): string } })?._id?.toString() ?? "",
+    };
+
+    return {
+      accessToken: signAccessToken(payload),
+      refreshToken: signRefreshToken(payload),
+      user: user.toJSON(),
+    };
+  }
 }
