@@ -30,6 +30,7 @@ import {
   getUpcomingBatch,
   getTeamMemberSplit,
   getTeamDailySplitBySource,
+  getTeamDailySourceSplit,
 } from "../controllers/teamController.js";
 import { exportTeamPdf } from "../controllers/exportController.js";
 import { authenticate } from "../middleware/auth.js";
@@ -55,6 +56,7 @@ router.get( "/:id/leads",                  checkPermission("leads", "view"), get
 router.get( "/:id/member-stats",           checkPermission("leads", "view"), getTeamMemberStats);
 router.get( "/:id/member-split",           checkPermission("leads", "view"), getTeamMemberSplit);
 router.get( "/:id/daily-split-by-source",   checkPermission("leads", "view"), getTeamDailySplitBySource);
+router.get( "/:id/daily-source-split",      checkPermission("leads", "view"), getTeamDailySourceSplit);
 router.get( "/:id/logs",                   checkPermission("leads", "view"), getTeamLogs);
 router.post("/:id/auto-assign",            checkPermission("leads", "edit"), autoAssignTeamLeads);
 

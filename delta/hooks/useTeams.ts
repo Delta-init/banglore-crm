@@ -171,6 +171,37 @@ export const useTeamDailySplitBySource = (teamId: string, dateFrom: string, date
   });
 };
 
+// ─── Daily split — per-member actual sources for one IST day ─────────────────────
+export interface DailySplitSourceCount { source: string; count: number; }
+export interface DailySplitMember {
+  memberId: string;
+  memberName: string;
+  designation?: string;
+  total: number;
+  sources: DailySplitSourceCount[];
+}
+export interface DailySourceSplitData {
+  date: string;
+  totalAssigned: number;
+  sourceTotals: DailySplitSourceCount[];
+  members: DailySplitMember[];
+}
+
+export const useTeamDailySourceSplit = (teamId: string, date: string, enabled = true) => {
+  return useQuery({
+    queryKey: [...TEAMS_KEY, teamId, "daily-source-split", date],
+    queryFn: async () => {
+      const res = await api.get<ApiResponse<DailySourceSplitData>>(
+        `/teams/${teamId}/daily-source-split`,
+        { params: { date } },
+      );
+      return res.data.data as DailySourceSplitData;
+    },
+    enabled: !!teamId && !!date && enabled,
+    staleTime: 30_000,
+  });
+};
+
 // ─── Mutations ────────────────────────────────────────────────────────────────
 
 export type TeamFormData = {

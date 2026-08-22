@@ -224,6 +224,23 @@ export async function getTeamDailySplitBySource(
   }
 }
 
+export async function getTeamDailySourceSplit(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { date } = req.query as { date?: string };
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return sendError(res, "Query param 'date' (YYYY-MM-DD) is required", 400);
+    }
+    const data = await teamService.getTeamDailySourceSplit(req.params.id, date);
+    sendSuccess(res, "Daily source split fetched successfully", data);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function autoAssignTeamLeads(
   req: AuthenticatedRequest,
   res: Response,

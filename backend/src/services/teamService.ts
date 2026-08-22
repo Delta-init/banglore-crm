@@ -303,6 +303,79 @@ export class TeamService {
   // For a team, count leads by the IST day they were SPLIT (assignedAt) broken
   // down by source. Returns per-day rows (newest first), the source list, and
   // per-source + grand totals for a rows=days × columns=sources table.
+  // ── Daily split — actual sources each member received on a given IST day ────────
+  // Groups leads by the day they were SPLIT (assignedAt) into member × source,
+  // for a single IST calendar day. Powers the team "Daily Split" tab.
+  async getTeamDailySourceSplit(teamId: string, date: string) {
+    const teamObjId = new mongoose.Types.ObjectId(teamId);
+
+    // IST day boundaries: "2026-08-22" IST 00:00 = 2026-08-21T18:30:00Z (UTC+5:30)
+    const dayStart = new Date(`${date}T00:00:00+05:30`);
+    if (isNaN(dayStart.getTime())) {
+      throw Object.assign(new Error("Invalid date — expected YYYY-MM-DD"), { statusCode: 400 });
+    }
+    const dayEnd = new Date(dayStart.getTime() + 86_400_000);
+
+    const agg = await Lead.aggregate([
+      {
+        $match: {
+          team: teamObjId,
+          assignedTo: { $exists: true, $ne: null },
+          assignedAt: { $gte: dayStart, $lt: dayEnd },
+        },
+      },
+      {
+        $group: {
+          _id: { member: "$assignedTo", source: { $ifNull: [{ $trim: { input: "$source" } }, "Unknown"] } },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.member",
+          total: { $sum: "$count" },
+          sources: { $push: { source: { $cond: [{ $eq: ["$_id.source", ""] }, "Unknown", "$_id.source"] }, count: "$count" } },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "user",
+          pipeline: [{ $project: { name: 1, designation: 1 } }],
+        },
+      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: false } },
+      { $sort: { total: -1 } },
+      {
+        $project: {
+          _id: 0,
+          memberId: { $toString: "$_id" },
+          memberName: "$user.name",
+          designation: "$user.designation",
+          total: 1,
+          sources: 1,
+        },
+      },
+    ]);
+
+    const sourceTotals = new Map<string, number>();
+    for (const m of agg) {
+      m.sources.sort((a: { count: number }, b: { count: number }) => b.count - a.count);
+      for (const s of m.sources) sourceTotals.set(s.source, (sourceTotals.get(s.source) ?? 0) + s.count);
+    }
+
+    return {
+      date,
+      totalAssigned: agg.reduce((sum, m) => sum + m.total, 0),
+      sourceTotals: Array.from(sourceTotals.entries())
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count),
+      members: agg,
+    };
+  }
+
   async getTeamDailySplitBySource(teamId: string, dateFrom?: string, dateTo?: string) {
     const teamObjId = new mongoose.Types.ObjectId(teamId);
 

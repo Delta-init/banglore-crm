@@ -142,6 +142,7 @@ import TeamRemindersTab from "@/components/teams/TeamRemindersTab";
 import { TeamMemberKanban } from "@/components/teams/TeamMemberKanban";
 import { TeamSettingsTab } from "@/components/teams/TeamSettingsTab";
 import { UpcomingBatch } from "@/components/teams/UpcomingBatch";
+import { DailySplitTab } from "@/components/teams/DailySplitTab";
 import { ExportPdfDialog } from "@/components/reports/ExportPdfDialog";
 import { AiChatPanel } from "@/components/leads/AiChatPanel";
 import type { Team, TeamMemberStat, TeamUpdateItem, TeamMessageItem, TeamActivityItem } from "@/types/team";
@@ -202,7 +203,7 @@ interface TeamLog {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-type TabId = "dashboard" | "members" | "leads" | "kanban" | "batch" | "logs" | "updates" | "revenue" | "reminders" | "report" | "settings";
+type TabId = "dashboard" | "members" | "leads" | "kanban" | "batch" | "dailysplit" | "logs" | "updates" | "revenue" | "reminders" | "report" | "settings";
 
 const TABS: { id: TabId; label: string }[] = [
   { id: "dashboard",  label: "Dashboard"  },
@@ -210,6 +211,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "leads",      label: "Leads"      },
   { id: "kanban",     label: "Kanban"     },
   { id: "batch",      label: "Batch"      },
+  { id: "dailysplit", label: "Daily Split" },
   { id: "reminders",  label: "Reminders"  },
   { id: "revenue",    label: "Revenue"    },
   { id: "report",     label: "Report"     },
@@ -3569,7 +3571,7 @@ function TeamDetailPageContent() {
   const { user, hasPermission } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const t = searchParams.get("tab") as TabId | null;
-    const valid: TabId[] = ["dashboard", "members", "leads", "kanban", "batch", "logs", "updates", "revenue", "reminders", "report", "settings"];
+    const valid: TabId[] = ["dashboard", "members", "leads", "kanban", "batch", "dailysplit", "logs", "updates", "revenue", "reminders", "report", "settings"];
     return t && valid.includes(t) ? t : "dashboard";
   });
 
@@ -3622,7 +3624,7 @@ function TeamDetailPageContent() {
 
   // If a regular member somehow lands on a restricted tab, bounce them to dashboard
   useEffect(() => {
-    if (!canSeeSensitiveTabs && (activeTab === "leads" || activeTab === "logs" || activeTab === "revenue" || activeTab === "reminders" || activeTab === "kanban" || activeTab === "batch" || activeTab === "report")) {
+    if (!canSeeSensitiveTabs && (activeTab === "leads" || activeTab === "logs" || activeTab === "revenue" || activeTab === "reminders" || activeTab === "kanban" || activeTab === "batch" || activeTab === "dailysplit" || activeTab === "report")) {
       setActiveTab("dashboard");
     }
   }, [canSeeSensitiveTabs, activeTab]);
@@ -3630,7 +3632,7 @@ function TeamDetailPageContent() {
 
   // "updates" is always visible to team members; "leads"/"logs"/"revenue"/"reminders"/"kanban"/"batch" only for leaders/admins
   const visibleTabs = TABS.filter((tab) => {
-    if (tab.id === "leads" || tab.id === "logs" || tab.id === "revenue" || tab.id === "reminders" || tab.id === "kanban" || tab.id === "batch" || tab.id === "report") return canSeeSensitiveTabs;
+    if (tab.id === "leads" || tab.id === "logs" || tab.id === "revenue" || tab.id === "reminders" || tab.id === "kanban" || tab.id === "batch" || tab.id === "dailysplit" || tab.id === "report") return canSeeSensitiveTabs;
     if (tab.id === "settings") return !!isLeaderOrAdmin;
     return true;
   });
@@ -3965,6 +3967,18 @@ function TeamDetailPageContent() {
                 teamId={teamId}
                 canEdit={!!isLeaderOrAdmin}
               />
+            </motion.div>
+          )}
+
+          {activeTab === "dailysplit" && canSeeSensitiveTabs && (
+            <motion.div
+              key="dailysplit"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DailySplitTab teamId={teamId} />
             </motion.div>
           )}
 
