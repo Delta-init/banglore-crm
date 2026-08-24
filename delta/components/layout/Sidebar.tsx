@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  ClipboardCheck,
   LayoutDashboard,
   Users,
   Shield,
@@ -44,6 +45,8 @@ import { getSocket } from "@/lib/socket";
 
 export const navItems: { href: string; label: string; icon: React.ElementType; permModule: string | null }[] = [
   { href: "/dashboard", label: "Dashboard",          icon: LayoutDashboard, permModule: "dashboard" },
+  // Everyone files their own day, so this one is not permission-gated.
+  { href: "/my-tracker",label: "My Tracker",         icon: ClipboardCheck,  permModule: null        },
   { href: "/leads",     label: "Leads",              icon: FileText,        permModule: "leads"     },
   { href: "/calls",     label: "Calls",              icon: PhoneCall,       permModule: "leads"     },
   { href: "/reminders", label: "Reminders",          icon: Bell,            permModule: "reminders" },

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import authRoutes from "./authRoutes.js";
+import myTrackerRoutes from "./myTrackerRoutes.js";
 import userRoutes from "./userRoutes.js";
 import roleRoutes from "./roleRoutes.js";
 import leadRoutes from "./leadRoutes.js";
@@ -18,6 +19,7 @@ import publicRoutes from "./publicRoutes.js";
 const router = Router();
 
 router.use("/auth", authRoutes);
+router.use("/my-tracker", myTrackerRoutes);
 router.use("/users", userRoutes);
 router.use("/users", userLeadRoutes);
 router.use("/roles", roleRoutes);
