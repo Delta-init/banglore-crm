@@ -424,6 +424,33 @@ export class LeadService {
       query.lostReason = filters.lostReason;
       query.status = "lost";
     }
+
+    // Same gap lostReason had on the client: the leads page has controls for
+    // these and builds them into its filters, but nothing here read them.
+    // "true"/"false" only — anything else means no filter rather than a
+    // coerced false, which would hide every lead.
+    if (filters.demoScheduled === "true" || filters.demoScheduled === "false") {
+      query.demoScheduled = filters.demoScheduled === "true";
+    }
+    if (filters.demoAttended === "true" || filters.demoAttended === "false") {
+      query.demoAttended = filters.demoAttended === "true";
+    }
+
+    // Follow-up window, on the same day-boundary rule as the createdAt range.
+    if (filters.followupFrom || filters.followupTo) {
+      const followupRange: Record<string, Date> = {};
+      if (filters.followupFrom) {
+        const f = new Date(filters.followupFrom);
+        f.setUTCHours(0, 0, 0, 0);
+        if (!isNaN(f.getTime())) followupRange.$gte = f;
+      }
+      if (filters.followupTo) {
+        const t = new Date(filters.followupTo);
+        t.setUTCHours(23, 59, 59, 999);
+        if (!isNaN(t.getTime())) followupRange.$lte = t;
+      }
+      if (Object.keys(followupRange).length > 0) query.lastFollowupDate = followupRange;
+    }
     if (filters.assignedTo) {
       // "unassigned" is a sentinel meaning "no counsellor" → match null/missing.
       // Passing the raw string to Mongoose would throw an ObjectId CastError.

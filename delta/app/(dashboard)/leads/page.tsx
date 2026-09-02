@@ -34,6 +34,7 @@ import { AssignLeadDialog } from "@/components/leads/AssignLeadDialog";
 import { KanbanBoard } from "@/components/leads/KanbanBoard";
 import { LostReasonDialog } from "@/components/leads/LostReasonDialog";
 import { LOST_REASONS, LOST_REASON_LABELS, lostReasonLabel } from "@/types/lead";
+import { TruncatedCell } from "@/components/leads/TruncatedCell";
 import { useLeads, useLeadSources, useUpdateLeadStatus, useBulkUpdateLeadStatus, useBulkDeleteLeads, useBulkAssignLeadsToTeam, useUpdateLead } from "@/hooks/useLeads";
 import { useAllCourses } from "@/hooks/useCourses";
 import { useUsers } from "@/hooks/useUsers";
@@ -285,12 +286,21 @@ function LeadsPageContent() {
     if (colId === "lostReason") return (
       <td key="lostReason" className="px-4 py-4">
         {lead.status === "lost" && lead.lostReason ? (
-          <span
-            className="inline-flex rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300"
-            title={lead.lostNotes ?? undefined}
-          >
-            {lostReasonLabel(lead.lostReason)}
-          </span>
+          <div className="space-y-1">
+            <span className="inline-flex rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300">
+              {lostReasonLabel(lead.lostReason)}
+            </span>
+            {/* The note was only a title tooltip, which never shows on touch — and
+                when the reason is "Other" the note IS the reason. Truncated here,
+                full text on click. */}
+            {lead.lostNotes && (
+              <TruncatedCell
+                value={lead.lostNotes}
+                label={`Lost Notes — ${lead.name}`}
+                maxWidth="max-w-[180px]"
+              />
+            )}
+          </div>
         ) : (
           <span className="text-xs text-muted-foreground">—</span>
         )}

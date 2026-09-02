@@ -299,6 +299,13 @@ export interface LeadFilters {
   splitDateFrom?: string;
   /** ISO date string – filter leads SPLIT/assigned (assignedAt) on or before this date */
   splitDateTo?: string;
+  /** "true" | "false" as a query string; anything else means no filter. */
+  demoScheduled?: string;
+  demoAttended?: string;
+  /** ISO date — last follow-up on or after this day */
+  followupFrom?: string;
+  /** ISO date — last follow-up on or before this day */
+  followupTo?: string;
   page?: string;
   limit?: string;
   sortBy?: string;

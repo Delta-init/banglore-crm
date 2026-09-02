@@ -118,6 +118,8 @@ export interface LeadFilters {
   reporter?: string;
   course?: string;
   source?: string;
+  /** One of LOST_REASONS — only meaningful with status="lost" */
+  lostReason?: string;
   campaignId?: string;
   demoScheduled?: string;
   demoAttended?: string;
