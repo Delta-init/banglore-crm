@@ -32,6 +32,8 @@ import { LeadDialog } from "@/components/leads/LeadDialog";
 import { DeleteLeadDialog } from "@/components/leads/DeleteLeadDialog";
 import { AssignLeadDialog } from "@/components/leads/AssignLeadDialog";
 import { KanbanBoard } from "@/components/leads/KanbanBoard";
+import { LostReasonDialog } from "@/components/leads/LostReasonDialog";
+import { LOST_REASONS, LOST_REASON_LABELS, lostReasonLabel } from "@/types/lead";
 import { useLeads, useLeadSources, useUpdateLeadStatus, useBulkUpdateLeadStatus, useBulkDeleteLeads, useBulkAssignLeadsToTeam, useUpdateLead } from "@/hooks/useLeads";
 import { useAllCourses } from "@/hooks/useCourses";
 import { useUsers } from "@/hooks/useUsers";
@@ -73,6 +75,9 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: "name",                 label: "Name",               defaultVisible: true,  alwaysVisible: true  },
   { id: "contact",              label: "Contact",            defaultVisible: true,  alwaysVisible: true  },
   { id: "status",               label: "Status",             defaultVisible: true,  alwaysVisible: true  },
+  // On by default: a lost lead without its reason on the row means opening the
+  // lead to find out, which is the thing a list is meant to save.
+  { id: "lostReason",           label: "Lost Reason",        defaultVisible: true  },
   { id: "source",               label: "Source",             defaultVisible: true  },
   { id: "course",               label: "Course",             defaultVisible: true  },
   { id: "team",                 label: "Team",               defaultVisible: true  },
@@ -138,6 +143,7 @@ function LeadsPageContent() {
   const [page, setPage] = useState(() => Number(searchParams.get("page") ?? "1"));
   const [limit, setLimit] = useState(() => Number(searchParams.get("limit") ?? "10"));
   const [status, setStatus] = useState<string>(() => searchParams.get("status") ?? "all");
+  const [lostReason, setLostReason] = useState<string>(() => searchParams.get("lostReason") ?? "all");
   const [assignedTo, setAssignedTo] = useState<string>(() => searchParams.get("assignedTo") ?? "all");
   const [reporter, setReporter] = useState<string>(() => searchParams.get("reporter") ?? "all");
   const [dateFrom, setDateFrom] = useState<string>(() => searchParams.get("from") ?? "");
@@ -246,6 +252,7 @@ function LeadsPageContent() {
   function renderColHeader(colId: string) {
     if (colId === "name")   return <th key="name"   className="px-4 py-3 text-left">Name</th>;
     if (colId === "status") return <th key="status" className="px-4 py-3 text-left">Status</th>;
+    if (colId === "lostReason") return <th key="lostReason" className="px-4 py-3 text-left">Lost Reason</th>;
     if (!col(colId)) return null;
     const labelMap: Record<string, { label: string; cls: string }> = {
       contact:              { label: "Contact",       cls: "px-4 py-3 text-left" },
@@ -273,6 +280,20 @@ function LeadsPageContent() {
     if (colId === "name") return (
       <td key="name" className="px-4 py-4">
         <p className="font-medium text-sm">{lead.name}</p>
+      </td>
+    );
+    if (colId === "lostReason") return (
+      <td key="lostReason" className="px-4 py-4">
+        {lead.status === "lost" && lead.lostReason ? (
+          <span
+            className="inline-flex rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950 dark:text-red-300"
+            title={lead.lostNotes ?? undefined}
+          >
+            {lostReasonLabel(lead.lostReason)}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        )}
       </td>
     );
     if (colId === "status") return (
@@ -476,7 +497,7 @@ function LeadsPageContent() {
     if (sortBy !== "createdAt") params.set("sortBy", sortBy);
     if (sortOrder !== "desc") params.set("sortOrder", sortOrder);
     router.replace(`?${params.toString()}`, { scroll: false });
-  }, [viewMode, debouncedSearch, page, limit, status, assignedTo, reporter, courseId, teamId, source, dateFrom, dateTo, splitDateFrom, splitDateTo, demoScheduled, demoAttended, followupFrom, followupTo, sortBy, sortOrder]);
+  }, [viewMode, debouncedSearch, page, limit, status, lostReason, assignedTo, reporter, courseId, teamId, source, dateFrom, dateTo, splitDateFrom, splitDateTo, demoScheduled, demoAttended, followupFrom, followupTo, sortBy, sortOrder]);
 
   // ── Dialog state ─────────────────────────────────────────────────────────────
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -501,7 +522,7 @@ function LeadsPageContent() {
   const { mutate: updateLeadField } = useUpdateLead();
 
   // Clear selection when page/filters change
-  useEffect(() => { setSelectedIds(new Set()); }, [page, debouncedSearch, status, assignedTo, reporter, dateFrom, dateTo, courseId, teamId, source, demoScheduled, demoAttended, followupFrom, followupTo]);
+  useEffect(() => { setSelectedIds(new Set()); }, [page, debouncedSearch, status, lostReason, assignedTo, reporter, dateFrom, dateTo, courseId, teamId, source, demoScheduled, demoAttended, followupFrom, followupTo]);
 
   const toggleId = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -562,6 +583,7 @@ function LeadsPageContent() {
     limit,
     ...(debouncedSearch ? { search: debouncedSearch } : {}),
     ...(status !== "all" ? { status } : {}),
+    ...(lostReason !== "all" ? { lostReason } : {}),
     ...(assignedTo !== "all" ? { assignedTo } : {}),
     ...(reporter !== "all" ? { reporter } : {}),
     ...(courseId !== "all" ? { course: courseId } : {}),
@@ -577,7 +599,7 @@ function LeadsPageContent() {
     ...(followupTo ? { followupTo } : {}),
     sortBy,
     sortOrder,
-  }), [page, limit, debouncedSearch, status, assignedTo, reporter, courseId, teamId, source, dateFrom, dateTo, splitDateFrom, splitDateTo, demoScheduled, demoAttended, followupFrom, followupTo, sortBy, sortOrder]);
+  }), [page, limit, debouncedSearch, status, lostReason, assignedTo, reporter, courseId, teamId, source, dateFrom, dateTo, splitDateFrom, splitDateTo, demoScheduled, demoAttended, followupFrom, followupTo, sortBy, sortOrder]);
 
   const { data, isLoading, isFetching } = useLeads(filters);
   const { data: usersData } = useUsers({ status: "active", limit: "200" });
@@ -638,6 +660,7 @@ function LeadsPageContent() {
 
   function clearAllFilters() {
     setStatus("all");
+    setLostReason("all");
     setAssignedTo("all");
     setReporter("all");
     setCourseId("all");
@@ -659,6 +682,9 @@ function LeadsPageContent() {
   // ── Student modal state ───────────────────────────────────────────────────────
   const [studentModalLead, setStudentModalLead] = useState<Lead | null>(null);
   const [pendingStatus,    setPendingStatus]    = useState<{ lead: Lead; status: LeadStatus } | null>(null);
+  // The lead, or the selection, waiting on a reason before it can be lost.
+  const [lostLead,  setLostLead]  = useState<Lead | null>(null);
+  const [lostBulk,  setLostBulk]  = useState(false);
 
   // ── Handlers ──────────────────────────────────────────────────────────────────
   const handleCreate = () => { setSelectedLead(null); setDialogOpen(true); };
@@ -667,6 +693,11 @@ function LeadsPageContent() {
   const handleAssign = (l: Lead) => { setSelectedLead(l); setAssignOpen(true); };
 
   function handleStatusChange(l: Lead, s: LeadStatus) {
+    if (s === "lost") {
+      // Asked now, because now is the only moment anybody knows why.
+      setLostLead(l);
+      return;
+    }
     if (s === "closed") {
       // Check for existing student handled inside the modal via hook
       setPendingStatus({ lead: l, status: s });
@@ -942,6 +973,25 @@ function LeadsPageContent() {
                       </Select>
                     </div>
 
+                    {/* Lost reason — only worth showing while looking at lost
+                        leads, since it is empty on every other status. */}
+                    {(status === "lost" || status === "all") && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-muted-foreground">Lost reason</p>
+                        <Select value={lostReason} onValueChange={(v) => applyFilter(setLostReason, v)}>
+                          <SelectTrigger className="h-9 text-sm">
+                            <SelectValue placeholder="Any reason" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Any reason</SelectItem>
+                            {LOST_REASONS.map((r) => (
+                              <SelectItem key={r} value={r}>{LOST_REASON_LABELS[r]}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
                     {/* Assigned To — only visible to admins/team leaders */}
                     {isAdmin && filterableUsers.length > 0 && (
                       <div className="space-y-1">
@@ -1201,6 +1251,9 @@ function LeadsPageContent() {
                 )}
                 {status !== "all" && (
                   <FilterPill label={`Status: ${STATUS_LABELS[status as LeadStatus]}`} onRemove={() => applyFilter(setStatus, "all")} />
+                )}
+                {lostReason !== "all" && (
+                  <FilterPill label={`Lost: ${lostReasonLabel(lostReason)}`} onRemove={() => applyFilter(setLostReason, "all")} />
                 )}
                 {assignedTo !== "all" && (
                   <FilterPill label={`Assigned: ${userName(assignedTo)}`} onRemove={() => applyFilter(setAssignedTo, "all")} />
@@ -1607,6 +1660,13 @@ function LeadsPageContent() {
               size="sm"
               disabled={bulkUpdateStatus.isPending}
               onClick={() => {
+                // Lost needs a reason, in bulk as much as one at a time —
+                // otherwise selecting everything is the way round the rule.
+                if (bulkStatus === "lost") {
+                  setBulkStatusOpen(false);
+                  setLostBulk(true);
+                  return;
+                }
                 bulkUpdateStatus.mutate(
                   { leadIds: Array.from(selectedIds), status: bulkStatus },
                   { onSuccess: () => { setBulkStatusOpen(false); setSelectedIds(new Set()); } },
@@ -1774,6 +1834,24 @@ function LeadsPageContent() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Lost reason ───────────────────────────────────────────────────────── */}
+      <LostReasonDialog
+        open={Boolean(lostLead) || lostBulk}
+        count={lostBulk ? selectedIds.size : 1}
+        busy={bulkUpdateStatus.isPending}
+        onCancel={() => { setLostLead(null); setLostBulk(false); }}
+        onConfirm={(reason, notes) => {
+          if (lostBulk) {
+            bulkUpdateStatus.mutate({ leadIds: Array.from(selectedIds), status: "lost", lostReason: reason, lostNotes: notes });
+            setSelectedIds(new Set());
+            setLostBulk(false);
+          } else if (lostLead) {
+            updateStatus({ id: lostLead._id, status: "lost", lostReason: reason, lostNotes: notes });
+            setLostLead(null);
+          }
+        }}
+      />
 
       {/* ── Create Student Modal ──────────────────────────────────────────────── */}
       {studentModalLead && (

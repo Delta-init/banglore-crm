@@ -77,6 +77,9 @@ export interface Lead {
   source?: string;
   campaignId?: string;
   status: LeadStatus;
+  /** Set when the lead is marked lost, cleared if it is revived. */
+  lostReason?: string | null;
+  lostNotes?: string | null;
   course?: Course | string | null;
   assignedTo?: User | string | null;
   assignedAt?: string | null;
@@ -165,4 +168,43 @@ export interface UploadLeadsResult {
 export interface AutoAssignResult {
   assigned: number;
   results: { leadId: string; assignedTo: string }[];
+}
+
+/**
+ * Why a lead was lost. Mirrors the list the server accepts.
+ *
+ * "Not enquired" is the one that is not really a loss: the lead never asked
+ * about anything, so counting it beside a lead that went to a competitor would
+ * flatter the pipeline in one direction and the sales team in the other.
+ */
+export const LOST_REASONS = [
+  "price_too_high",
+  "not_interested",
+  "competitor",
+  "unresponsive",
+  "budget_issue",
+  "wrong_timing",
+  "not_enquired",
+  "other",
+] as const;
+export type LostReason = (typeof LOST_REASONS)[number];
+
+export const LOST_REASON_LABELS: Record<LostReason, string> = {
+  price_too_high: "Price too high",
+  not_interested: "Not interested",
+  competitor: "Went to a competitor",
+  unresponsive: "Unresponsive",
+  budget_issue: "Budget issue",
+  wrong_timing: "Wrong timing",
+  not_enquired: "Not enquired",
+  other: "Other",
+};
+
+/** The label, or a tidied slug for a reason recorded before this list grew. */
+export function lostReasonLabel(reason?: string | null): string {
+  if (!reason) return "";
+  return (
+    LOST_REASON_LABELS[reason as LostReason] ??
+    reason.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  );
 }

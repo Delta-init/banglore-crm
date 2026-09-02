@@ -165,6 +165,32 @@ const leadSchema = new Schema<ILead>(
       enum: ["new", "assigned", "pending_response", "followup", "closed", "lost", "not_connected", "mia", "repeated", "callback", "cnc", "booking", "partialbooking"],
       default: "new",
     },
+    /**
+     * Why a lead was lost, recorded at the moment it is marked lost.
+     *
+     * Required by the controller rather than the schema: a lead that has never
+     * been lost has no reason, and making the field required would refuse every
+     * lead that is still open.
+     */
+    lostReason: {
+      type: String,
+      enum: [
+        "price_too_high",
+        "not_interested",
+        "competitor",
+        "unresponsive",
+        "budget_issue",
+        "wrong_timing",
+        "not_enquired",
+        "other",
+      ],
+      default: null,
+    },
+    lostNotes: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     assignedTo: {
       type: Schema.Types.ObjectId,
       ref: "User",

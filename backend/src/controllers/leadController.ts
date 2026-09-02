@@ -2,6 +2,7 @@ import type { Response, NextFunction } from "express";
 import { z } from "zod";
 import * as XLSX from "xlsx";
 import type { AuthenticatedRequest, IRole } from "../types/index.js";
+import { LOST_REASONS } from "../types/index.js";
 import { LeadService, autoSplitLeadPublic } from "../services/leadService.js";
 import { ExcelService } from "../services/excelService.js";
 import { sendSuccess, sendError } from "../utils/response.js";
@@ -60,9 +61,49 @@ const updateLeadSchema = z.object({
   comments: z.string().max(2000).optional().nullable(),
 });
 
-const updateStatusSchema = z.object({
-  status: z.enum(["new", "assigned", "pending_response", "followup", "closed", "lost", "not_connected", "mia", "repeated", "callback", "cnc"]),
-});
+/**
+ * A lead is not lost without a reason.
+ *
+ * Enforced here rather than in the schema: the field is empty on every lead
+ * that is still open, so requiring it in the model would refuse them all. The
+ * moment that matters is the one where somebody marks it lost, and that is a
+ * request.
+ *
+ * Notes come with it. "Not interested" on its own tells whoever picks the lead
+ * up in six months nothing they can act on.
+ */
+const lostFields = {
+  lostReason: z.enum(LOST_REASONS).optional(),
+  lostNotes: z.string().max(500).optional(),
+};
+
+function requireLostReason(
+  data: { status: string; lostReason?: string; lostNotes?: string },
+  ctx: z.RefinementCtx,
+) {
+  if (data.status !== "lost") return;
+  if (!data.lostReason) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["lostReason"],
+      message: "Say why the lead was lost",
+    });
+  }
+  if (!data.lostNotes?.trim()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["lostNotes"],
+      message: "Add a note — the reason on its own is not much use later",
+    });
+  }
+}
+
+const updateStatusSchema = z
+  .object({
+    status: z.enum(["new", "assigned", "pending_response", "followup", "closed", "lost", "not_connected", "mia", "repeated", "callback", "cnc"]),
+    ...lostFields,
+  })
+  .superRefine(requireLostReason);
 
 const assignLeadSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
@@ -753,6 +794,8 @@ export const updateLeadStatus = async (
       req.params.id,
       parsed.data.status,
       req.user!.userId,
+      parsed.data.lostReason,
+      parsed.data.lostNotes,
     );
     sendSuccess(res, "Lead status updated successfully", lead);
   } catch (error) {
@@ -1078,7 +1121,8 @@ export const bulkUpdateLeadStatus = async (
 ): Promise<void> => {
   try {
     const parsed = bulkLeadIdsSchema
-      .extend({ status: z.enum(["new", "assigned", "pending_response", "followup", "closed", "lost", "not_connected", "mia", "repeated", "callback", "cnc"]) })
+      .extend({ status: z.enum(["new", "assigned", "pending_response", "followup", "closed", "lost", "not_connected", "mia", "repeated", "callback", "cnc"]), ...lostFields })
+      .superRefine(requireLostReason)
       .safeParse(req.body);
     if (!parsed.success) {
       sendError(res, "Validation failed", 400, parsed.error.flatten().fieldErrors);
@@ -1088,6 +1132,8 @@ export const bulkUpdateLeadStatus = async (
       parsed.data.leadIds,
       parsed.data.status,
       req.user!.userId,
+      parsed.data.lostReason,
+      parsed.data.lostNotes,
     );
     sendSuccess(res, `${result.updated} lead(s) status updated`, result);
   } catch (error) {

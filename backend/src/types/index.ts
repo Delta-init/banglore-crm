@@ -4,6 +4,30 @@ import type { Document, Types } from "mongoose";
 // ─── Permission Actions ────────────────────────────────────────────────────────
 export type PermissionAction = "view" | "create" | "edit" | "delete" | "approve" | "export";
 
+export const LOST_REASONS = [
+  "price_too_high",
+  "not_interested",
+  "competitor",
+  "unresponsive",
+  "budget_issue",
+  "wrong_timing",
+  "not_enquired",
+  "other",
+] as const;
+export type LostReason = (typeof LOST_REASONS)[number];
+
+/** What each reason is called on screen. */
+export const LOST_REASON_LABELS: Record<LostReason, string> = {
+  price_too_high: "Price too high",
+  not_interested: "Not interested",
+  competitor: "Went to a competitor",
+  unresponsive: "Unresponsive",
+  budget_issue: "Budget issue",
+  wrong_timing: "Wrong timing",
+  not_enquired: "Not enquired",
+  other: "Other",
+};
+
 export interface ModulePermissions {
   view: boolean;
   create: boolean;
@@ -242,6 +266,9 @@ export interface ILead extends Document {
   primaryConcern?: PrimaryConcern | null;
   followupStrategyType?: FollowupStrategyType | null;
   sellingAmount?: number | null;
+  /** Why the lead was lost. Set when the status becomes "lost", cleared when it leaves. */
+  lostReason?: LostReason | null;
+  lostNotes?: string | null;
   // Legacy import fields
   leadReceivedTime?: string | null;
   exactConcern?: string | null;
@@ -256,6 +283,8 @@ export interface ILead extends Document {
 
 export interface LeadFilters {
   status?: LeadStatus;
+  /** Narrow lost leads to one reason. Meaningless on any other status. */
+  lostReason?: LostReason;
   assignedTo?: string;
   team?: string;
   reporter?: string;

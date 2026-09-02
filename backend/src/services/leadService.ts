@@ -417,6 +417,13 @@ export class LeadService {
     }
 
     if (filters.status) query.status = filters.status;
+    // Asking for a reason implies the lost leads, so the status narrows itself:
+    // "Unresponsive" with no status filter should not return an open lead that
+    // happens to carry a stale reason.
+    if (filters.lostReason) {
+      query.lostReason = filters.lostReason;
+      query.status = "lost";
+    }
     if (filters.assignedTo) {
       // "unassigned" is a sentinel meaning "no counsellor" → match null/missing.
       // Passing the raw string to Mongoose would throw an ObjectId CastError.
@@ -573,6 +580,8 @@ export class LeadService {
     id: string,
     status: LeadStatus,
     performedById: string,
+    lostReason?: string,
+    lostNotes?: string,
   ) {
     const lead = await Lead.findById(id);
     if (!lead)
@@ -582,12 +591,30 @@ export class LeadService {
     lead.status = status;
     lead.closedAt = CLOSING_STATUSES.has(status) ? new Date() : null;
 
+    // Cleared when a lead stops being lost: a reason left behind on a lead that
+    // has been revived reads as though it were still lost for that reason.
+    const rec = lead as unknown as Record<string, unknown>;
+    if (status === "lost") {
+      rec.lostReason = lostReason ?? null;
+      rec.lostNotes = lostNotes?.trim() || null;
+    } else {
+      rec.lostReason = null;
+      rec.lostNotes = null;
+    }
+
     addLog(
       lead as never,
       "status_changed",
-      `Status changed from "${prevStatus}" to "${status}"`,
+      status === "lost" && lostReason
+        ? `Status changed from "${prevStatus}" to "lost" — ${lostReason}`
+        : `Status changed from "${prevStatus}" to "${status}"`,
       performedById,
-      { status: { from: prevStatus, to: status } },
+      {
+        status: { from: prevStatus, to: status },
+        ...(status === "lost" && lostReason
+          ? { lostReason: { from: null, to: lostReason } }
+          : {}),
+      },
     );
 
     await lead.save();
@@ -1093,6 +1120,8 @@ export class LeadService {
     leadIds: string[],
     status: LeadStatus,
     performedById: string,
+    lostReason?: string,
+    lostNotes?: string,
   ) {
     const leads = await Lead.find({ _id: { $in: leadIds } });
     await Promise.all(
@@ -1100,12 +1129,29 @@ export class LeadService {
         const prev = lead.status;
         if (prev === status) return;
         lead.status = status;
+
+        const rec = lead as unknown as Record<string, unknown>;
+        if (status === "lost") {
+          rec.lostReason = lostReason ?? null;
+          rec.lostNotes = lostNotes?.trim() || null;
+        } else {
+          rec.lostReason = null;
+          rec.lostNotes = null;
+        }
+
         addLog(
           lead as never,
           "status_changed",
-          `Status bulk-changed from "${prev}" to "${status}"`,
+          status === "lost" && lostReason
+            ? `Status bulk-changed from "${prev}" to "lost" — ${lostReason}`
+            : `Status bulk-changed from "${prev}" to "${status}"`,
           performedById,
-          { status: { from: prev, to: status } },
+          {
+            status: { from: prev, to: status },
+            ...(status === "lost" && lostReason
+              ? { lostReason: { from: null, to: lostReason } }
+              : {}),
+          },
         );
         return lead.save();
       }),
