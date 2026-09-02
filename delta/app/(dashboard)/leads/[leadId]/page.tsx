@@ -39,6 +39,7 @@ import { useTeams } from "@/hooks/useTeams";
 import { useAuthStore } from "@/lib/store/authStore";
 import { formatDate, getInitials } from "@/lib/utils";
 import { lostReasonLabel } from "@/types/lead";
+import { LostReasonDialog } from "@/components/leads/LostReasonDialog";
 import type { LeadNote, ActivityLog, ActivityAction } from "@/types/lead";
 import type { LeadStatus } from "@/lib/statusConfig";
 import type { Course } from "@/types/course";
@@ -463,6 +464,8 @@ export default function LeadDetailPage() {
   const teams = teamsData?.data ?? [];
 
   const updateStatus = useUpdateLeadStatus();
+  // Held while the reason dialog is open; the status change waits on it.
+  const [confirmingLost, setConfirmingLost] = useState(false);
   const updateLead = useUpdateLead();
   const { data: existingStudent } = useStudentByLeadId(lead?._id ?? "");
   const [showStudentModal, setShowStudentModal] = useState(false);
@@ -890,6 +893,11 @@ export default function LeadDetailPage() {
                           if (val === "closed" && !existingStudent) {
                             updateStatus.mutate({ id: lead._id, status: "closed" });
                             setShowStudentModal(true);
+                          } else if (val === "lost") {
+                            // The API rejects "lost" without BOTH a reason and a note, so
+                            // sending the change straight through failed every time and the
+                            // dropdown simply snapped back. Ask first, as the leads table does.
+                            setConfirmingLost(true);
                           } else {
                             updateStatus.mutate({ id: lead._id, status: val as LeadStatus });
                           }
@@ -1372,6 +1380,19 @@ export default function LeadDetailPage() {
           onCreated={() => setShowStudentModal(false)}
         />
       )}
+
+      {/* Reuses the same dialog the leads table uses, so a lead marked lost
+          from either place is recorded the same way. */}
+      <LostReasonDialog
+        open={confirmingLost}
+        count={1}
+        busy={updateStatus.isPending}
+        onCancel={() => setConfirmingLost(false)}
+        onConfirm={(reason, notes) => {
+          updateStatus.mutate({ id: lead._id, status: "lost", lostReason: reason, lostNotes: notes });
+          setConfirmingLost(false);
+        }}
+      />
     </div>
   );
 }
