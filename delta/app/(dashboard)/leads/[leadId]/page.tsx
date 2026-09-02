@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -37,6 +38,7 @@ import { useAllCourses } from "@/hooks/useCourses";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuthStore } from "@/lib/store/authStore";
 import { formatDate, getInitials } from "@/lib/utils";
+import { lostReasonLabel } from "@/types/lead";
 import type { LeadNote, ActivityLog, ActivityAction } from "@/types/lead";
 import type { LeadStatus } from "@/lib/statusConfig";
 import type { Course } from "@/types/course";
@@ -564,6 +566,27 @@ export default function LeadDetailPage() {
               </CardHeader>
 
               <CardContent className="space-y-4">
+                {/* Why the lead was lost. It is recorded on the lead but was rendered
+                    nowhere on this page, so opening a lost lead gave no sign of what
+                    happened — the reason only existed as a column back in the table. */}
+                {lead.status === "lost" && (lead.lostReason || lead.lostNotes) && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900/50 dark:bg-red-950/30">
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-red-700 dark:text-red-300">
+                      Marked lost
+                    </p>
+                    {lead.lostReason && (
+                      <p className="mt-1 text-sm font-semibold text-red-800 dark:text-red-200">
+                        {lostReasonLabel(lead.lostReason)}
+                      </p>
+                    )}
+                    {lead.lostNotes && (
+                      <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-red-700/90 dark:text-red-300/90">
+                        {lead.lostNotes}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 <InfoRow icon={Mail} label="Email" value={lead.email} />
                 <InfoRow icon={Phone} label="Phone" value={lead.phone} leadId={lead._id} leadName={lead.name} hasWhatsapp={lead.hasWhatsapp} />
                 <InfoRow icon={Globe} label="Source" value={lead.source} />
