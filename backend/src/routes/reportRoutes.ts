@@ -12,6 +12,7 @@ import {
   getRevenueTeams,
   getSourceAnalytics,
   getSourceCampaigns,
+  getLostAnalytics,
   getLeaderboard,
 } from "../controllers/reportController.js";
 import { exportExcel, exportPdf } from "../controllers/exportController.js";
@@ -31,6 +32,7 @@ router.get("/team-split",     getTeamSplit);
 // Source analytics — static before parameterized
 router.get("/sources",                    getSourceAnalytics);
 router.get("/sources/:source/campaigns",  getSourceCampaigns);
+router.get("/lost",                       getLostAnalytics);
 
 // Revenue routes
 router.get("/revenue/overview",  getRevenueOverview);

@@ -177,6 +177,22 @@ export const getSourceAnalytics = async (
   }
 };
 
+/** GET /api/reports/lost?dateFrom=&dateTo=&source= */
+export const getLostAnalytics = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const q = req.query as Record<string, string>;
+    const { dateFrom, dateTo } = getDateParams(q);
+    const data = await svc.getLostAnalytics(dateFrom, dateTo, q.source?.trim() || undefined);
+    sendSuccess(res, "Lost analytics fetched successfully", data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 /** GET /api/reports/sources/:source/campaigns?dateFrom=&dateTo= */
 export const getSourceCampaigns = async (
   req: AuthenticatedRequest,

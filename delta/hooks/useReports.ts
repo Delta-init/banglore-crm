@@ -235,3 +235,43 @@ export function useRevenueTeams(dateFrom: string, dateTo: string) {
     staleTime: 60_000,
   });
 }
+
+// ── Lost-lead analytics ───────────────────────────────────────────────────────
+
+export interface LostReasonCount { reason: string; count: number; }
+export interface LostSourceCount { source: string; count: number; }
+export interface LostAgentCount  { userId: string; name: string; count: number; }
+export interface LostRecentLead {
+  id: string;
+  name: string;
+  phone: string | null;
+  source: string | null;
+  reason: string | null;
+  notes: string | null;
+  agent: string | null;
+  lostAt: string | null;
+}
+export interface LostAnalytics {
+  total: number;
+  lost: number;
+  lostRate: number;
+  byReason: LostReasonCount[];
+  bySource: LostSourceCount[];
+  byAgent: LostAgentCount[];
+  recent: LostRecentLead[];
+}
+
+export function useReportLost(dateFrom: string, dateTo: string, source?: string) {
+  return useQuery<LostAnalytics>({
+    queryKey: ["reports", "lost", dateFrom, dateTo, source],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo)   params.set("dateTo",   dateTo);
+      if (source)   params.set("source",   source);
+      const { data } = await api.get<ApiResponse<LostAnalytics>>(`/reports/lost?${params}`);
+      return data.data;
+    },
+    staleTime: 60_000,
+  });
+}

@@ -38,7 +38,9 @@ import {
   useRevenueTeams,
   useSourceAnalytics,
   useCampaignBreakdown,
+  useReportLost,
 } from "@/hooks/useReports";
+import { lostReasonLabel } from "@/types/lead";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCurrencyStore } from "@/lib/store/currencyStore";
@@ -2004,13 +2006,209 @@ function SourceAnalyticsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: st
 // ROOT PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 
-type Tab = "overview" | "split" | "revenue" | "sources";
+// ─── Lost Leads Tab — why leads are lost ─────────────────────────────────────
+function reasonText(reason: string): string {
+  return reason === "unspecified" ? "Not specified" : lostReasonLabel(reason);
+}
+
+function LostLeadsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }) {
+  const { data, isLoading } = useReportLost(dateFrom, dateTo);
+
+  const totalLost = data?.lost ?? 0;
+  const byReason  = data?.byReason ?? [];
+  const bySource  = data?.bySource ?? [];
+  const byAgent   = data?.byAgent ?? [];
+  const recent    = data?.recent ?? [];
+
+  const reasonPie = byReason
+    .filter((r) => r.count > 0)
+    .map((r, i) => ({ name: reasonText(r.reason), value: r.count, color: BAR_COLORS[i % BAR_COLORS.length] }));
+
+  const maxSource = Math.max(1, ...bySource.map((s) => s.count));
+  const maxAgent  = Math.max(1, ...byAgent.map((a) => a.count));
+
+  function exportRecent() {
+    const csv = toCsv(recent as unknown as Record<string, unknown>[], [
+      { key: "name", label: "Lead" },
+      { key: "phone", label: "Phone" },
+      { key: "source", label: "Source" },
+      { key: "agent", label: "Agent" },
+      { key: "reason", label: "Reason", get: (r) => (r.reason ? reasonText(String(r.reason)) : "Not specified") },
+      { key: "notes", label: "What Happened" },
+      { key: "lostAt", label: "Lost At", get: (r) => (r.lostAt ? new Date(r.lostAt as string).toISOString().slice(0, 10) : "") },
+    ]);
+    downloadCsv(`lost-leads-${dateFrom || "all"}_${dateTo || "all"}`, csv);
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* KPIs */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+        <KpiCard title="Total Leads" value={fmt(data?.total ?? 0)} icon={Layers}        gradient="bg-gradient-to-br from-blue-500 to-blue-600"   delay={0}    loading={isLoading} />
+        <KpiCard title="Lost"        value={fmt(totalLost)}       icon={AlertTriangle}  gradient="bg-gradient-to-br from-red-500 to-red-600"     delay={0.06} loading={isLoading} />
+        <KpiCard title="Lost Rate"   value={`${data?.lostRate ?? 0}%`} sub="lost ÷ total" icon={Target} gradient="bg-gradient-to-br from-orange-500 to-orange-600" delay={0.12} loading={isLoading} />
+      </div>
+
+      {/* Reasons — donut + labeled bars */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <motion.div className="lg:col-span-2" initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.18 }}>
+          <Card className="border-border/50 bg-card/80 backdrop-blur-sm h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-400" /> Why Leads Are Lost
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {isLoading ? <Skeleton className="h-[220px] w-full" /> : reasonPie.length === 0 ? <Empty text="No lost leads in this period" /> : (
+                <>
+                  <ResponsiveContainer width="100%" height={190}>
+                    <PieChart>
+                      <Pie data={reasonPie} cx="50%" cy="50%" innerRadius={54} outerRadius={82} paddingAngle={2} dataKey="value">
+                        {reasonPie.map((e, i) => <Cell key={i} fill={e.color} strokeWidth={0} />)}
+                      </Pie>
+                      <RechartsTooltip content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+                        return <div className="rounded-lg border border-border bg-card p-2 text-xs shadow-lg"><span className="font-semibold">{payload[0].name}</span>: {payload[0].value}</div>;
+                      }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <p className="text-center text-xs text-muted-foreground -mt-1">{fmt(totalLost)} lost leads</p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div className="lg:col-span-3" initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.24 }}>
+          <Card className="border-border/50 bg-card/80 backdrop-blur-sm h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" /> Reason Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-2.5">
+              {isLoading ? <Skeleton className="h-[220px] w-full" /> : byReason.length === 0 ? <Empty text="No lost leads in this period" /> : (
+                byReason.map((r, i) => {
+                  const pct = totalLost > 0 ? (r.count / totalLost) * 100 : 0;
+                  return (
+                    <div key={r.reason} className="flex items-center gap-3">
+                      <span className="w-32 shrink-0 text-right text-xs text-muted-foreground truncate">{reasonText(r.reason)}</span>
+                      <div className="relative h-5 flex-1 rounded-full bg-muted/40 overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${Math.max(pct, r.count > 0 ? 2 : 0)}%`, background: BAR_COLORS[i % BAR_COLORS.length] }} />
+                      </div>
+                      <span className="w-12 shrink-0 text-right text-xs font-bold tabular-nums text-foreground">{fmt(r.count)}</span>
+                      <span className="w-12 shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">{pct.toFixed(1)}%</span>
+                    </div>
+                  );
+                })
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Lost by source + by agent */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <motion.div initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.3 }}>
+          <Card className="border-border/50 bg-card/80 backdrop-blur-sm h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2"><TrendingUp className="h-4 w-4 text-primary" /> Lost by Source</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-2">
+              {isLoading ? <div className="space-y-2">{[1,2,3,4].map((i)=><Skeleton key={i} className="h-6 w-full" />)}</div> : bySource.length === 0 ? <Empty /> : (
+                bySource.map((s) => (
+                  <div key={s.source} className="flex items-center gap-3">
+                    <span className="w-32 shrink-0 truncate text-xs capitalize text-muted-foreground">{s.source}</span>
+                    <div className="relative h-5 flex-1 rounded-full bg-muted/40 overflow-hidden">
+                      <div className="h-full rounded-full bg-red-500/70" style={{ width: `${(s.count / maxSource) * 100}%` }} />
+                    </div>
+                    <span className="w-12 shrink-0 text-right text-xs font-bold tabular-nums text-foreground">{fmt(s.count)}</span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.36 }}>
+          <Card className="border-border/50 bg-card/80 backdrop-blur-sm h-full">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> Lost by Agent</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0 space-y-2">
+              {isLoading ? <div className="space-y-2">{[1,2,3,4].map((i)=><Skeleton key={i} className="h-6 w-full" />)}</div> : byAgent.length === 0 ? <Empty /> : (
+                byAgent.map((a) => (
+                  <div key={a.userId} className="flex items-center gap-3">
+                    <span className="w-32 shrink-0 truncate text-xs text-muted-foreground">{a.name}</span>
+                    <div className="relative h-5 flex-1 rounded-full bg-muted/40 overflow-hidden">
+                      <div className="h-full rounded-full bg-orange-500/70" style={{ width: `${(a.count / maxAgent) * 100}%` }} />
+                    </div>
+                    <span className="w-12 shrink-0 text-right text-xs font-bold tabular-nums text-foreground">{fmt(a.count)}</span>
+                  </div>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Recent lost leads */}
+      <motion.div initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.42 }}>
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-red-400" /> Recent Lost Leads</CardTitle>
+              <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs" disabled={recent.length === 0} onClick={exportRecent}>
+                <Download className="h-3.5 w-3.5" /> CSV
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="overflow-x-auto">
+              {isLoading ? <div className="space-y-2">{[1,2,3,4,5].map((i)=><Skeleton key={i} className="h-9 w-full" />)}</div> : recent.length === 0 ? <Empty text="No lost leads in this period" /> : (
+                <table className="w-full text-xs min-w-[640px]">
+                  <thead>
+                    <tr className="border-b border-border/50 text-muted-foreground">
+                      <th className="pb-2 pr-3 text-left font-medium">Lead</th>
+                      <th className="pb-2 px-2 text-left font-medium">Source</th>
+                      <th className="pb-2 px-2 text-left font-medium">Agent</th>
+                      <th className="pb-2 px-2 text-left font-medium">Reason</th>
+                      <th className="pb-2 pl-2 text-left font-medium">What Happened</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/30">
+                    {recent.map((l) => (
+                      <tr key={l.id} className="hover:bg-muted/30 transition-colors align-top">
+                        <td className="py-2 pr-3 font-medium text-foreground whitespace-nowrap">{l.name}</td>
+                        <td className="py-2 px-2 capitalize text-muted-foreground whitespace-nowrap">{l.source ?? "—"}</td>
+                        <td className="py-2 px-2 text-muted-foreground whitespace-nowrap">{l.agent ?? "—"}</td>
+                        <td className="py-2 px-2 whitespace-nowrap">
+                          <span className="inline-flex items-center rounded-full border border-red-500/30 bg-red-500/10 px-2 py-0.5 text-[11px] font-medium text-red-400">
+                            {l.reason ? reasonText(l.reason) : "Not specified"}
+                          </span>
+                        </td>
+                        <td className="py-2 pl-2 text-muted-foreground max-w-[280px] truncate" title={l.notes ?? ""}>{l.notes || "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
+  );
+}
+
+type Tab = "overview" | "split" | "revenue" | "sources" | "lost";
 
 const TABS: { id: Tab; label: string; shortLabel: string; icon: React.ElementType }[] = [
   { id: "overview", label: "Overview",      shortLabel: "Overview", icon: BarChart2    },
   { id: "split",    label: "Lead Splitting", shortLabel: "Leads",    icon: GitFork      },
   { id: "revenue",  label: "Revenue",        shortLabel: "Revenue",  icon: DollarSign   },
   { id: "sources",  label: "Sources",        shortLabel: "Sources",  icon: TrendingUp   },
+  { id: "lost",     label: "Lost Leads",     shortLabel: "Lost",     icon: AlertTriangle },
 ];
 
 function ReportsPageContent() {
@@ -2168,9 +2366,13 @@ function ReportsPageContent() {
             <motion.div key="revenue" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} transition={{ duration:0.2 }}>
               <RevenueTab dateFrom={dateFrom} dateTo={dateTo} />
             </motion.div>
-          ) : (
+          ) : activeTab === "sources" ? (
             <motion.div key="sources" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} transition={{ duration:0.2 }}>
               <SourceAnalyticsTab dateFrom={dateFrom} dateTo={dateTo} />
+            </motion.div>
+          ) : (
+            <motion.div key="lost" initial={{ opacity:0, y:10 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} transition={{ duration:0.2 }}>
+              <LostLeadsTab dateFrom={dateFrom} dateTo={dateTo} />
             </motion.div>
           )}
         </AnimatePresence>

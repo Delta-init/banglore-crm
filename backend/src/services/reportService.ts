@@ -1110,6 +1110,72 @@ export class ReportService {
     });
   }
 
+  // ── 12b. Lost-lead analytics — why leads are lost ─────────────────────────────
+  // Scopes leads by created date (same basis as the rest of Reports) + optional
+  // source, then analyses the "lost" ones: overall lost rate, breakdown by
+  // reason / source / agent, and a recent list carrying the reason + note.
+  async getLostAnalytics(dateFrom?: string, dateTo?: string, source?: string) {
+    const baseMatch = { ...this.buildDateFilter(dateFrom, dateTo), ...this.sourceMatch(source) };
+    const lostMatch = { ...baseMatch, status: "lost" };
+
+    const [total, lost] = await Promise.all([
+      Lead.countDocuments(baseMatch),
+      Lead.countDocuments(lostMatch),
+    ]);
+
+    // Null lostReason (legacy lost leads) is bucketed as "unspecified" so it is
+    // distinct from the real "other" reason.
+    const reasonAgg = await Lead.aggregate<{ _id: string; count: number }>([
+      { $match: lostMatch },
+      { $group: { _id: { $ifNull: ["$lostReason", "unspecified"] }, count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+    const byReason = reasonAgg.map((r) => ({ reason: (r._id as string) || "unspecified", count: r.count }));
+
+    const sourceAgg = await Lead.aggregate<{ _id: string; count: number }>([
+      { $match: lostMatch },
+      { $group: { _id: { $ifNull: ["$source", "other"] }, count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+    ]);
+    const bySource = sourceAgg.map((r) => ({ source: (r._id as string) || "other", count: r.count }));
+
+    const agentAgg = await Lead.aggregate([
+      { $match: { ...lostMatch, assignedTo: { $ne: null } } },
+      { $group: { _id: "$assignedTo", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 20 },
+      { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "user", pipeline: [{ $project: { name: 1 } }] } },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: false } },
+      { $project: { _id: 0, userId: { $toString: "$_id" }, name: "$user.name", count: 1 } },
+    ]);
+
+    const recent = await Lead.find(lostMatch)
+      .select("name phone source lostReason lostNotes assignedTo updatedAt createdAt")
+      .populate("assignedTo", "name")
+      .sort({ updatedAt: -1 })
+      .limit(100)
+      .lean();
+
+    return {
+      total,
+      lost,
+      lostRate: total > 0 ? +((lost / total) * 100).toFixed(1) : 0,
+      byReason,
+      bySource,
+      byAgent: agentAgg as { userId: string; name: string; count: number }[],
+      recent: recent.map((l) => ({
+        id: String(l._id),
+        name: l.name,
+        phone: l.phone ?? null,
+        source: l.source ?? null,
+        reason: (l as unknown as { lostReason?: string }).lostReason ?? null,
+        notes: (l as unknown as { lostNotes?: string }).lostNotes ?? null,
+        agent: (l.assignedTo as unknown as { name?: string } | null)?.name ?? null,
+        lostAt: (l.updatedAt as Date | undefined)?.toISOString?.() ?? null,
+      })),
+    };
+  }
+
   // ── 13. Status breakdown by period (for comparing periods) ────────────────────
 
   async getStatusByPeriod(
