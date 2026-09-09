@@ -12,9 +12,10 @@ import {
   TrendingUp, Users, UsersRound, Target, Award,
   Calendar, RefreshCw, BarChart2, Activity, Layers,
   GitFork, DollarSign, Trophy, ChevronDown, ChevronUp,
-  Loader2, Tag, X, ArrowUpRight, AlertTriangle, Download,
+  Loader2, Tag, X, ArrowUpRight, AlertTriangle, Download, Search, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -39,8 +40,10 @@ import {
   useSourceAnalytics,
   useCampaignBreakdown,
   useReportLost,
+  useLostLeads,
 } from "@/hooks/useReports";
-import { lostReasonLabel } from "@/types/lead";
+import { lostReasonLabel, LOST_REASONS } from "@/types/lead";
+import { useLeadSources } from "@/hooks/useLeads";
 import { useTeams } from "@/hooks/useTeams";
 import { useAuthStore } from "@/lib/store/authStore";
 import { useCurrencyStore } from "@/lib/store/currencyStore";
@@ -2018,7 +2021,6 @@ function LostLeadsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }
   const byReason  = data?.byReason ?? [];
   const bySource  = data?.bySource ?? [];
   const byAgent   = data?.byAgent ?? [];
-  const recent    = data?.recent ?? [];
 
   const reasonPie = byReason
     .filter((r) => r.count > 0)
@@ -2027,8 +2029,41 @@ function LostLeadsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }
   const maxSource = Math.max(1, ...bySource.map((s) => s.count));
   const maxAgent  = Math.max(1, ...byAgent.map((a) => a.count));
 
+  // ── Filterable / paginated Recent Lost Leads table ──────────────────────────
+  const { data: sources = [] } = useLeadSources();
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch]           = useState("");
+  const [notesInput, setNotesInput]   = useState("");
+  const [notes, setNotes]             = useState("");
+  const [srcFilter, setSrcFilter]     = useState("all");
+  const [reasonFilter, setReasonFilter] = useState("all");
+  const [agentFilter, setAgentFilter] = useState("all");
+  const [page, setPage]               = useState(1);
+  const limit = 25;
+
+  // Reset to page 1 whenever a filter or the report date range changes.
+  useEffect(() => { setPage(1); }, [search, notes, srcFilter, reasonFilter, agentFilter, dateFrom, dateTo]);
+
+  const lostLeads = useLostLeads({
+    dateFrom, dateTo,
+    source:  srcFilter !== "all" ? srcFilter : undefined,
+    reason:  reasonFilter !== "all" ? reasonFilter : undefined,
+    agentId: agentFilter !== "all" ? agentFilter : undefined,
+    search:  search || undefined,
+    notes:   notes || undefined,
+    page, limit,
+  });
+  const rows = lostLeads.data?.data ?? [];
+  const pg   = lostLeads.data?.pagination;
+  const hasFilters = !!search || !!notes || srcFilter !== "all" || reasonFilter !== "all" || agentFilter !== "all";
+
+  function clearFilters() {
+    setSearchInput(""); setSearch(""); setNotesInput(""); setNotes("");
+    setSrcFilter("all"); setReasonFilter("all"); setAgentFilter("all"); setPage(1);
+  }
+
   function exportRecent() {
-    const csv = toCsv(recent as unknown as Record<string, unknown>[], [
+    const csv = toCsv(rows as unknown as Record<string, unknown>[], [
       { key: "name", label: "Lead" },
       { key: "phone", label: "Phone" },
       { key: "source", label: "Source" },
@@ -2037,7 +2072,7 @@ function LostLeadsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }
       { key: "notes", label: "What Happened" },
       { key: "lostAt", label: "Lost At", get: (r) => (r.lostAt ? new Date(r.lostAt as string).toISOString().slice(0, 10) : "") },
     ]);
-    downloadCsv(`lost-leads-${dateFrom || "all"}_${dateTo || "all"}`, csv);
+    downloadCsv(`lost-leads-${dateFrom || "all"}_${dateTo || "all"}-p${page}`, csv);
   }
 
   return (
@@ -2222,17 +2257,76 @@ function LostLeadsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }
       {/* Recent lost leads */}
       <motion.div initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.42 }}>
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-red-400" /> Recent Lost Leads</CardTitle>
-              <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs" disabled={recent.length === 0} onClick={exportRecent}>
+          <CardHeader className="pb-3 space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-red-400" /> Lost Leads
+                {pg && <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">{pg.total}</span>}
+              </CardTitle>
+              <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs" disabled={rows.length === 0} onClick={exportRecent}>
                 <Download className="h-3.5 w-3.5" /> CSV
               </Button>
+            </div>
+
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && setSearch(searchInput.trim())}
+                  placeholder="Search name / phone…"
+                  className="pl-8 h-8 w-44 text-xs"
+                />
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  value={notesInput}
+                  onChange={(e) => setNotesInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && setNotes(notesInput.trim())}
+                  placeholder="Search what happened…"
+                  className="pl-8 h-8 w-48 text-xs"
+                />
+              </div>
+              <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={() => { setSearch(searchInput.trim()); setNotes(notesInput.trim()); }}>Go</Button>
+
+              <Select value={srcFilter} onValueChange={setSrcFilter}>
+                <SelectTrigger className="w-[130px] h-8 text-xs"><SelectValue placeholder="All Sources" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  {sources.map((s) => <SelectItem key={s} value={s} className="text-xs capitalize">{s}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <Select value={reasonFilter} onValueChange={setReasonFilter}>
+                <SelectTrigger className="w-[140px] h-8 text-xs"><SelectValue placeholder="All Reasons" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Reasons</SelectItem>
+                  {LOST_REASONS.map((r) => <SelectItem key={r} value={r} className="text-xs">{lostReasonLabel(r)}</SelectItem>)}
+                  <SelectItem value="unspecified" className="text-xs">Not specified</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={agentFilter} onValueChange={setAgentFilter}>
+                <SelectTrigger className="w-[150px] h-8 text-xs"><SelectValue placeholder="All Agents" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Agents</SelectItem>
+                  {byAgent.map((a) => <SelectItem key={a.userId} value={a.userId} className="text-xs">{a.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              {hasFilters && (
+                <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground" onClick={clearFilters}>
+                  <X className="h-3.5 w-3.5" /> Clear
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="overflow-x-auto">
-              {isLoading ? <div className="space-y-2">{[1,2,3,4,5].map((i)=><Skeleton key={i} className="h-9 w-full" />)}</div> : recent.length === 0 ? <Empty text="No lost leads in this period" /> : (
+              {lostLeads.isLoading ? <div className="space-y-2">{[1,2,3,4,5].map((i)=><Skeleton key={i} className="h-9 w-full" />)}</div> : rows.length === 0 ? <Empty text="No lost leads match these filters" /> : (
                 <table className="w-full text-xs min-w-[640px]">
                   <thead>
                     <tr className="border-b border-border/50 text-muted-foreground">
@@ -2244,7 +2338,7 @@ function LostLeadsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
-                    {recent.map((l) => (
+                    {rows.map((l) => (
                       <tr key={l.id} className="hover:bg-muted/30 transition-colors align-top">
                         <td className="py-2 pr-3 font-medium text-foreground whitespace-nowrap">{l.name}</td>
                         <td className="py-2 px-2 capitalize text-muted-foreground whitespace-nowrap">{l.source ?? "—"}</td>
@@ -2261,6 +2355,20 @@ function LostLeadsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }
                 </table>
               )}
             </div>
+
+            {/* Pagination */}
+            {pg && pg.totalPages > 1 && (
+              <div className="flex items-center justify-between border-t border-border/50 pt-3 mt-3">
+                <p className="text-xs text-muted-foreground">
+                  {(pg.page - 1) * pg.limit + 1}–{Math.min(pg.page * pg.limit, pg.total)} of {pg.total}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="icon" className="h-7 w-7" disabled={!pg.hasPrevPage || lostLeads.isFetching} onClick={() => setPage((p) => p - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+                  <span className="text-xs font-medium px-1">{pg.page} / {pg.totalPages}</span>
+                  <Button variant="outline" size="icon" className="h-7 w-7" disabled={!pg.hasNextPage || lostLeads.isFetching} onClick={() => setPage((p) => p + 1)}><ChevronRight className="h-4 w-4" /></Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>

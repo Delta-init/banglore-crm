@@ -286,3 +286,44 @@ export function useReportLost(dateFrom: string, dateTo: string, source?: string)
     staleTime: 60_000,
   });
 }
+
+// ── Lost leads — filterable + paginated list ─────────────────────────────────
+
+export interface LostLeadsFilters {
+  dateFrom?: string;
+  dateTo?: string;
+  source?: string;
+  reason?: string;
+  agentId?: string;
+  search?: string;
+  notes?: string;
+  page?: number;
+  limit?: number;
+}
+interface LostLeadsPagination {
+  total: number; page: number; limit: number;
+  totalPages: number; hasNextPage: boolean; hasPrevPage: boolean;
+}
+
+export function useLostLeads(filters: LostLeadsFilters) {
+  return useQuery<{ data: LostRecentLead[]; pagination?: LostLeadsPagination }>({
+    queryKey: ["reports", "lost", "leads", filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters.dateFrom) params.set("dateFrom", filters.dateFrom);
+      if (filters.dateTo)   params.set("dateTo",   filters.dateTo);
+      if (filters.source)   params.set("source",   filters.source);
+      if (filters.reason)   params.set("reason",   filters.reason);
+      if (filters.agentId)  params.set("agentId",  filters.agentId);
+      if (filters.search)   params.set("search",   filters.search);
+      if (filters.notes)    params.set("notes",    filters.notes);
+      params.set("page",  String(filters.page ?? 1));
+      params.set("limit", String(filters.limit ?? 20));
+      const res = await api.get<{ success: boolean; data: LostRecentLead[]; pagination?: LostLeadsPagination }>(
+        `/reports/lost/leads?${params}`,
+      );
+      return { data: res.data.data ?? [], pagination: res.data.pagination };
+    },
+    staleTime: 30_000,
+  });
+}

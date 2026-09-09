@@ -193,6 +193,31 @@ export const getLostAnalytics = async (
   }
 };
 
+/** GET /api/reports/lost/leads — filterable, paginated lost-lead list */
+export const getLostLeads = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const q = req.query as Record<string, string>;
+    const { dateFrom, dateTo } = getDateParams(q);
+    const { data, pagination } = await svc.getLostLeads({
+      dateFrom, dateTo,
+      source:  q.source?.trim()  || undefined,
+      reason:  q.reason?.trim()  || undefined,
+      agentId: q.agentId?.trim() || undefined,
+      search:  q.search?.trim()  || undefined,
+      notes:   q.notes?.trim()   || undefined,
+      page:    q.page,
+      limit:   q.limit,
+    });
+    sendSuccess(res, "Lost leads fetched successfully", data, 200, pagination);
+  } catch (err) {
+    next(err);
+  }
+};
+
 /** GET /api/reports/sources/:source/campaigns?dateFrom=&dateTo= */
 export const getSourceCampaigns = async (
   req: AuthenticatedRequest,

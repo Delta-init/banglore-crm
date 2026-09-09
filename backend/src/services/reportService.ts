@@ -1205,6 +1205,67 @@ export class ReportService {
     };
   }
 
+  // ── 12c. Lost leads — filterable + paginated list (for the Lost tab table) ────
+  async getLostLeads(opts: {
+    dateFrom?: string; dateTo?: string; source?: string; reason?: string;
+    agentId?: string; search?: string; notes?: string; page?: string; limit?: string;
+  }) {
+    const page  = Math.max(1, parseInt(opts.page ?? "1", 10));
+    const limit = Math.min(200, Math.max(1, parseInt(opts.limit ?? "20", 10)));
+    const skip  = (page - 1) * limit;
+
+    const query: Record<string, unknown> = {
+      ...this.buildDateFilter(opts.dateFrom, opts.dateTo),
+      ...this.sourceMatch(opts.source),
+      status: "lost",
+    };
+    if (opts.reason) {
+      query.lostReason = opts.reason === "unspecified" ? { $in: [null, ""] } : opts.reason;
+    }
+    if (opts.agentId) query.assignedTo = new mongoose.Types.ObjectId(opts.agentId);
+
+    const and: Record<string, unknown>[] = [];
+    if (opts.search) {
+      const r = new RegExp(opts.search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      and.push({ $or: [{ name: r }, { phone: r }] });
+    }
+    if (opts.notes) {
+      const r = new RegExp(opts.notes.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      and.push({ lostNotes: r });
+    }
+    if (and.length) query.$and = and;
+
+    const [rows, total] = await Promise.all([
+      Lead.find(query)
+        .select("name phone source lostReason lostNotes assignedTo updatedAt createdAt")
+        .populate("assignedTo", "name")
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Lead.countDocuments(query),
+    ]);
+
+    return {
+      data: rows.map((l) => ({
+        id: String(l._id),
+        name: l.name,
+        phone: l.phone ?? null,
+        source: l.source ?? null,
+        reason: (l as unknown as { lostReason?: string }).lostReason ?? null,
+        notes: (l as unknown as { lostNotes?: string }).lostNotes ?? null,
+        agent: (l.assignedTo as unknown as { name?: string } | null)?.name ?? null,
+        lostAt: (l.updatedAt as Date | undefined)?.toISOString?.() ?? null,
+      })),
+      pagination: {
+        total, page, limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+        hasNextPage: page * limit < total,
+        hasPrevPage: page > 1,
+      },
+    };
+  }
+
   // ── 13. Status breakdown by period (for comparing periods) ────────────────────
 
   async getStatusByPeriod(
