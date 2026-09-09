@@ -251,6 +251,16 @@ export interface LostRecentLead {
   agent: string | null;
   lostAt: string | null;
 }
+export interface LostSourceReasonRow {
+  source: string;
+  counts: Record<string, number>;
+  total: number;
+}
+export interface LostSourceByReason {
+  reasons: string[];
+  rows: LostSourceReasonRow[];
+  reasonTotals: Record<string, number>;
+}
 export interface LostAnalytics {
   total: number;
   lost: number;
@@ -258,6 +268,7 @@ export interface LostAnalytics {
   byReason: LostReasonCount[];
   bySource: LostSourceCount[];
   byAgent: LostAgentCount[];
+  sourceByReason: LostSourceByReason;
   recent: LostRecentLead[];
 }
 

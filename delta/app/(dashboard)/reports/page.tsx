@@ -2152,6 +2152,73 @@ function LostLeadsTab({ dateFrom, dateTo }: { dateFrom: string; dateTo: string }
         </motion.div>
       </div>
 
+      {/* Lost by Source × Reason cross-tab */}
+      <motion.div initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.4 }}>
+        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Layers className="h-4 w-4 text-primary" /> Lost by Source &amp; Reason
+              </CardTitle>
+              {(() => {
+                const sbr = data?.sourceByReason;
+                if (!sbr || sbr.rows.length === 0) return null;
+                return (
+                  <Button variant="outline" size="sm" className="h-7 gap-1.5 text-xs" onClick={() => {
+                    const cols = [
+                      { key: "source", label: "Source" },
+                      ...sbr.reasons.map((r) => ({ key: r, label: reasonText(r), get: (row: Record<string, unknown>) => (row.counts as Record<string, number>)?.[r] ?? 0 })),
+                      { key: "total", label: "Total" },
+                    ];
+                    downloadCsv(`lost-source-by-reason-${dateFrom || "all"}_${dateTo || "all"}`, toCsv(sbr.rows as unknown as Record<string, unknown>[], cols));
+                  }}>
+                    <Download className="h-3.5 w-3.5" /> CSV
+                  </Button>
+                );
+              })()}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {isLoading ? <Skeleton className="h-[180px] w-full" /> : !data?.sourceByReason?.rows.length ? <Empty text="No lost leads in this period" /> : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs min-w-[560px]">
+                  <thead>
+                    <tr className="border-b border-border/50 text-muted-foreground">
+                      <th className="pb-2 pr-3 text-left font-medium">Source</th>
+                      {data.sourceByReason.reasons.map((r) => (
+                        <th key={r} className="pb-2 px-2 text-right font-medium whitespace-nowrap">{reasonText(r)}</th>
+                      ))}
+                      <th className="pb-2 pl-2 text-right font-semibold text-foreground">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/30">
+                    {data.sourceByReason.rows.map((row) => (
+                      <tr key={row.source} className="hover:bg-muted/30 transition-colors">
+                        <td className="py-2 pr-3 text-left font-medium capitalize text-foreground whitespace-nowrap">{row.source}</td>
+                        {data.sourceByReason.reasons.map((r) => {
+                          const c = row.counts[r] ?? 0;
+                          return <td key={r} className={cn("py-2 px-2 text-right tabular-nums", c > 0 ? "text-foreground" : "text-muted-foreground/40")}>{c || "—"}</td>;
+                        })}
+                        <td className="py-2 pl-2 text-right font-bold tabular-nums text-foreground">{row.total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t border-border/50">
+                      <td className="pt-2 pr-3 text-left font-semibold text-foreground">Total</td>
+                      {data.sourceByReason.reasons.map((r) => (
+                        <td key={r} className="pt-2 px-2 text-right font-semibold tabular-nums text-foreground">{data.sourceByReason.reasonTotals[r] ?? 0}</td>
+                      ))}
+                      <td className="pt-2 pl-2 text-right font-bold tabular-nums text-primary">{totalLost}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
       {/* Recent lost leads */}
       <motion.div initial={{ opacity:0,y:20 }} animate={{ opacity:1,y:0 }} transition={{ delay:0.42 }}>
         <Card className="border-border/50 bg-card/80 backdrop-blur-sm">

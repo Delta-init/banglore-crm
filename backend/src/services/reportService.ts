@@ -1149,6 +1149,34 @@ export class ReportService {
       { $project: { _id: 0, userId: { $toString: "$_id" }, name: "$user.name", count: 1 } },
     ]);
 
+    // Cross-tab: source × reason. rows = source, columns = reason.
+    const srcReasonAgg = await Lead.aggregate<{ _id: { source: string; reason: string }; count: number }>([
+      { $match: lostMatch },
+      {
+        $group: {
+          _id: {
+            source: { $ifNull: ["$source", "other"] },
+            reason: { $ifNull: ["$lostReason", "unspecified"] },
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+    // Preserve the reason ordering from byReason (most common first) for stable columns.
+    const reasons = byReason.map((r) => r.reason);
+    const srcMap = new Map<string, Record<string, number>>();
+    const reasonTotals: Record<string, number> = {};
+    for (const r of srcReasonAgg) {
+      const src = (r._id.source as string) || "other";
+      const rsn = (r._id.reason as string) || "unspecified";
+      if (!srcMap.has(src)) srcMap.set(src, {});
+      srcMap.get(src)![rsn] = r.count;
+      reasonTotals[rsn] = (reasonTotals[rsn] ?? 0) + r.count;
+    }
+    const sourceByReasonRows = [...srcMap.entries()]
+      .map(([source, counts]) => ({ source, counts, total: Object.values(counts).reduce((a, b) => a + b, 0) }))
+      .sort((a, b) => b.total - a.total);
+
     const recent = await Lead.find(lostMatch)
       .select("name phone source lostReason lostNotes assignedTo updatedAt createdAt")
       .populate("assignedTo", "name")
@@ -1163,6 +1191,7 @@ export class ReportService {
       byReason,
       bySource,
       byAgent: agentAgg as { userId: string; name: string; count: number }[],
+      sourceByReason: { reasons, rows: sourceByReasonRows, reasonTotals },
       recent: recent.map((l) => ({
         id: String(l._id),
         name: l.name,
