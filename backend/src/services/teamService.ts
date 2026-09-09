@@ -428,31 +428,49 @@ export class TeamService {
 
     if (!team) throw Object.assign(new Error("Team not found"), { statusCode: 404 });
 
-    const allUsers = [...(team.members as unknown as { _id: { toString(): string }; name: string }[])];
+    const members = team.members as unknown as {
+      _id: mongoose.Types.ObjectId; name: string; email: string; designation?: string;
+    }[];
+    const memberIds = members.map((m) => m._id);
 
-    const stats = await Promise.all(
-      allUsers.map(async (u) => {
-        const id = u._id.toString();
-        const [total, assigned, followup, closed, rejected, cnc, booking, partialbooking, interested, rnr, callback, whatsapp, student] = await Promise.all([
-          Lead.countDocuments({ team: teamId, assignedTo: id }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "assigned" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "followup" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "closed" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "rejected" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "cnc" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "booking" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "partialbooking" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "interested" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "rnr" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "callback" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "whatsapp" }),
-          Lead.countDocuments({ team: teamId, assignedTo: id, status: "student" }),
-        ]);
-        return { user: u, total, assigned, followup, closed, rejected, cnc, booking, partialbooking, interested, rnr, callback, whatsapp, student };
-      })
-    );
+    // One aggregation for the whole team — per-member counts for THIS CRM's real
+    // statuses (the old code counted sales-crm statuses that don't exist here, so
+    // Pending / Not Connected / Lost always showed 0) plus revenue from payments.
+    const STATUS_KEYS = [
+      "assigned", "pending_response", "followup", "closed", "lost",
+      "not_connected", "mia", "repeated", "callback", "cnc",
+    ] as const;
+    const statusSums = STATUS_KEYS.reduce<Record<string, unknown>>((acc, s) => {
+      acc[s] = { $sum: { $cond: [{ $eq: ["$status", s] }, 1, 0] } };
+      return acc;
+    }, {});
 
-    return stats;
+    const agg = await Lead.aggregate<{ _id: mongoose.Types.ObjectId; total: number; totalPayments: number } & Record<(typeof STATUS_KEYS)[number], number>>([
+      { $match: { team: new mongoose.Types.ObjectId(teamId), assignedTo: { $in: memberIds } } },
+      { $group: { _id: "$assignedTo", total: { $sum: 1 }, totalPayments: { $sum: { $sum: "$payments.amount" } }, ...statusSums } },
+    ]);
+
+    const byId = new Map(agg.map((a) => [a._id.toString(), a]));
+
+    // Map over ALL members so those with zero leads still appear in the table.
+    return members.map((u) => {
+      const s = byId.get(u._id.toString());
+      return {
+        user: u,
+        total:            s?.total ?? 0,
+        assigned:         s?.assigned ?? 0,
+        pending_response: s?.pending_response ?? 0,
+        followup:         s?.followup ?? 0,
+        closed:           s?.closed ?? 0,
+        lost:             s?.lost ?? 0,
+        not_connected:    s?.not_connected ?? 0,
+        mia:              s?.mia ?? 0,
+        repeated:         s?.repeated ?? 0,
+        callback:         s?.callback ?? 0,
+        cnc:              s?.cnc ?? 0,
+        totalPayments:    s?.totalPayments ?? 0,
+      };
+    });
   }
 
   // ── Auto-assign team leads to members (within-team distribution) ──────────────
