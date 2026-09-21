@@ -1,0 +1,90 @@
+import { Router, type Request, type Response, type NextFunction } from "express";
+import { timingSafeEqual } from "node:crypto";
+import { env } from "../config/env.js";
+import { sendSuccess, sendError } from "../utils/response.js";
+import {
+  listRolesForPortal,
+  describeUserForPortal,
+  setUserRoleFromPortal,
+  provisionFromPortal,
+} from "../services/portalService.js";
+
+const router = Router();
+
+/**
+ * Server-to-server, from the Root portal only.
+ *
+ * Not reachable by a browser and carrying no session: the caller proves
+ * itself with a shared secret, compared in constant time so the comparison
+ * says nothing about how close a wrong guess was.
+ *
+ * Unconfigured means off, not open. A deployment that has not been told
+ * about the portal must not expose its roles and its people by default.
+ */
+function portalOnly(req: Request, res: Response, next: NextFunction): void {
+  if (!env.ROOT_ERP_SECRET) {
+    sendError(res, "The Root portal integration is not configured — set ROOT_ERP_SECRET", 503);
+    return;
+  }
+  const presented = req.headers["x-portal-secret"];
+  if (typeof presented !== "string") {
+    sendError(res, "Bad secret", 401);
+    return;
+  }
+  const a = Buffer.from(presented);
+  const b = Buffer.from(env.ROOT_ERP_SECRET);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    sendError(res, "Bad secret", 401);
+    return;
+  }
+  next();
+}
+
+router.use(portalOnly);
+
+const wrap =
+  (fn: (req: Request, res: Response) => Promise<void>) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    fn(req, res).catch(next);
+  };
+
+/** The roles this CRM has, and what each one permits. */
+router.get(
+  "/roles",
+  wrap(async (_req, res) => {
+    const data = await listRolesForPortal();
+    sendSuccess(res, "Roles", data);
+  }),
+);
+
+/** What one account actually holds here — the portal's check against drift. */
+router.get(
+  "/user",
+  wrap(async (req, res) => {
+    const email = typeof req.query.email === "string" ? req.query.email : "";
+    if (!email) { sendError(res, "email is required", 400); return; }
+    sendSuccess(res, "Account", await describeUserForPortal(email));
+  }),
+);
+
+/** Change an existing account's role or status. Creates nothing. */
+router.post(
+  "/set-user-role",
+  wrap(async (req, res) => {
+    const { email, role, status } = (req.body ?? {}) as Record<string, string>;
+    if (!email) { sendError(res, "email is required", 400); return; }
+    sendSuccess(res, "Changed", await setUserRoleFromPortal({ email, role, status }));
+  }),
+);
+
+/** Create an account here, because a root admin asked. */
+router.post(
+  "/provision-user",
+  wrap(async (req, res) => {
+    const { email, name, role } = (req.body ?? {}) as Record<string, string>;
+    if (!email || !role) { sendError(res, "email and role are required", 400); return; }
+    sendSuccess(res, "Account created", await provisionFromPortal({ email, name: name ?? "", role }));
+  }),
+);
+
+export default router;

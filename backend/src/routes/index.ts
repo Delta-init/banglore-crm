@@ -15,10 +15,14 @@ import studentRoutes from "./studentRoutes.js";
 import callRoutes from "./callRoutes.js";
 import appRoutes from "./appRoutes.js";
 import publicRoutes from "./publicRoutes.js";
+import portalRoutes from "./portalRoutes.js";
 
 const router = Router();
 
 router.use("/auth", authRoutes);
+// Server-to-server, from the Root portal. Guarded by a shared secret, not a
+// session — see portalRoutes.
+router.use("/service", portalRoutes);
 router.use("/my-tracker", myTrackerRoutes);
 router.use("/users", userRoutes);
 router.use("/users", userLeadRoutes);
