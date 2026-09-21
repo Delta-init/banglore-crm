@@ -5,6 +5,7 @@ import { sendSuccess, sendError } from "../utils/response.js";
 import {
   listRolesForPortal,
   describeUserForPortal,
+  describeManyForPortal,
   setUserRoleFromPortal,
   provisionFromPortal,
 } from "../services/portalService.js";
@@ -84,6 +85,20 @@ router.post(
     const { email, name, role } = (req.body ?? {}) as Record<string, string>;
     if (!email || !role) { sendError(res, "email and role are required", 400); return; }
     sendSuccess(res, "Account created", await provisionFromPortal({ email, name: name ?? "", role }));
+  }),
+);
+
+/**
+ * The same question as /user, asked about many people at once.
+ *
+ * POST rather than GET because a page of addresses does not belong in a query
+ * string, where it would be logged by every proxy in front of this.
+ */
+router.post(
+  "/accounts",
+  wrap(async (req, res) => {
+    const { emails } = (req.body ?? {}) as { emails?: unknown };
+    sendSuccess(res, "Accounts", await describeManyForPortal(emails));
   }),
 );
 
