@@ -27,6 +27,13 @@ import {
   ResponsiveDialogDescription,
   ResponsiveDialogFooter,
 } from "@/components/ui/responsive-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LeadDialog } from "@/components/leads/LeadDialog";
 import { DeleteLeadDialog } from "@/components/leads/DeleteLeadDialog";
@@ -79,6 +86,7 @@ const ALL_COLUMNS: ColumnDef[] = [
   // On by default: a lost lead without its reason on the row means opening the
   // lead to find out, which is the thing a list is meant to save.
   { id: "lostReason",           label: "Lost Reason",        defaultVisible: true  },
+  { id: "lostNotes",            label: "What Happened",      defaultVisible: true  },
   { id: "source",               label: "Source",             defaultVisible: true  },
   { id: "course",               label: "Course",             defaultVisible: true  },
   { id: "team",                 label: "Team",               defaultVisible: true  },
@@ -254,6 +262,7 @@ function LeadsPageContent() {
     if (colId === "name")   return <th key="name"   className="px-4 py-3 text-left">Name</th>;
     if (colId === "status") return <th key="status" className="px-4 py-3 text-left">Status</th>;
     if (colId === "lostReason") return <th key="lostReason" className="px-4 py-3 text-left">Lost Reason</th>;
+    if (colId === "lostNotes") return <th key="lostNotes" className="px-4 py-3 text-left">What Happened</th>;
     if (!col(colId)) return null;
     const labelMap: Record<string, { label: string; cls: string }> = {
       contact:              { label: "Contact",       cls: "px-4 py-3 text-left" },
@@ -281,6 +290,25 @@ function LeadsPageContent() {
     if (colId === "name") return (
       <td key="name" className="px-4 py-4">
         <p className="font-medium text-sm">{lead.name}</p>
+      </td>
+    );
+    if (colId === "lostNotes") return (
+      <td key="lostNotes" className="px-4 py-4">
+        {lead.status === "lost" && lead.lostNotes ? (
+          /* One line in the table and the whole thing on click. A note worth
+             writing is usually longer than a cell, and a column wide enough for
+             the longest one would squeeze every other column on the page. */
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setNoteLead(lead); }}
+            className="block max-w-[220px] truncate text-left text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+            title="Read the whole note"
+          >
+            {lead.lostNotes}
+          </button>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        )}
       </td>
     );
     if (colId === "lostReason") return (
@@ -697,6 +725,8 @@ function LeadsPageContent() {
   // The lead, or the selection, waiting on a reason before it can be lost.
   const [lostLead,  setLostLead]  = useState<Lead | null>(null);
   const [lostBulk,  setLostBulk]  = useState(false);
+  // The lead whose note is being read in full.
+  const [noteLead,  setNoteLead]  = useState<Lead | null>(null);
 
   // ── Handlers ──────────────────────────────────────────────────────────────────
   const handleCreate = () => { setSelectedLead(null); setDialogOpen(true); };
@@ -1852,6 +1882,23 @@ function LeadsPageContent() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── The whole note ────────────────────────────────────────────────────── */}
+      <Dialog open={Boolean(noteLead)} onOpenChange={(o) => { if (!o) setNoteLead(null); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{noteLead?.name}</DialogTitle>
+            <DialogDescription>
+              Lost{noteLead?.lostReason ? ` — ${lostReasonLabel(noteLead.lostReason)}` : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {/* Wrapped and kept as typed: line breaks in a note are usually where
+              somebody separated one visit from the next. */}
+          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+            {noteLead?.lostNotes}
+          </p>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Lost reason ───────────────────────────────────────────────────────── */}
       <LostReasonDialog
