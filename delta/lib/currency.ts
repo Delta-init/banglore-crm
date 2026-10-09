@@ -39,3 +39,12 @@ export function getCurrencySymbol(): string {
 export function fmtINR(n: number): string {
   return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 }
+
+/**
+ * A bonus, always in US dollars: the course bonus is an MT5 bonus, given and
+ * sent to finance in USD in every sales CRM (2026-10-09) — whatever currency
+ * the screen shows the fees in. "$1,234.50"
+ */
+export function fmtUSD(n: number): string {
+  return `$${(Number(n) || 0).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+}

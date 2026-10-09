@@ -355,6 +355,9 @@ export class StudentService {
             bonus: {
               given: student.hasBonus,
               amountMinor: student.hasBonus ? Math.round((student.bonusAmount ?? 0) * 100) : 0,
+              // The course bonus is an MT5 bonus, in US dollars in every sales CRM (2026-10-09) —
+              // whatever the fee's currency. Cents.
+              currency: "USD",
             },
           }
         : {}),

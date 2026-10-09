@@ -356,7 +356,7 @@ function CorrectionForm({ studentId, start, onClose }: { studentId: string; star
                   <Input
                     type="number" min="0" step="0.01" value={bonusInput}
                     onChange={(e) => setBonusInput(e.target.value)}
-                    placeholder="Bonus amount" className="h-8 text-xs" aria-label="Bonus amount"
+                    placeholder="Bonus amount (USD $)" className="h-8 text-xs" aria-label="Bonus amount"
                   />
                 </motion.div>
               )}

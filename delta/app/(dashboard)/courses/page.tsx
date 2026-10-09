@@ -22,7 +22,7 @@ import { DeleteCourseDialog } from "@/components/courses/DeleteCourseDialog";
 import type { Course } from "@/types/course";
 import { lmsCoursesOf } from "@/types/course";
 import { useCurrencyStore } from "@/lib/store/currencyStore";
-import { fmtCurrency } from "@/lib/currency";
+import { fmtCurrency, fmtUSD } from "@/lib/currency";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -106,7 +106,7 @@ function CourseCard({ course, onEdit, onDelete, onMap, index }: CourseCardProps)
             Course fee
             {/* The bonus that comes with it — what a new close starts from. */}
             {(course.bonusAmount ?? 0) > 0 && (
-              <> · <span className="font-medium text-primary">{formatAmount(course.bonusAmount ?? 0)} bonus</span></>
+              <> · <span className="font-medium text-primary">{fmtUSD(course.bonusAmount ?? 0)} bonus</span></>
             )}
           </p>
 

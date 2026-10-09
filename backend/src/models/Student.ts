@@ -116,6 +116,7 @@ const studentSchema = new Schema<IStudent>(
      * enrolments from before it was asked, which is different from "no".
      */
     hasBonus: { type: Boolean },
+    /** In US dollars, like the course bonus (2026-10-09); sent to finance as USD. */
     bonusAmount: { type: Number, min: 0, default: 0 },
 
     /*

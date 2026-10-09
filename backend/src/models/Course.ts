@@ -21,8 +21,9 @@ const courseSchema = new Schema<ICourse>(
       min: [0, "Amount cannot be negative"],
     },
     /**
-     * The bonus a client gets with this course, in INR, like the
-     * amount; 0 when it comes with none. A new close starts from it — the
+     * The bonus a client gets with this course, in US dollars — an MT5 bonus,
+     * USD in every sales CRM since 2026-10-09 (one set before is the number
+     * it was given as); 0 when it comes with none. A new close starts from it — the
      * seller still answers, and can change it for a sale that differs.
      */
     bonusAmount: { type: Number, min: [0, "Bonus cannot be negative"], default: 0 },

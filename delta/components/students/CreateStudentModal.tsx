@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { fmtINR } from "@/lib/currency";
+import { fmtINR, fmtUSD } from "@/lib/currency";
 import { useCreateStudent, useUpdateStudent } from "@/hooks/useStudents";
 import { useAllCourses } from "@/hooks/useCourses";
 import { useAddPayment } from "@/hooks/usePayments";
@@ -429,7 +429,7 @@ export function CreateStudentModal({ open, lead, existingStudent, progress, onCl
                     </div>
                   </div>
                   <p className="text-[10px] text-muted-foreground">
-                    All amounts in INR (₹). Balance = total fee − paid. A bonus is never part of it.
+                    Fees and payments in INR (₹); the bonus in USD ($). Balance = total fee − paid. A bonus is never part of it.
                   </p>
                   <div className={cn("grid gap-2", editing ? "grid-cols-2" : "grid-cols-1")}>
                     <div className="space-y-1">
@@ -510,7 +510,7 @@ export function CreateStudentModal({ open, lead, existingStudent, progress, onCl
                             <Input
                               type="number" min="0" step="0.01" value={bonusInput}
                               onChange={(e) => { setBonusInput(e.target.value); setBonusTouched(true); }}
-                              placeholder="Bonus amount (₹)" className="h-8 text-xs"
+                              placeholder="Bonus amount (USD $)" className="h-8 text-xs"
                               aria-label="Bonus amount"
                             />
                           </motion.div>
@@ -528,7 +528,7 @@ export function CreateStudentModal({ open, lead, existingStudent, progress, onCl
                         {editing
                           ? "Saved here. Finance sees a change only if it sends this enrolment back for correction."
                           : bonusChoice === "yes"
-                            ? `${bonusAmount > 0 ? fmtINR(bonusAmount) : "The"} bonus goes to finance with the enrolment, and on to the LMS — outside the fee and balance.`
+                            ? `${bonusAmount > 0 ? fmtUSD(bonusAmount) : "The"} bonus goes to finance with the enrolment, and on to the LMS — outside the fee and balance.`
                             : "No bonus — recorded as such with the enrolment."}
                       </p>
                     )}
