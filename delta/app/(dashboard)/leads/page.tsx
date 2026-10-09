@@ -46,8 +46,8 @@ import type { Lead } from "@/types/lead";
 import type { LeadStatus } from "@/lib/statusConfig";
 import type { User } from "@/types";
 import { INITIAL_RESPONSE_CONFIG, PRIMARY_CONCERN_CONFIG, FOLLOWUP_STRATEGY_CONFIG } from "@/lib/leadConfig";
-import { CreateStudentModal } from "@/components/students/CreateStudentModal";
-import { useStudentByLeadId } from "@/hooks/useStudents";
+import { CloseLeadDialog, CloseLeadsQueue } from "@/components/students/CloseLeadDialog";
+import { toast } from "@/lib/toast";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -528,7 +528,7 @@ function LeadsPageContent() {
   const bulkAssignTeam = useBulkAssignLeadsToTeam();
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { mutate: updateStatus } = useUpdateLeadStatus();
+  const { mutate: updateStatus, mutateAsync: updateStatusAsync } = useUpdateLeadStatus();
   const { mutate: updateLeadField } = useUpdateLead();
 
   // Clear selection when page/filters change
@@ -692,6 +692,8 @@ function LeadsPageContent() {
   // ── Student modal state ───────────────────────────────────────────────────────
   const [studentModalLead, setStudentModalLead] = useState<Lead | null>(null);
   const [pendingStatus,    setPendingStatus]    = useState<{ lead: Lead; status: LeadStatus } | null>(null);
+  /** Leads chosen to close together: their enrolments open one after another. */
+  const [closeQueue, setCloseQueue] = useState<string[] | null>(null);
   // The lead, or the selection, waiting on a reason before it can be lost.
   const [lostLead,  setLostLead]  = useState<Lead | null>(null);
   const [lostBulk,  setLostBulk]  = useState(false);
@@ -1677,6 +1679,12 @@ function LeadsPageContent() {
                   setLostBulk(true);
                   return;
                 }
+                // Closed only through each lead's enrolment, one after another.
+                if (bulkStatus === "closed") {
+                  setBulkStatusOpen(false);
+                  setCloseQueue(Array.from(selectedIds));
+                  return;
+                }
                 bulkUpdateStatus.mutate(
                   { leadIds: Array.from(selectedIds), status: bulkStatus },
                   { onSuccess: () => { setBulkStatusOpen(false); setSelectedIds(new Set()); } },
@@ -1863,48 +1871,36 @@ function LeadsPageContent() {
         }}
       />
 
-      {/* ── Create Student Modal ──────────────────────────────────────────────── */}
+      {/* ── Close a lead: its enrolment ─────────────────────────────────────── */}
+      {/* Dismissing is not closing: ✕ or Escape leaves the lead's status alone.
+          A lead marked closed with no enrolment behind it is one finance and
+          the LMS never hear about. */}
       {studentModalLead && (
-        <StudentModalWrapper
+        <CloseLeadDialog
+          key={studentModalLead._id}
           lead={studentModalLead}
-          pendingStatus={pendingStatus}
           onClose={() => { setStudentModalLead(null); setPendingStatus(null); }}
-          onSettled={() => {
+          onClosed={() => {
             if (pendingStatus) updateStatus({ id: pendingStatus.lead._id, status: pendingStatus.status });
             setStudentModalLead(null);
             setPendingStatus(null);
           }}
         />
       )}
+
+      {/* ── Several leads closed at once: an enrolment each ─────────────────── */}
+      {closeQueue && (
+        <CloseLeadsQueue
+          leadIds={closeQueue}
+          markClosed={(id) => updateStatusAsync({ id, status: "closed" })}
+          onDone={({ closed, skipped }) => {
+            setCloseQueue(null);
+            setSelectedIds(new Set());
+            if (skipped) toast.info(`${closed} closed · ${skipped} left as they were — no enrolment saved`);
+          }}
+        />
+      )}
     </div>
-  );
-}
-
-// Separate wrapper so useStudentByLeadId only fires when modal is open
-function StudentModalWrapper({ lead, pendingStatus, onClose, onSettled }: {
-  lead: Lead;
-  pendingStatus: { lead: Lead; status: LeadStatus } | null;
-  onClose: () => void;
-  onSettled: () => void;
-}) {
-  const { data: existingStudent, isLoading } = useStudentByLeadId(lead._id);
-
-  if (isLoading) return null;
-
-  // Already a student — just close status update silently
-  if (existingStudent) {
-    onSettled();
-    return null;
-  }
-
-  return (
-    <CreateStudentModal
-      open
-      lead={lead}
-      onClose={onClose}
-      onSkip={onSettled}
-      onCreated={onSettled}
-    />
   );
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { CloseLeadsQueue } from "@/components/students/CloseLeadDialog";
 import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -1099,6 +1100,8 @@ function LeadsTab({
   const [bulkMemberId, setBulkMemberId] = useState<string>("");
   const [bulkNewTeamId, setBulkNewTeamId] = useState<string>("");
   const [bulkStatus, setBulkStatus] = useState<string>("followup");
+  /** Leads chosen to close together: closed only through an enrolment each, one after another. */
+  const [closeQueue, setCloseQueue] = useState<string[] | null>(null);
 
   const bulkAssignMutation = useBulkAssignTeamLeadsToMember(teamId);
   const bulkTransferMutation = useBulkTransferTeamLeads(teamId);
@@ -1953,6 +1956,12 @@ function LeadsTab({
               size="sm"
               disabled={bulkStatusMutation.isPending}
               onClick={() => {
+                // Closed only through each lead's enrolment, one after another.
+                if (bulkStatus === "closed") {
+                  setBulkStatusOpen(false);
+                  setCloseQueue(Array.from(selectedIds));
+                  return;
+                }
                 bulkStatusMutation.mutate(
                   { leadIds: Array.from(selectedIds), status: bulkStatus },
                   { onSuccess: () => { setBulkStatusOpen(false); setSelectedIds(new Set()); } },
@@ -1965,6 +1974,18 @@ function LeadsTab({
           </ResponsiveDialogFooter>
         </ResponsiveDialogContent>
       </ResponsiveDialog>
+
+      {/* ── Several leads closed at once: an enrolment each, through the team's own route ── */}
+      {closeQueue && (
+        <CloseLeadsQueue
+          leadIds={closeQueue}
+          markClosed={(id) => bulkStatusMutation.mutateAsync({ leadIds: [id], status: "closed" })}
+          onDone={() => {
+            setCloseQueue(null);
+            setSelectedIds(new Set());
+          }}
+        />
+      )}
 
       {/* ── Floating Bulk Action Bar ──────────────────────────────────────────── */}
       <AnimatePresence>

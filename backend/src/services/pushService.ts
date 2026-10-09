@@ -89,3 +89,41 @@ export async function notifyBulkLeadAssignment(
   });
   await sendPushToUser(assignedUserId, payload);
 }
+
+/**
+ * Tell a counsellor that finance sent one of their enrolments back.
+ *
+ * The one thing on the enrolments screen that is waiting on *them*, so it is
+ * the one thing worth interrupting them about. The reason travels in the body:
+ * "sent back" on its own only prompts the question this is meant to answer.
+ *
+ * Fire-and-forget, and it must stay that way — this runs inside a background
+ * sweep, and a push that fails is not a reason to stop recording what finance
+ * decided.
+ */
+export async function notifyEnrolmentReturned(
+  userId: string,
+  studentId: string,
+  studentName: string,
+  reason: string,
+): Promise<void> {
+  const payload: PushPayload = {
+    title: "An enrolment was sent back",
+    body: reason
+      ? `${studentName}: ${reason}`
+      : `${studentName} — finance gave no reason. Ask them before resending.`,
+    // Keyed on the enrolment, so a second send-back replaces the first notice
+    // rather than stacking another one beside it.
+    tag: `enrolment-returned-${studentId}`,
+    url: "/enrolments",
+    data: { type: "enrolment_returned", studentId },
+  };
+
+  try {
+    const { emitToUser } = await import("../socket.js");
+    emitToUser(userId, "notification", { ...payload, createdAt: new Date().toISOString() });
+  } catch {
+    // No socket server in this process; the push below is the message.
+  }
+  await sendPushToUser(userId, payload);
+}

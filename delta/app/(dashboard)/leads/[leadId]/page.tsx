@@ -890,8 +890,14 @@ export default function LeadDetailPage() {
                       <Select
                         value={lead.status}
                         onValueChange={(val) => {
-                          if (val === "closed" && !existingStudent) {
-                            updateStatus.mutate({ id: lead._id, status: "closed" });
+                          if (val === "closed") {
+                            /*
+                             * Closed through its enrolment, and only once that
+                             * is saved: dismissing it leaves the lead as it was,
+                             * rather than a sale on the board that finance and
+                             * the LMS never hear of. A lead already enrolled
+                             * shows its enrolment again.
+                             */
                             setShowStudentModal(true);
                           } else if (val === "lost") {
                             // The API rejects "lost" without BOTH a reason and a note, so
@@ -1370,14 +1376,19 @@ export default function LeadDetailPage() {
         mode="edit"
       />
 
-      {/* Create Student Modal — fires when status → closed and no student yet */}
-      {showStudentModal && !existingStudent && (
+      {/* Create Student Modal — fires when status → closed. Shown for a lead
+          that is already enrolled too, with its enrolment. */}
+      {showStudentModal && (
         <CreateStudentModal
           open
           lead={lead}
+          existingStudent={existingStudent}
+          // Away, and the lead keeps the status it had.
           onClose={() => setShowStudentModal(false)}
-          onSkip={() => setShowStudentModal(false)}
-          onCreated={() => setShowStudentModal(false)}
+          onCreated={() => {
+            setShowStudentModal(false);
+            if (lead.status !== "closed") updateStatus.mutate({ id: lead._id, status: "closed" });
+          }}
         />
       )}
 

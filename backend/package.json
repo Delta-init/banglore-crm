@@ -10,9 +10,14 @@
     "build": "bun build src/index.ts --outdir dist --target bun",
     "test": "bun test tests/ --timeout 15000",
     "test:teams": "bun test tests/teams/ --timeout 15000",
-    "test:verbose": "bun test tests/ --timeout 15000 --reporter=verbose"
+    "test:verbose": "bun test tests/ --timeout 15000 --reporter=verbose",
+    "check:split-payments": "./scripts/split-payments-check.sh",
+    "check:enrolment-correction": "./scripts/enrolment-correction-check.sh",
+    "check:course-bonus": "./scripts/course-bonus-e2e.sh",
+    "grant:enrolment-perms": "bun src/scripts/grantEnrolmentPermissions.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1136.0",
     "@google/generative-ai": "^0.24.1",
     "@types/pdfkit": "^0.17.5",
     "@types/web-push": "^3.6.4",

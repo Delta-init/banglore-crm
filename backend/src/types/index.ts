@@ -50,6 +50,13 @@ export const CRM_MODULES = [
   "settings",
   "students",
   "tracker",
+  /*
+   * A counsellor's own sales and what finance made of them (My Enrolments).
+   * Its own module, not "students": seeing your own sales is not the same
+   * grant as seeing the whole student list. Correcting one finance sent back
+   * is "edit" here.
+   */
+  "enrolments",
 ] as const;
 
 export type CrmModule = (typeof CRM_MODULES)[number];
@@ -176,6 +183,16 @@ export interface ICourse extends Document {
   description?: string;
   amount: number;
   status: "active" | "inactive";
+  /** The bonus a client gets with it, in INR; 0 for none. A new close starts from it. */
+  bonusAmount?: number;
+  /** The catalogue item this course is in Delta Finance, once mapped. */
+  financeItemId?: string | null;
+  /** The SAC code this course is billed under, for GST invoices. */
+  hsnSac?: string;
+  /** Which course this is in the LMS — the first of `lmsCourseSlugs`. Blank means not mapped. */
+  lmsCourseSlug?: string;
+  /** Every LMS course it opens, in order (a bundle opens more than one). */
+  lmsCourseSlugs?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -327,6 +344,69 @@ export interface LeadStats {
   cnc: number;
 }
 
+// ─── Enrolment (the close) ────────────────────────────────────────────────────
+/**
+ * What a course is taught in — the fixed list finance and the LMS already
+ * spell this way, so enrolments can be counted by language across CRMs.
+ */
+export const ENROLMENT_LANGUAGES = ["English", "Malayalam", "Hindi/Urdu", "Tamil"] as const;
+export type EnrolmentLanguage = (typeof ENROLMENT_LANGUAGES)[number];
+
+/**
+ * How the money was taken at the close — the same eight finance accepts,
+ * spelled the way finance spells them (sent straight into its
+ * `declaredPaymentMethod`).
+ */
+export const ENROLMENT_PAYMENT_METHODS = [
+  "cash",
+  "bank_transfer",
+  "cheque",
+  "card",
+  "easebuzz_emi",
+  "tabby",
+  "tamara",
+  "billexpro",
+] as const;
+export type EnrolmentPaymentMethod = (typeof ENROLMENT_PAYMENT_METHODS)[number];
+
+export const PAYMENT_METHOD_LABELS: Record<EnrolmentPaymentMethod, string> = {
+  cash: "Cash",
+  bank_transfer: "Bank Transfer",
+  cheque: "Cheque",
+  card: "Card",
+  easebuzz_emi: "Easebuzz EMI",
+  tabby: "Tabby",
+  tamara: "Tamara",
+  billexpro: "BillExPro",
+};
+
+/**
+ * The currency this CRM's fees and payments are in. Banglore's finance
+ * organisation keeps its books in INR, so every amount goes to finance as INR
+ * with no conversion — there is no per-payment currency here.
+ */
+export const BASE_CURRENCY = "INR";
+
+/** A file kept in object storage, as the enrolment records it. */
+export interface StoredFile {
+  name: string;
+  url: string;
+  key: string;
+  size?: number;
+  mimeType?: string;
+  uploadedAt?: Date;
+}
+
+/** One payment taken at the close: how, how much (INR), when, and its receipt. */
+export interface IStudentPayment {
+  method: EnrolmentPaymentMethod;
+  amount: number;
+  receipt: StoredFile;
+  paidAt: Date;
+  /** The money already on the lead before the close, as one payment. */
+  collectedBefore?: boolean;
+}
+
 // ─── Student ───────────────────────────────────────────────────────────────────
 export interface IStudent extends Document {
   _id: Types.ObjectId;
@@ -352,6 +432,22 @@ export interface IStudent extends Document {
   pendingAmount: number;
   status: "active" | "inactive" | "graduated" | "dropped";
   notes?: string;
+  /** What the course is taught in, taken at the close. */
+  language?: EnrolmentLanguage;
+  /** How the money was taken at the close (the first payment's). */
+  paymentMethod?: EnrolmentPaymentMethod;
+  /** Proof the money was taken (the first payment's), handed on to finance. */
+  paymentReceipt?: StoredFile | null;
+  /** Each payment taken at the close; they add up to paidAmount. Absent on enrolments from before. */
+  payments?: IStudentPayment[];
+  /** Whether a bonus was given at the close — unset on enrolments from before it was asked. */
+  hasBonus?: boolean | null;
+  /** The bonus, in INR; 0 when none. Never part of the balance. */
+  bonusAmount?: number;
+  /** Where this enrolment ended up in Delta Finance, once handed over. */
+  financeInvoiceId?: string | null;
+  financeInvoiceNumber?: string | null;
+  financeSyncedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

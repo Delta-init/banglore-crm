@@ -21,6 +21,11 @@ export const CRM_MODULES = [
   "reports",
   "settings",
   "tracker",
+  // The student list, and creating a student — which closing a lead does.
+  "students",
+  // My Enrolments: a counsellor's own sales and what finance made of them;
+  // "edit" corrects one finance sent back.
+  "enrolments",
 ] as const;
 
 export type CrmModule = (typeof CRM_MODULES)[number];
@@ -36,6 +41,8 @@ export const MODULE_LABELS: Record<CrmModule, string> = {
   reports: "Reports",
   settings: "Settings",
   tracker: "Daily Tracker",
+  students: "Students",
+  enrolments: "My Enrolments",
 };
 
 export type PermissionsMap = Partial<Record<CrmModule, ModulePermissions>>;

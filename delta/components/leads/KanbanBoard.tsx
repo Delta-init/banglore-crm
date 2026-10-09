@@ -50,6 +50,7 @@ import type { User } from "@/types";
 import type { Course } from "@/types/course";
 import type { Team } from "@/types/team";
 import LeadDialog from "@/components/leads/LeadDialog";
+import { CloseLeadDialog } from "@/components/students/CloseLeadDialog";
 import { fmtFull, getCurrencySymbol } from "@/lib/currency";
 import { INITIAL_RESPONSE_CONFIG, PRIMARY_CONCERN_CONFIG, FOLLOWUP_STRATEGY_CONFIG } from "@/lib/leadConfig";
 
@@ -943,6 +944,8 @@ export function KanbanBoard({ filters, canEdit }: KanbanBoardProps) {
   const [activeCardId, setActiveCardId]     = useState<string | null>(null);
   const [activeColStatus, setActiveColStatus] = useState<LeadStatus | null>(null);
   const [previewLead, setPreviewLead]       = useState<Lead | null>(null);
+  /** A card dropped on Closed: its enrolment first, and the card moves only once that is saved. */
+  const [closeLead, setCloseLead]           = useState<Lead | null>(null);
   const [editLead, setEditLead]             = useState<Lead | null>(null);
   const [paymentLead, setPaymentLead]       = useState<Lead | null>(null);
   const [reminderLead, setReminderLead]     = useState<Lead | null>(null);
@@ -1003,6 +1006,12 @@ export function KanbanBoard({ filters, canEdit }: KanbanBoardProps) {
       if (!lead) return;
       const currentStatus = localOverrides[leadId] ?? lead.status;
       if (currentStatus === targetStatus) return;
+
+      if (targetStatus === "closed") {
+        // The enrolment first: the card moves only once it is saved.
+        setCloseLead(lead);
+        return;
+      }
 
       setLocalOverrides((prev) => ({ ...prev, [leadId]: targetStatus }));
       updateStatus(
@@ -1111,6 +1120,27 @@ export function KanbanBoard({ filters, canEdit }: KanbanBoardProps) {
       )}
       {noteLead && (
         <QuickNotesDialog lead={noteLead} open={!!noteLead} onClose={() => setNoteLead(null)} />
+      )}
+
+      {/* Closing a card goes through its enrolment, as everywhere else. */}
+      {closeLead && (
+        <CloseLeadDialog
+          key={closeLead._id}
+          lead={closeLead}
+          onClose={() => setCloseLead(null)}
+          onClosed={() => {
+            const leadId = closeLead._id;
+            setCloseLead(null);
+            setLocalOverrides((prev) => ({ ...prev, [leadId]: "closed" }));
+            updateStatus(
+              { id: leadId, status: "closed" },
+              {
+                onSuccess: () => setLocalOverrides((p) => { const n = { ...p }; delete n[leadId]; return n; }),
+                onError:   () => setLocalOverrides((p) => { const n = { ...p }; delete n[leadId]; return n; }),
+              },
+            );
+          }}
+        />
       )}
     </>
   );

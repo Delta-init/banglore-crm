@@ -28,3 +28,14 @@ export function fmtCurrency(n: number): string {
 export function getCurrencySymbol(): string {
   return getActiveCurrency().symbol;
 }
+
+/**
+ * Always INR: ₹1,23,456.
+ *
+ * For the close, the enrolments and anything else that goes to finance —
+ * Banglore's finance organisation keeps its books in INR, so these amounts are
+ * rupees whatever display currency the user picked for the rest of the app.
+ */
+export function fmtINR(n: number): string {
+  return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+}

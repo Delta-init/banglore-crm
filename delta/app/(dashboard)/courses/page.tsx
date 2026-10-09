@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BookOpen, Plus, Search, X, Edit2, Trash2,
   DollarSign, ChevronLeft, ChevronRight, BookMarked,
-  TrendingUp, Package, Loader2,
+  TrendingUp, Package, Loader2, Link2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MapCourseDialog } from "@/components/courses/MapCourseDialog";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -19,6 +20,7 @@ import { useCourses } from "@/hooks/useCourses";
 import { CourseDialog } from "@/components/courses/CourseDialog";
 import { DeleteCourseDialog } from "@/components/courses/DeleteCourseDialog";
 import type { Course } from "@/types/course";
+import { lmsCoursesOf } from "@/types/course";
 import { useCurrencyStore } from "@/lib/store/currencyStore";
 import { fmtCurrency } from "@/lib/currency";
 
@@ -50,13 +52,15 @@ function CourseCardSkeleton() {
 // ─── Course Card ──────────────────────────────────────────────────────────────
 
 interface CourseCardProps {
+  onMap: (c: Course) => void;
   course: Course;
   onEdit: (c: Course) => void;
   onDelete: (c: Course) => void;
   index: number;
 }
 
-function CourseCard({ course, onEdit, onDelete, index }: CourseCardProps) {
+function CourseCard({ course, onEdit, onDelete, onMap, index }: CourseCardProps) {
+  const lmsCount = lmsCoursesOf(course).length;
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -98,7 +102,44 @@ function CourseCard({ course, onEdit, onDelete, index }: CourseCardProps) {
           <div className="flex items-center gap-1 text-lg font-bold text-foreground">
             {formatAmount(course.amount)}
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">Course fee</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Course fee
+            {/* The bonus that comes with it — what a new close starts from. */}
+            {(course.bonusAmount ?? 0) > 0 && (
+              <> · <span className="font-medium text-primary">{formatAmount(course.bonusAmount ?? 0)} bonus</span></>
+            )}
+          </p>
+
+          {/* Where it goes when sold: the finance product it bills against, and
+              the LMS course(s) the student gets. Shown rather than hidden in a
+              dialog: an unmapped course is the thing worth noticing. */}
+          <button
+            type="button"
+            onClick={() => onMap(course)}
+            className="mt-2 flex flex-wrap gap-1.5 text-left"
+            title="Map to finance and the LMS"
+          >
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] transition-colors ${
+                course.financeItemId
+                  ? "border-primary/30 bg-primary/5 text-primary hover:bg-primary/10"
+                  : "border-border text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              <Link2 className="h-3 w-3" />
+              {course.financeItemId ? "Mapped to finance" : "Not mapped to finance"}
+            </span>
+            <span
+              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] transition-colors ${
+                lmsCount
+                  ? "border-primary/30 bg-primary/5 text-primary hover:bg-primary/10"
+                  : "border-border text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              {lmsCount ? `LMS: ${lmsCount} course${lmsCount === 1 ? "" : "s"}` : "LMS not mapped"}
+            </span>
+          </button>
+
         </CardContent>
 
         <CardFooter className="pt-3 border-t border-border/50 flex items-center justify-between gap-2">
@@ -124,6 +165,15 @@ function CourseCard({ course, onEdit, onDelete, index }: CourseCardProps) {
             <Button
               size="icon"
               variant="ghost"
+              className="h-7 w-7 text-muted-foreground hover:text-primary"
+              title="Map to finance and the LMS"
+              onClick={() => onMap(course)}
+            >
+              <Link2 className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
               className="h-7 w-7 text-muted-foreground hover:text-destructive"
               onClick={() => onDelete(course)}
             >
@@ -135,6 +185,7 @@ function CourseCard({ course, onEdit, onDelete, index }: CourseCardProps) {
     </motion.div>
   );
 }
+
 
 // ─── Main Page Content ────────────────────────────────────────────────────────
 
@@ -151,6 +202,7 @@ function CoursesPageContent() {
   const [editCourse, setEditCourse]           = useState<Course | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteCourse, setDeleteCourse]       = useState<Course | null>(null);
+  const [mappingCourse, setMappingCourse]     = useState<Course | null>(null);
   const searchTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -346,6 +398,7 @@ function CoursesPageContent() {
                   course={course}
                   onEdit={openEdit}
                   onDelete={openDelete}
+                  onMap={setMappingCourse}
                   index={i}
                 />
               ))}
@@ -411,6 +464,12 @@ function CoursesPageContent() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         course={deleteCourse}
+      />
+
+      <MapCourseDialog
+        course={mappingCourse}
+        open={Boolean(mappingCourse)}
+        onClose={() => setMappingCourse(null)}
       />
     </>
   );

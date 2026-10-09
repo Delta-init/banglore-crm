@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, GraduationCap, Phone, Mail, BookOpen, Users, User2,
   Calendar, DollarSign, StickyNote, ExternalLink, Edit2, Loader2,
-  CheckCircle2, XCircle, AlertTriangle, Target, MessageSquare,
+  CheckCircle2, XCircle, AlertTriangle, Target, MessageSquare, Gift, Undo2, Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { fmtFull } from "@/lib/currency";
+import { fmtINR } from "@/lib/currency";
+import { useEnrolmentCorrection, istTime } from "@/hooks/useEnrolments";
+import { useAuthStore } from "@/lib/store/authStore";
+import { CorrectEnrolmentDialog } from "@/components/students/CorrectEnrolmentDialog";
 import { useStudent, useUpdateStudent } from "@/hooks/useStudents";
 import { INITIAL_RESPONSE_CONFIG, PRIMARY_CONCERN_CONFIG, FOLLOWUP_STRATEGY_CONFIG } from "@/lib/leadConfig";
 import type { Course } from "@/types/course";
@@ -70,6 +73,16 @@ export default function StudentDetailPage() {
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesVal, setNotesVal] = useState("");
   const [editOpen, setEditOpen] = useState(false);
+
+  /*
+   * Whether finance sent this enrolment back — asked only by whoever may act
+   * on enrolments, and answered only for the closer or someone who may edit
+   * students. Sent back, the whole enrolment can be corrected and sent again
+   * from here.
+   */
+  const { hasPermission } = useAuthStore();
+  const { data: correction } = useEnrolmentCorrection(studentId, hasPermission("enrolments", "edit"));
+  const [correctOpen, setCorrectOpen] = useState(false);
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-32">
@@ -145,6 +158,34 @@ export default function StudentDetailPage() {
         </Card>
       </motion.div>
 
+      {/* Sent back by finance: why, and the correction — everything, sent again in one step. */}
+      {correction?.sentBack && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+          <div className="flex min-w-0 items-start gap-2">
+            <Undo2 className="mt-0.5 h-4 w-4 shrink-0 text-red-400" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-red-300">
+                Finance sent this enrolment back{correction.returnedReason ? `: ${correction.returnedReason}` : ""}
+              </p>
+              <p className="mt-0.5 text-xs text-red-300/70">
+                Correct anything — the course, the fee, the payments and receipts, the client&apos;s details — and it goes back to finance in the same step{correction.invoiceNumber ? `, as ${correction.invoiceNumber}` : ""}.
+              </p>
+            </div>
+          </div>
+          <Button size="sm" className="gap-2 shrink-0" onClick={() => setCorrectOpen(true)}>
+            <Edit2 className="h-3.5 w-3.5" /> Correct &amp; send again
+          </Button>
+        </motion.div>
+      )}
+      {correction && !correction.sentBack && correction.resentAt && (
+        <p className="flex items-center gap-1.5 text-xs text-sky-400">
+          <Send className="h-3.5 w-3.5" />
+          Sent again to finance {istTime(correction.resentAt)}
+          {(correction.resends ?? 0) > 1 ? ` · ${correction.resends} times` : ""}
+          {correction.approvalState === "approved" ? " — approved" : correction.approvalState === "pending" ? " — waiting for approval" : ""}
+        </p>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left: Fee + Quick edit */}
         <div className="space-y-4">
@@ -159,9 +200,9 @@ export default function StudentDetailPage() {
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-3 gap-2 text-center">
                   {[
-                    { label: "Total",   value: fmtFull(student.totalFee),    cls: "text-foreground" },
-                    { label: "Paid",    value: fmtFull(student.paidAmount),   cls: "text-green-400" },
-                    { label: "Pending", value: fmtFull(student.pendingAmount),cls: student.pendingAmount > 0 ? "text-amber-400" : "text-muted-foreground" },
+                    { label: "Total",   value: fmtINR(student.totalFee),    cls: "text-foreground" },
+                    { label: "Paid",    value: fmtINR(student.paidAmount),   cls: "text-green-400" },
+                    { label: "Pending", value: fmtINR(student.pendingAmount),cls: student.pendingAmount > 0 ? "text-amber-400" : "text-muted-foreground" },
                   ].map(({ label, value, cls }) => (
                     <div key={label} className="rounded-lg bg-muted/30 p-2 border border-border/30">
                       <p className={cn("text-sm font-bold tabular-nums", cls)}>{value}</p>
@@ -169,6 +210,15 @@ export default function StudentDetailPage() {
                     </div>
                   ))}
                 </div>
+                {/* The bonus given at the close: beside the money, never in the balance. */}
+                {typeof student.hasBonus === "boolean" && (
+                  <div className="flex items-center justify-between rounded-lg border border-border/30 bg-muted/20 px-2.5 py-1.5 text-[11px]">
+                    <span className="flex items-center gap-1 text-muted-foreground"><Gift className="h-3 w-3" /> Bonus</span>
+                    <span className={cn("font-semibold tabular-nums", student.hasBonus ? "text-violet-400" : "text-muted-foreground")}>
+                      {student.hasBonus ? fmtINR(student.bonusAmount ?? 0) : "None"}
+                    </span>
+                  </div>
+                )}
                 {student.totalFee > 0 && (
                   <div className="space-y-1">
                     <div className="flex justify-between text-[11px]">
@@ -360,6 +410,7 @@ export default function StudentDetailPage() {
       </div>
 
       <EditStudentModal open={editOpen} student={student} onClose={() => setEditOpen(false)} />
+      {correctOpen && <CorrectEnrolmentDialog studentId={student._id} open onClose={() => setCorrectOpen(false)} />}
     </div>
   );
 }

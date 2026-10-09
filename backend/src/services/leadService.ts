@@ -31,7 +31,7 @@ function buildPopulatedQuery(id: string) {
         { path: "members", select: "name email designation" },
       ],
     })
-    .populate("course", "name amount status")
+    .populate("course", "name amount bonusAmount status")
     .populate("notes.author", "name email")
     .populate("activityLogs.performedBy", "name email");
 }
@@ -481,7 +481,7 @@ export class LeadService {
         .populate("reporter", "name email")
         .populate("assignedTo", "name email")
         .populate("team", "name status")
-        .populate("course", "name amount status")
+        .populate("course", "name amount bonusAmount status")
         .sort({ [sortField]: sortOrder })
         .skip(skip)
         .limit(limit)

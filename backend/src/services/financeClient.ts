@@ -1,0 +1,221 @@
+import crypto from "node:crypto";
+import { env } from "../config/env.js";
+import { signRequest } from "../utils/signing.js";
+
+/**
+ * Calling Delta Finance.
+ *
+ * The same signed protocol finance uses to call HRMS, pointed at finance: a
+ * canonical string over method, path, timestamp, nonce and a body digest. The
+ * body is signed as the exact bytes that go on the wire, so it is serialised
+ * once here and never re-serialised.
+ */
+
+const TIMEOUT_MS = 15_000;
+
+export function financeConfigured(): boolean {
+  return Boolean(
+    env.FINANCE_API_URL &&
+      env.FINANCE_CLIENT_ID &&
+      env.FINANCE_INTEGRATION_SECRET &&
+      env.FINANCE_ORG_ID,
+  );
+}
+
+/** Trailing slashes and a trailing /api/v1 both stripped: the path carries it. */
+function baseUrl(): string {
+  return env.FINANCE_API_URL.replace(/\/+$/, "").replace(/\/api\/v1$/, "");
+}
+
+export interface FinanceItem {
+  id: string;
+  name: string;
+  sku: string;
+  unitPriceMinor: number;
+  type: string;
+}
+
+export interface EnrolmentResult {
+  invoiceId: string;
+  invoiceNumber: string;
+  customerId: string;
+  duplicate: boolean;
+  flags: string[];
+}
+
+/**
+ * Hand an enrolment over.
+ *
+ * Throws on anything that is not a 2xx, so the caller can decide whether to
+ * retry. A 4xx will fail the same way every time — a malformed payload does not
+ * become valid by being sent again — so the worker stops retrying those.
+ */
+export async function sendEnrolment(payload: unknown): Promise<EnrolmentResult> {
+  if (!financeConfigured()) {
+    throw Object.assign(new Error("Finance integration is not configured"), { permanent: true });
+  }
+
+  const path = "/api/v1/integrations/enrolments";
+  const raw = JSON.stringify(payload);
+  const timestamp = String(Date.now());
+  const nonce = crypto.randomBytes(16).toString("hex");
+  const signature = signRequest(
+    env.FINANCE_INTEGRATION_SECRET,
+    "POST",
+    path,
+    timestamp,
+    nonce,
+    raw,
+  );
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(`${baseUrl()}${path}`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-delta-client": env.FINANCE_CLIENT_ID,
+        "x-delta-timestamp": timestamp,
+        "x-delta-nonce": nonce,
+        "x-delta-signature": signature,
+        "x-delta-org": env.FINANCE_ORG_ID,
+      },
+      body: raw,
+      signal: controller.signal,
+    });
+
+    const body = (await res.json().catch(() => ({}))) as {
+      data?: EnrolmentResult;
+      error?: { message?: string };
+    };
+
+    if (!res.ok) {
+      const err = Object.assign(
+        new Error(body.error?.message ?? `Finance returned ${res.status}`),
+        // 4xx is our fault and will not fix itself. 401 is the exception: a
+        // clock that has drifted, or a secret rotated mid-flight, is worth
+        // retrying rather than abandoning the enrolment over.
+        { permanent: res.status >= 400 && res.status < 500 && res.status !== 401 },
+      );
+      throw err;
+    }
+    if (!body.data) throw new Error("Finance returned no result");
+    return body.data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * The finance catalogue, for the course mapping screen.
+ *
+ * Signed like everything else. Read-only and small, so it is fetched on demand
+ * rather than mirrored — a copy of somebody else's catalogue is a copy that
+ * goes stale, which is the problem this integration exists to remove.
+ */
+export async function listFinanceItems(): Promise<FinanceItem[]> {
+  if (!financeConfigured()) return [];
+
+  const path = "/api/v1/integrations/items";
+  const timestamp = String(Date.now());
+  const nonce = crypto.randomBytes(16).toString("hex");
+  const signature = signRequest(env.FINANCE_INTEGRATION_SECRET, "GET", path, timestamp, nonce, "");
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(`${baseUrl()}${path}`, {
+      headers: {
+        "x-delta-client": env.FINANCE_CLIENT_ID,
+        "x-delta-timestamp": timestamp,
+        "x-delta-nonce": nonce,
+        "x-delta-signature": signature,
+        "x-delta-org": env.FINANCE_ORG_ID,
+      },
+      signal: controller.signal,
+    });
+    if (!res.ok) throw new Error(`Finance returned ${res.status}`);
+    const body = (await res.json()) as { data?: FinanceItem[] };
+    return body.data ?? [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export interface EnrolmentStatus {
+  externalId: string;
+  invoiceId: string;
+  invoiceNumber: string;
+  status: string;
+  /** pending | approved | returned | not_required */
+  approval: string;
+  returnedReason: string;
+  issueDate: string;
+  currency: string;
+  totalMinor: number;
+  amountPaidMinor: number;
+  balanceMinor: number;
+  /**
+   * Once approved, what the Delta LMS made of the student. Passed on to My
+   * Enrolments as finance gives it; absent from a finance before it said.
+   * (Finance may also send a Tetra Commission block; Banglore students do not
+   * go to Tetra Commission, so it is not read here.)
+   */
+  lms?: { state: string; detail?: string; courses: string[] } | null;
+}
+
+/**
+ * What became of enrolments already handed over.
+ *
+ * The outbox remembers that finance took the enrolment and what it called the
+ * invoice. It cannot know that somebody in accounts approved it an hour later,
+ * so a counsellor asking "was my sale accepted" could only be sent to finance
+ * to look. This is that answer, asked for in one call for a whole page rather
+ * than one per row.
+ *
+ * Never throws. A page of enrolments is still worth showing when finance is
+ * restarting — the rows simply cannot say what happened to them yet, which is
+ * the truth at that moment.
+ */
+export async function fetchEnrolmentStatuses(studentIds: string[]): Promise<EnrolmentStatus[]> {
+  if (!financeConfigured() || studentIds.length === 0) return [];
+
+  const path = "/api/v1/integrations/enrolments/status";
+  const raw = JSON.stringify({ source: "crm", externalIds: studentIds.slice(0, 200) });
+  const timestamp = String(Date.now());
+  const nonce = crypto.randomBytes(16).toString("hex");
+  const signature = signRequest(
+    env.FINANCE_INTEGRATION_SECRET,
+    "POST",
+    path,
+    timestamp,
+    nonce,
+    raw,
+  );
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(`${baseUrl()}${path}`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-delta-client": env.FINANCE_CLIENT_ID,
+        "x-delta-timestamp": timestamp,
+        "x-delta-nonce": nonce,
+        "x-delta-signature": signature,
+        "x-delta-org": env.FINANCE_ORG_ID,
+      },
+      body: raw,
+      signal: controller.signal,
+    });
+    if (!res.ok) return [];
+    const body = (await res.json().catch(() => ({}))) as { data?: EnrolmentStatus[] };
+    return body.data ?? [];
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}

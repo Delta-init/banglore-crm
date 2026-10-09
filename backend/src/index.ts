@@ -14,6 +14,7 @@ import { initSocket } from "./socket.js";
 import { startReminderScheduler } from "./services/reminderScheduler.js";
 import { startSplitScheduler } from "./services/splitScheduler.js";
 import { startBackupScheduler } from "./services/backupService.js";
+import { startFinanceHandoverWorker } from "./services/financeHandoverWorker.js";
 
 // ─── Ensure upload directories exist ─────────────────────────────────────────
 mkdirSync(path.join(process.cwd(), "uploads", "recordings"), { recursive: true });
@@ -58,10 +59,18 @@ const start = async () => {
   httpServer.listen(env.PORT, () => {
     console.log(`🚀 Server running on http://localhost:${env.PORT} [${env.NODE_ENV}]`);
     console.log(`📋 API Base: http://localhost:${env.PORT}/api/v1`);
-    // Start after server is listening so Socket.IO is ready for emitToUser
-    startReminderScheduler();
-    startSplitScheduler();
-    startBackupScheduler();
+    // Start after server is listening so Socket.IO is ready for emitToUser.
+    // Off in a second process against the same database: these assign leads and
+    // notify people on a timer, and two of them do it twice.
+    if (env.RUN_SCHEDULERS) {
+      startReminderScheduler();
+      startSplitScheduler();
+      startBackupScheduler();
+    } else {
+      console.log("⏸️  RUN_SCHEDULERS=false — the timed jobs are not running in this process");
+    }
+    // Outside the gate: idempotent on the CRM's own id.
+    startFinanceHandoverWorker();
   });
 };
 

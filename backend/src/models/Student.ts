@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import { ENROLMENT_LANGUAGES, ENROLMENT_PAYMENT_METHODS } from "../types/index.js";
 import type { IStudent } from "../types/index.js";
 
 const studentSchema = new Schema<IStudent>(
@@ -58,7 +59,76 @@ const studentSchema = new Schema<IStudent>(
       enum: ["active", "inactive", "graduated", "dropped"],
       default: "active",
     },
+    /**
+     * Taken at the close, and required there.
+     *
+     * Optional in the schema because enrolments predating these fields exist
+     * and must still load. The requirement lives where the close happens, so
+     * old records are readable and new ones cannot be made without them.
+     */
+    language: { type: String, enum: ENROLMENT_LANGUAGES },
+    paymentMethod: { type: String, enum: ENROLMENT_PAYMENT_METHODS },
+    paymentReceipt: {
+      name: { type: String },
+      url: { type: String },
+      // The object key, which is what finance is given: both applications
+      // address the same bucket, so a receipt is one file, not two copies.
+      key: { type: String },
+      size: { type: Number },
+      mimeType: { type: String },
+      uploadedAt: { type: Date },
+    },
+    /**
+     * Each payment taken at the close — a client may pay part in cash and part
+     * by card, each with its own receipt (the user, 2026-10-05). They add up to
+     * paidAmount; the first is also paymentMethod / paymentReceipt above.
+     * Absent on enrolments from before.
+     */
+    payments: {
+      type: [
+        new Schema(
+          {
+            method: { type: String, enum: ENROLMENT_PAYMENT_METHODS, required: true },
+            amount: { type: Number, required: true, min: 0.01 },
+            receipt: {
+              name: { type: String },
+              url: { type: String },
+              key: { type: String },
+              size: { type: Number },
+              mimeType: { type: String },
+              uploadedAt: { type: Date },
+            },
+            paidAt: { type: Date, required: true },
+            collectedBefore: { type: Boolean },
+          },
+          { _id: false },
+        ),
+      ],
+      default: undefined,
+    },
     notes: { type: String, trim: true, maxlength: 2000 },
+    /**
+     * Whether the client was given a bonus with this enrolment, and how much.
+     *
+     * Asked at the close, and required there — yes or no, with the amount when
+     * yes. Information beside the money, never in it: the bonus is not part of
+     * the fee, of what was paid, or of the balance (fee − paid). Unset on
+     * enrolments from before it was asked, which is different from "no".
+     */
+    hasBonus: { type: Boolean },
+    bonusAmount: { type: Number, min: 0, default: 0 },
+
+    /*
+     * Where this enrolment ended up in Delta Finance.
+     *
+     * Written by the handover worker once the invoice exists. Kept so somebody
+     * looking at a student can see which invoice it became without opening the
+     * other system — and so a student with no invoice is visibly a student with
+     * no invoice, rather than one nobody thought to check.
+     */
+    financeInvoiceId: { type: String },
+    financeInvoiceNumber: { type: String },
+    financeSyncedAt: { type: Date },
   },
   {
     timestamps: true,

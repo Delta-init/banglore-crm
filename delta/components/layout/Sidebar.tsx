@@ -23,6 +23,7 @@ import {
   Settings,
   GraduationCap,
   PhoneCall,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/lib/store/uiStore";
@@ -55,6 +56,7 @@ export const navItems: { href: string; label: string; icon: React.ElementType; p
   { href: "/leaderboard", label: "Leaderboard",        icon: Trophy,          permModule: "reports"   },
   { href: "/users",     label: "Users",              icon: Users,           permModule: "users"     },
   { href: "/students",  label: "Students",           icon: GraduationCap,   permModule: "students"  },
+  { href: "/enrolments",label: "My Enrolments",      icon: Receipt,         permModule: "enrolments" },
   { href: "/roles",     label: "Roles & Permissions",icon: Shield,          permModule: "roles"     },
   { href: "/settings",  label: "Settings",           icon: Settings,        permModule: null        },
 ];
