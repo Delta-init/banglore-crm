@@ -10,9 +10,60 @@ import {
 import { Student } from "../models/Student.js";
 import { Lead } from "../models/Lead.js";
 import type { IRole, IStudent, IStudentPayment } from "../types/index.js";
+import { emailKey, emailPattern, samePerson, takenMessage, type EmailHolder, type Person } from "../utils/clientEmail.js";
 
 function createError(msg: string, status: number) {
   return Object.assign(new Error(msg), { statusCode: status });
+}
+
+const objectIdOrNull = (v: unknown): Types.ObjectId | null =>
+  v && Types.ObjectId.isValid(String(v)) ? new Types.ObjectId(String(v)) : null;
+
+/**
+ * Who else in this CRM holds this email and is somebody other than this client
+ * (utils/clientEmail.ts) — or null when nobody is. Its own lead is left out, and
+ * every student of it, as the same person whatever their details say; so is the
+ * student being corrected. Students first, the earliest first; then leads.
+ */
+async function emailHolder(input: {
+  email: string;
+  client: Person;
+  leadId?: unknown;
+  studentId?: unknown;
+}): Promise<EmailHolder | null> {
+  if (!emailKey(input.email)) return null;
+  const match = emailPattern(input.email);
+  const leadId = objectIdOrNull(input.leadId);
+  const studentId = objectIdOrNull(input.studentId);
+
+  const students = await Student.find({
+    email: match,
+    ...(studentId ? { _id: { $ne: studentId } } : {}),
+    ...(leadId ? { leadId: { $ne: leadId } } : {}),
+  })
+    .select("name phone enrollmentNumber")
+    .sort({ createdAt: 1 })
+    .limit(1000)
+    .lean();
+  const student = students.find((s) => !samePerson(input.client, s));
+  if (student) return { kind: "student", id: String(student._id), name: student.name ?? "", code: student.enrollmentNumber };
+
+  const leads = await Lead.find({ email: match, ...(leadId ? { _id: { $ne: leadId } } : {}) })
+    .select("name phone")
+    .sort({ createdAt: 1 })
+    .limit(1000)
+    .lean();
+  const lead = leads.find((l) => !samePerson(input.client, l));
+  return lead ? { kind: "lead", id: String(lead._id), name: lead.name ?? "" } : null;
+}
+
+/**
+ * Refuses an email somebody else in this CRM holds (409), naming them — never
+ * their phone. Finance would file this client's enrolment under them.
+ */
+async function assertEmailFree(input: { email: string; client: Person; leadId?: unknown; studentId?: unknown }): Promise<void> {
+  const holder = await emailHolder(input);
+  if (holder) throw createError(takenMessage(holder, input.client.name), 409);
 }
 
 /** The system Super Admin, who may see and correct every enrolment. */
@@ -200,6 +251,19 @@ export class StudentService {
       );
     }
 
+    /*
+     * One email, one client (the user, 2026-10-10): finance knows a client by
+     * the email alone, so a close with an email another person here already
+     * holds would be filed under them. The client is who the close says — the
+     * lead's own details where it says nothing.
+     */
+    const ownLead = data.name && data.phone ? null : await Lead.findById(data.leadId).select("name phone").lean();
+    await assertEmailFree({
+      email,
+      client: { name: data.name || ownLead?.name, phone: data.phone || ownLead?.phone },
+      leadId: data.leadId,
+    });
+
     const enrollmentNumber = await nextEnrollmentNumber();
 
     const student = await Student.create({
@@ -275,6 +339,51 @@ export class StudentService {
     } catch (err) {
       console.error("[students] could not keep the email on the lead", err);
     }
+  }
+
+  /**
+   * Whether an email can be this client's — what the close dialog asks of the
+   * lead's email and of one typed in, and the correction dialog of the one on
+   * its form, before either saves. The same rule as the close and the
+   * correction, which refuse regardless.
+   *
+   * The client is the lead being closed, or the enrolment being corrected — or,
+   * from the correction form, the name and phone it now has.
+   */
+  async checkEmail(q: { email?: unknown; leadId?: unknown; studentId?: unknown; name?: unknown; phone?: unknown }): Promise<{
+    ok: boolean;
+    takenBy?: { kind: EmailHolder["kind"]; name: string; code?: string };
+    message?: string;
+  }> {
+    const email = emailKey(q.email);
+    if (!EMAIL_RE.test(email)) throw createError("That is not an email address finance will take.", 422);
+    const client: Person = {};
+    let leadId: unknown = null;
+    let studentId: unknown = null;
+    if (q.studentId) {
+      const s = objectIdOrNull(q.studentId) ? await Student.findById(String(q.studentId)).select("name phone leadId").lean() : null;
+      if (!s) throw createError("Enrolment not found", 404);
+      Object.assign(client, { name: s.name, phone: s.phone });
+      leadId = s.leadId;
+      studentId = s._id;
+    } else if (q.leadId) {
+      const l = objectIdOrNull(q.leadId) ? await Lead.findById(String(q.leadId)).select("name phone").lean() : null;
+      if (!l) throw createError("Lead not found", 404);
+      Object.assign(client, { name: l.name, phone: l.phone });
+      leadId = l._id;
+    } else {
+      throw createError("Say which lead or enrolment the email is for.", 422);
+    }
+    if (typeof q.name === "string" && q.name.trim()) client.name = q.name.trim();
+    if (typeof q.phone === "string" && q.phone.trim()) client.phone = q.phone.trim();
+
+    const holder = await emailHolder({ email, client, leadId, studentId });
+    if (!holder) return { ok: true };
+    return {
+      ok: false,
+      takenBy: { kind: holder.kind, name: holder.name, ...(holder.code ? { code: holder.code } : {}) },
+      message: takenMessage(holder, client.name),
+    };
   }
 
   /**
@@ -824,6 +933,12 @@ export class StudentService {
       if (!(await this.sendBackOf(studentId, existing)).sentBack) {
         return { queued: false, message: `Already invoiced as ${existing.invoiceNumber ?? "an invoice"}` };
       }
+      // Sent again as it stands, it is a correction too: one email, one client
+      // (2026-10-10). Someone else's email is changed through "Correct it".
+      const holder = await emailHolder({
+        email: student.email ?? "", client: { name: student.name, phone: student.phone }, leadId: student.leadId, studentId: student._id,
+      });
+      if (holder) return { queued: false, message: takenMessage(holder, student.name) };
       if (!(await this.resendCorrected(studentId))) return { queued: false, message: "Enrolment not found" };
       return { queued: true, message: "Correction sent to finance" };
     }
@@ -1060,6 +1175,9 @@ export class StudentService {
         409,
       );
     }
+
+    // One email, one client, as at the close — for the client as corrected.
+    await assertEmailFree({ email, client: { name, phone }, leadId: student.leadId, studentId: student._id });
 
     student.set({
       name,

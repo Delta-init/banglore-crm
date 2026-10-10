@@ -1,10 +1,57 @@
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axios";
 import { toast } from "@/lib/toast";
 import type { ApiResponse } from "@/types";
-import type { Student, StudentFilters, CreateStudentInput, StoredReceipt } from "@/types/student";
+import type { Student, StudentFilters, CreateStudentInput, StoredReceipt, EmailCheck } from "@/types/student";
 
 const KEY = ["students"] as const;
+
+/** Worth asking the server about: the shape of an email. Finance's own check is stricter still. */
+const LOOKS_LIKE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Whether an email can be this client's, or another client here already holds
+ * it (one email, one client — 2026-10-10) — asked of the server for the lead
+ * being closed or the enrolment being corrected (with the name and phone the
+ * correction form now has, when they changed), a moment after typing stops.
+ *
+ * `taken` is the server's answer when the email is somebody else's, with the
+ * message naming them. `checking` while the answer for what is in the box is
+ * still to come. No answer — an error, a server from before — blocks nothing:
+ * the close and the correction are checked again when they are saved.
+ */
+export function useEmailCheck(
+  email: string,
+  client: { leadId?: string; studentId?: string; name?: string; phone?: string },
+  enabled = true,
+) {
+  const wanted = JSON.stringify({ email: email.trim().toLowerCase(), ...client });
+  // The first one asked at once; then each change once typing pauses.
+  const [asked, setAsked] = useState(wanted);
+  useEffect(() => {
+    const t = setTimeout(() => setAsked(wanted), 400);
+    return () => clearTimeout(t);
+  }, [wanted]);
+  const params = JSON.parse(asked) as Record<string, string | undefined>;
+  const askable = enabled && LOOKS_LIKE_EMAIL.test(params.email ?? "") && Boolean(params.leadId || params.studentId);
+  const q = useQuery({
+    queryKey: [...KEY, "email-check", asked],
+    queryFn: async () => {
+      const search = new URLSearchParams(Object.entries(params).filter((e): e is [string, string] => Boolean(e[1])));
+      const res = await api.get<ApiResponse<EmailCheck>>(`/students/email-check?${search.toString()}`);
+      return res.data.data ?? { ok: true };
+    },
+    enabled: askable,
+    retry: false,
+    staleTime: 30_000,
+  });
+  const settled = asked === wanted;
+  return {
+    taken: askable && settled && q.data?.ok === false ? q.data : null,
+    checking: enabled && LOOKS_LIKE_EMAIL.test(email.trim()) && (!settled || q.isLoading),
+  };
+}
 
 export const useStudents = (filters?: StudentFilters) =>
   useQuery({

@@ -12,6 +12,23 @@ export const createStudent = async (req: AuthenticatedRequest, res: Response, ne
   } catch (err) { next(err); }
 };
 
+/**
+ * Whether an email can be this client's, or another client here holds it (the
+ * user, 2026-10-10: one email, one client — finance files an enrolment under
+ * whoever has its email). Asked by the close dialog and the correction dialog
+ * before they save; the close and the correction refuse it regardless.
+ *
+ * GET /api/v1/students/email-check?email=&leadId= | &studentId=[&name=&phone=]
+ *   → { ok, takenBy?: { kind, name, code? }, message? }
+ */
+export const checkEmail = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const q = req.query as Record<string, unknown>;
+    const result = await svc.checkEmail({ email: q.email, leadId: q.leadId, studentId: q.studentId, name: q.name, phone: q.phone });
+    sendSuccess(res, result.ok ? "Nobody else has this email" : result.message ?? "This email is someone else's", result);
+  } catch (err) { next(err); }
+};
+
 export const getStudents = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const result = await svc.getStudents(req.query as Record<string, string>);
