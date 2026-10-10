@@ -320,6 +320,11 @@ export class StudentService {
       // CRM sends it. Keep "banglore" here when code is copied across from
       // another CRM.
       crm: "banglore",
+      // The academy, said outright (the user, 2026-10-10): every close here is
+      // for the Bangalore academy — finance keeps it on the invoice and passes
+      // it on to the LMS and Tetra Commission. The organization stays
+      // FINANCE_ORG_ID, which for this CRM is Bangalore's.
+      academy: "bangalore",
       // Banglore's finance organisation keeps its books in INR: every amount
       // below is INR minor units (paise), sent as taken — never converted.
       currency: BASE_CURRENCY,

@@ -62,7 +62,8 @@ const finance = http.createServer((req, res) => {
     const body = raw ? JSON.parse(raw) : {};
     res.setHeader("content-type", "application/json");
     if (req.url === "/api/v1/integrations/enrolments") {
-      delivered.push(body);
+      // With the organization it was sent to (x-delta-org), to check where it went.
+      delivered.push({ ...body, _org: String(req.headers["x-delta-org"] ?? "") });
       res.end(JSON.stringify({ data: { invoiceId: `inv-${body.externalId}`, invoiceNumber: `INV-${String(body.externalId).slice(-4)}`, customerId: "cust", duplicate: false, flags: [] } }));
       return;
     }
@@ -254,6 +255,7 @@ check("…so the lead holds what the enrolment says was paid", (lead?.payments ?
 const delivered2 = await waitFor(() => sendsFor(sale.id).length === sendsBefore + 1);
 const sent = sendsFor(sale.id).at(-1);
 check("finance is sent it again at once, as the same enrolment, from this CRM", delivered2 && sent?.externalId === sale.id && sent?.source === "crm" && sent?.crm === "banglore" && sent?.currency === "INR", `${sendsFor(sale.id).length} sends`);
+check("…for the Bangalore academy, into this CRM's own finance organization", sent?.academy === "bangalore" && sent?._org === "org-correction-check" && sendsFor(sale.id).every((d) => d.academy === "bangalore"), `${sent?.academy} ${sent?._org}`);
 check("…with the client as corrected", sent?.customer?.name === "Abdul Hakeem" && sent?.customer?.email === "hakeem@example.com" && sent?.customer?.phone === "+971501112233", JSON.stringify(sent?.customer));
 check("…the course, its fee in paise, the date", sent?.course?.name === "COURSE 1000" && sent?.course?.amountMinor === 100000 && sent?.enrolledOn === "2026-10-04", JSON.stringify(sent?.course));
 check("…what was paid, what is left, each payment with its receipt",

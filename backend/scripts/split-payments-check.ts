@@ -12,7 +12,7 @@
  *     nothing, too many — and anything collected above the fee — refused, on a
  *     close and on an edit, with nothing saved;
  *   - Case 4: who may close;
- *   - Case 5: Banglore — the payload is tagged crm "banglore", in INR with no
+ *   - Case 5: Banglore — the payload is tagged crm "banglore" and academy "bangalore", in INR with no
  *     conversion, and a close needs the client's email (kept on the lead).
  *
  * Run by split-payments-check.sh. Scratch database only.
@@ -194,6 +194,8 @@ r = await close({ paidAmount: 500, payments: [pay("cash", 300), pay("card", 200)
 s = await studentOf(r);
 payload = await service.buildHandoverPayload(String(s!._id)) as Record<string, any>;
 check("tagged crm \"banglore\", source \"crm\"", payload?.crm === "banglore" && payload?.source === "crm", `${payload?.crm} ${payload?.source}`);
+// Every close here is for the Bangalore academy, said outright (2026-10-10).
+check("academy \"bangalore\", always", payload?.academy === "bangalore", `${payload?.academy}`);
 check("currency INR, amounts as taken (500 → 50000 paise), no conversion", payload?.currency === "INR" && payload?.course?.amountMinor === 50000 && payload?.declaredPaidMinor === 50000, JSON.stringify({ c: payload?.currency, a: payload?.course?.amountMinor }));
 check("no payment carries an `original` (no foreign currency)", (payload?.payments ?? []).every((p: any) => p.original === undefined));
 {
