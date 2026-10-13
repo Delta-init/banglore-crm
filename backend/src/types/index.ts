@@ -57,9 +57,24 @@ export const CRM_MODULES = [
    * is "edit" here.
    */
   "enrolments",
+  /*
+   * Balance payments (2026-10-13): part-paid closes, each person's own, a team
+   * leader's teams', everyone's for a Super Admin. View sees
+   * the page, create records a payment for finance. Open by default.
+   */
+  "balancePayments",
 ] as const;
 
 export type CrmModule = (typeof CRM_MODULES)[number];
+
+/**
+ * What a role holds on a module it has never been given a value for. Balance
+ * payments (2026-10-13) is open to every role until its box is unticked; every
+ * other module starts with nothing.
+ */
+export const OPEN_BY_DEFAULT: Partial<Record<CrmModule, Partial<ModulePermissions>>> = {
+  balancePayments: { view: true, create: true },
+};
 
 export type PermissionsMap = {
   [K in CrmModule]?: ModulePermissions;

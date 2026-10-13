@@ -21,13 +21,11 @@ import {
 } from "@/lib/validations/roleSchema";
 import { useCreateRole, useUpdateRole } from "@/hooks/useRoles";
 import type { Role, PermissionsMap } from "@/types";
-import { CRM_MODULES } from "@/types";
+import { CRM_MODULES, modulePermissions } from "@/types";
 
+// A new role starts with each module's default: nothing, but Balance payments open.
 const defaultPermissions: PermissionsMap = Object.fromEntries(
-  CRM_MODULES.map((mod) => [
-    mod,
-    { view: false, create: false, edit: false, delete: false, approve: false, export: false },
-  ])
+  CRM_MODULES.map((mod) => [mod, modulePermissions(undefined, mod)])
 ) as PermissionsMap;
 
 interface RoleDialogProps {

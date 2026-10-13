@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 import type { IRole, ModulePermissions } from "../types/index.js";
-import { CRM_MODULES } from "../types/index.js";
+import { CRM_MODULES, OPEN_BY_DEFAULT } from "../types/index.js";
 
 const modulePermissionsSchema = new Schema<ModulePermissions>(
   {
@@ -17,7 +17,7 @@ const modulePermissionsSchema = new Schema<ModulePermissions>(
 // Build permissions map schema dynamically from CRM_MODULES
 const permissionsFields: Record<string, unknown> = {};
 for (const mod of CRM_MODULES) {
-  permissionsFields[mod] = { type: modulePermissionsSchema, default: () => ({}) };
+  permissionsFields[mod] = { type: modulePermissionsSchema, default: () => ({ ...OPEN_BY_DEFAULT[mod] }) };
 }
 
 const roleSchema = new Schema<IRole>(

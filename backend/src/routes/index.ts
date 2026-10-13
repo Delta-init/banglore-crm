@@ -12,6 +12,7 @@ import reportRoutes from "./reportRoutes.js";
 import pushRoutes from "./pushRoutes.js";
 import aiRoutes from "./aiRoutes.js";
 import studentRoutes from "./studentRoutes.js";
+import balancePaymentRoutes from "./balancePaymentRoutes.js";
 import callRoutes from "./callRoutes.js";
 import appRoutes from "./appRoutes.js";
 import publicRoutes from "./publicRoutes.js";
@@ -35,6 +36,8 @@ router.use("/reports", reportRoutes);
 router.use("/push",    pushRoutes);
 router.use("/ai",       aiRoutes);
 router.use("/students", studentRoutes);
+// Part-paid closes and their next payments, for finance to approve (2026-10-13).
+router.use("/balance-payments", balancePaymentRoutes);
 router.use("/calls",    callRoutes);
 router.use("/app",      appRoutes);       // CallRecorder auto-update
 router.use("/public",   publicRoutes);    // Public routes — no auth required

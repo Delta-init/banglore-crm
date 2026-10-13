@@ -26,6 +26,8 @@ export const CRM_MODULES = [
   // My Enrolments: a counsellor's own sales and what finance made of them;
   // "edit" corrects one finance sent back.
   "enrolments",
+  /* Balance payments (2026-10-13): part-paid closes and the next payment, for finance to approve. Open by default. */
+  "balancePayments",
 ] as const;
 
 export type CrmModule = (typeof CRM_MODULES)[number];
@@ -43,9 +45,26 @@ export const MODULE_LABELS: Record<CrmModule, string> = {
   tracker: "Daily Tracker",
   students: "Students",
   enrolments: "My Enrolments",
+  balancePayments: "Balance payments",
 };
 
 export type PermissionsMap = Partial<Record<CrmModule, ModulePermissions>>;
+
+const NO_PERMISSIONS: ModulePermissions = { view: false, create: false, edit: false, delete: false, approve: false, export: false };
+
+/**
+ * What a role holds on a module it has never been given a value for — the
+ * same default the server holds. Balance payments (2026-10-13) is open to
+ * every role until its box is unticked; every other module starts with nothing.
+ */
+export const OPEN_BY_DEFAULT: Partial<Record<CrmModule, Partial<ModulePermissions>>> = {
+  balancePayments: { view: true, create: true },
+};
+
+/** A role's permissions on one module — what it was given, or the module's default. */
+export function modulePermissions(perms: PermissionsMap | undefined, mod: CrmModule): ModulePermissions {
+  return perms?.[mod] ?? { ...NO_PERMISSIONS, ...OPEN_BY_DEFAULT[mod] };
+}
 
 // ─── Role ─────────────────────────────────────────────────────────────────────
 export interface Role {
