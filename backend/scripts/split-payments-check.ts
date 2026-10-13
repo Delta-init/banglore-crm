@@ -186,6 +186,25 @@ const legacy = await Student.create({ enrollmentNumber: "STU-9999", name: "Legac
 r = await call("PUT", `/students/${String(legacy._id)}`, "Theertha", { notes: "Checked with accounts" });
 check("an enrolment over its fee from before still takes an edit that leaves the money alone", r.status === 200, `${r.status} ${r.body.message}`);
 
+section("Case 3b — a payment handed over in AED (the user, 2026-10-13): INR by default, AED with 1 AED = ₹22.5");
+{
+  r = await close({ paidAmount: 500, totalFee: 500, payments: [pay("cash", 275, "inr-part"), pay("cash", 225, "aed-part", { original: { currency: "AED", amount: 10, rate: 22.5 } })] });
+  s = await studentOf(r);
+  check("201: ₹275 + AED 10 at 1 AED = ₹22.5 (₹225); the AED payment keeps its dirhams and rate", r.status === 201 && s?.paidAmount === 500
+    && JSON.stringify(s?.payments?.[1]?.original) === JSON.stringify({ currency: "AED", amount: 10, rate: 22.5 }) && !s?.payments?.[0]?.original,
+    `${r.status} ${r.body.message} ${JSON.stringify(s?.payments)}`);
+  payload = await service.buildHandoverPayload(String(s!._id)) as Record<string, any>;
+  check("…finance gets the INR, and the AED as its original {AED, fils, INR per AED}",
+    JSON.stringify(payload?.payments?.map((p: any) => [p.amountMinor, p.original ?? null])) === JSON.stringify([[27_500, null], [22_500, { currency: "AED", amountMinor: 1_000, rate: 22.5 }]]),
+    JSON.stringify(payload?.payments));
+  r = await close({ paidAmount: 500, totalFee: 500, payments: [pay("inr_bank_account", 500, "inr-transfer")] });
+  s = await studentOf(r);
+  check("INR Transfer is a method this CRM takes, sent to finance as inr_bank_account", r.status === 201 && s?.payments?.[0]?.method === "inr_bank_account", `${r.status} ${r.body.message}`);
+  await refused("AED that doesn't come to its rupees: 422", { paidAmount: 500, totalFee: 500, payments: [pay("cash", 500, "aed-off", { original: { currency: "AED", amount: 10, rate: 22.5 } })] }, /comes to ₹225, not ₹500/);
+  await refused("AED with no rate: 422", { paidAmount: 500, totalFee: 500, payments: [pay("cash", 225, "aed-norate", { original: { currency: "AED", amount: 10 } }), pay("cash", 275)] }, /needs its rate/);
+  await refused("another currency than AED: 422", { paidAmount: 500, totalFee: 500, payments: [pay("cash", 500, "usd", { original: { currency: "USD", amount: 6, rate: 83.3 } })] }, /in INR, or AED with its rate — not USD/);
+}
+
 section("Case 4 — who may close");
 r = await call("POST", "/students", undefined, { leadId: await lead(), name: "No one", totalFee: 500, paidAmount: 500, payments: [pay("cash", 500)] });
 check("not signed in: 401", r.status === 401, `${r.status}`);

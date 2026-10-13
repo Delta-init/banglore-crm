@@ -17,7 +17,7 @@ import { useAllCourses } from "@/hooks/useCourses";
 import { useCorrectEnrolment, useEnrolmentCorrection, type EnrolmentCorrectionStart } from "@/hooks/useEnrolments";
 import { useEmailCheck } from "@/hooks/useStudents";
 import {
-  PaymentRowsEditor, missingInRows, newPaymentRow, rowAmount, type PaymentRow,
+  PaymentRowsEditor, missingInRows, newPaymentRow, rowAmount, rowOriginal, type PaymentRow,
 } from "@/components/students/PaymentRowsEditor";
 import type { Course } from "@/types/course";
 import type { FeeStatus, Student } from "@/types/student";
@@ -58,7 +58,11 @@ function startingRows(s: Student, ownOnLead: number): PaymentRow[] {
   }
   const taken = listed.filter((p) => !p.collectedBefore);
   if (taken.length) {
-    rows.push(...taken.map((p) => newPaymentRow({ method: p.method, amountInput: String(p.amount), receipt: p.receipt ?? null })));
+    rows.push(...taken.map((p) => newPaymentRow({
+      method: p.method, amountInput: String(p.amount), receipt: p.receipt ?? null,
+      // Handed over in AED: given back as it was typed — the dirhams and 1 AED = ₹.
+      ...(p.original?.currency === "AED" ? { paidInAed: true, aedInput: String(p.original.amount), rateInput: String(p.original.rate) } : {}),
+    })));
   } else if (!listed.length) {
     const rest = Math.round(((s.paidAmount ?? 0) - ownOnLead) * 100) / 100;
     if (rest > 0) rows.push(newPaymentRow({ method: s.paymentMethod ?? "", amountInput: String(rest), receipt: s.paymentReceipt ?? null }));
@@ -211,6 +215,7 @@ function CorrectionForm({ studentId, start, onClose }: { studentId: string; star
             receipt: r.receipt,
             paidAt: on,
             ...(r.collectedBefore ? { collectedBefore: true } : {}),
+            ...(rowOriginal(r) ? { original: rowOriginal(r) } : {}),
           })),
           hasBonus: bonusChoice === "yes",
           bonusAmount: bonusChoice === "yes" ? bonusAmount : 0,

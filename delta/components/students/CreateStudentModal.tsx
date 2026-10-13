@@ -17,7 +17,7 @@ import { useCreateStudent, useEmailCheck, useUpdateStudent } from "@/hooks/useSt
 import { useAllCourses } from "@/hooks/useCourses";
 import { useAddPayment } from "@/hooks/usePayments";
 import {
-  PaymentRowsEditor, missingInRows, newPaymentRow, rowAmount, type PaymentRow,
+  PaymentRowsEditor, missingInRows, newPaymentRow, rowAmount, rowOriginal, type PaymentRow,
 } from "@/components/students/PaymentRowsEditor";
 import type { Lead } from "@/types/lead";
 import type { Course } from "@/types/course";
@@ -309,6 +309,7 @@ export function CreateStudentModal({ open, lead, existingStudent, progress, onCl
         receipt: r.receipt as StoredReceipt,
         paidAt: new Date(enrollmentDate).toISOString(),
         ...(r.collectedBefore ? { collectedBefore: true } : {}),
+        ...(rowOriginal(r) ? { original: rowOriginal(r) } : {}),
       })),
       ...bonusFields,
     }).catch((err: unknown) => {

@@ -100,6 +100,18 @@ const studentSchema = new Schema<IStudent>(
             },
             paidAt: { type: Date, required: true },
             collectedBefore: { type: Boolean },
+            /** Handed over in AED: how much, and at what rate (INR for 1 AED). `amount` is the INR. */
+            original: {
+              type: new Schema(
+                {
+                  currency: { type: String, enum: ["AED"], required: true },
+                  amount: { type: Number, required: true, min: 0.01 },
+                  rate: { type: Number, required: true, min: 0 },
+                },
+                { _id: false },
+              ),
+              default: undefined,
+            },
           },
           { _id: false },
         ),

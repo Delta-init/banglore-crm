@@ -82,7 +82,32 @@ type PaymentInput = {
   receipt?: ReceiptInput;
   paidAt?: string;
   collectedBefore?: boolean;
+  original?: { currency?: string; amount?: number | string; rate?: number | string } | null;
 } | null;
+
+/**
+ * A payment handed over in dirhams (the user, 2026-10-13: INR by default, AED
+ * pickable): the AED and its rate — 1 AED = `rate` INR — checked against the
+ * INR the close converted it to, within half a percent for rounding; a figure
+ * typed in the wrong currency is refused rather than billed. Not the money
+ * already on the lead, which is INR here.
+ */
+function originalPart(raw: PaymentInput, inr: number, n: string): Pick<IStudentPayment, "original"> {
+  const o = raw?.original;
+  if (!o) return {};
+  const currency = String(o.currency ?? "AED").trim().toUpperCase();
+  if (currency !== "AED") throw createError(`${n}: a payment is in INR, or AED with its rate — not ${currency}.`, 422);
+  if (raw?.collectedBefore) throw createError(`${n} was already on the lead in INR, so it cannot be in AED.`, 422);
+  const aed = Number(o.amount);
+  if (!Number.isFinite(aed) || aed <= 0) throw createError(`${n} needs the amount paid in AED.`, 422);
+  const rate = Number(o.rate);
+  if (!Number.isFinite(rate) || rate <= 0 || rate > 1_000_000) throw createError(`${n} needs its rate: 1 AED = how many rupees.`, 422);
+  const expected = Math.round(aed * rate * 100);
+  if (Math.abs(minor(inr) - expected) > Math.max(1, Math.round(expected * 0.005))) {
+    throw createError(`${n}: AED ${money(aed)} at 1 AED = ₹${rate} comes to ₹${money(expected / 100)}, not ₹${money(inr)}.`, 422);
+  }
+  return { original: { currency: "AED", amount: minor(aed) / 100, rate } };
+}
 
 
 
@@ -116,6 +141,7 @@ function checkedPayments(list: unknown, paidAmount: number, enrolledOn: Date): I
       },
       paidAt: Number.isNaN(paidAt.getTime()) ? enrolledOn : paidAt,
       ...(raw.collectedBefore ? { collectedBefore: true } : {}),
+      ...originalPart(raw, amount, n),
     };
   });
   const sum = payments.reduce((s, p) => s + minor(p.amount), 0);
@@ -504,6 +530,10 @@ export class StudentService {
               method: p.method,
               amountMinor: Math.round(p.amount * 100),
               paidOn: new Date(p.paidAt).toISOString().slice(0, 10),
+              // Handed over in AED: what the receipt shows, and INR for 1 AED.
+              ...(p.original?.amount && p.original.rate
+                ? { original: { currency: "AED", amountMinor: Math.round(p.original.amount * 100), rate: p.original.rate } }
+                : {}),
               ...(p.receipt?.key && p.receipt.url
                 ? {
                     receipt: {

@@ -367,6 +367,8 @@ export const ENROLMENT_PAYMENT_METHODS = [
   "tabby",
   "tamara",
   "billexpro",
+  // Rupees into the INR account (the user, 2026-10-13) — finance's "INR Bank Account".
+  "inr_bank_account",
 ] as const;
 export type EnrolmentPaymentMethod = (typeof ENROLMENT_PAYMENT_METHODS)[number];
 
@@ -379,6 +381,7 @@ export const PAYMENT_METHOD_LABELS: Record<EnrolmentPaymentMethod, string> = {
   tabby: "Tabby",
   tamara: "Tamara",
   billexpro: "BillExPro",
+  inr_bank_account: "INR Transfer",
 };
 
 /**
@@ -406,6 +409,12 @@ export interface IStudentPayment {
   paidAt: Date;
   /** The money already on the lead before the close, as one payment. */
   collectedBefore?: boolean;
+  /**
+   * A payment handed over in dirhams (the user, 2026-10-13: INR by default, AED
+   * pickable): the AED and the rate it was converted at — `rate` INR for 1 AED.
+   * `amount` above is the INR it came to. Sent to finance as its `original`.
+   */
+  original?: { currency: "AED"; amount: number; rate: number };
 }
 
 // ─── Student ───────────────────────────────────────────────────────────────────

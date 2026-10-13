@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { fmtINR } from "@/lib/currency";
 import { uploadReceipt } from "@/hooks/useStudents";
-import { ENROLMENT_PAYMENT_METHODS, PAYMENT_METHOD_LABELS, type StoredReceipt } from "@/types/student";
+import { ENROLMENT_PAYMENT_METHODS, PAYMENT_METHOD_LABELS, type PaymentOriginal, type StoredReceipt } from "@/types/student";
 
 /*
  * The payments taken at a close, one row each (the user, 2026-10-05): a client
@@ -17,8 +17,10 @@ import { ENROLMENT_PAYMENT_METHODS, PAYMENT_METHOD_LABELS, type StoredReceipt } 
  * of its own — its amount fixed, its method and receipt still asked, since
  * finance records every payment against the invoice with its proof.
  *
- * Every payment is in INR — Banglore's finance organisation keeps its books in
- * INR, so there is no other money to take a payment in here.
+ * Every payment counts in INR — Banglore's finance organisation keeps its books
+ * in INR. A payment handed over in dirhams says so (the user, 2026-10-13: INR by
+ * default, AED pickable): the AED and the rate, 1 AED = ₹ how much, and its
+ * rupees worked out from them; finance gets both.
  */
 
 export interface PaymentRow {
@@ -26,6 +28,10 @@ export interface PaymentRow {
   method: string;
   /** In INR. */
   amountInput: string;
+  /** Handed over in AED — `aedInput` at `rateInput` (INR for 1 AED) is its rupees. */
+  paidInAed?: boolean;
+  aedInput?: string;
+  rateInput?: string;
   receipt: StoredReceipt | null;
   /** The money already on the lead before the close, as one payment. */
   collectedBefore?: boolean;
@@ -46,10 +52,17 @@ export const newPaymentRow = (over: Partial<PaymentRow> = {}): PaymentRow => ({
   ...over,
 });
 
-const num = (s: string) => Math.max(0, Number(s) || 0);
+const num = (s?: string) => Math.max(0, Number(s) || 0);
 
-/** What the payment counts as, in INR. */
-export const rowAmount = (r: PaymentRow) => num(r.amountInput);
+/** Handed over in AED — never the money already on the lead, which is INR here. */
+const inAed = (r: PaymentRow) => !r.collectedBefore && Boolean(r.paidInAed);
+
+/** What the payment counts as, in INR — the rupees an AED payment came to. */
+export const rowAmount = (r: PaymentRow) => (inAed(r) ? Math.round(num(r.aedInput) * num(r.rateInput) * 100) / 100 : num(r.amountInput));
+
+/** What finance is told of a payment handed over in AED; nothing otherwise. */
+export const rowOriginal = (r: PaymentRow): PaymentOriginal | undefined =>
+  inAed(r) ? { currency: "AED", amount: num(r.aedInput), rate: num(r.rateInput) } : undefined;
 
 /** What each payment still needs, the way the close's "Still needed" line says it. */
 export function missingInRows(rows: PaymentRow[]): string[] {
@@ -58,7 +71,9 @@ export function missingInRows(rows: PaymentRow[]): string[] {
     const whose = `payment ${i + 1}'s`;
     return [
       !r.method && (one ? "payment method" : `${whose} method`),
-      !r.collectedBefore && !(num(r.amountInput) > 0) && (one ? "the amount paid" : `${whose} amount`),
+      !r.collectedBefore && !inAed(r) && !(num(r.amountInput) > 0) && (one ? "the amount paid" : `${whose} amount`),
+      inAed(r) && !(num(r.aedInput) > 0) && (one ? "the amount paid in AED" : `${whose} AED amount`),
+      inAed(r) && !(num(r.rateInput) > 0) && (one ? "the AED rate" : `${whose} AED rate`),
       !r.receipt && (one ? "payment receipt" : `${whose} receipt`),
     ].filter(Boolean) as string[];
   });
@@ -100,7 +115,8 @@ export function PaymentRowsEditor({ leadId, rows, onChange }: PaymentRowsEditorP
           >
             <div className="flex items-center gap-2">
               <span className="w-5 shrink-0 text-[10px] font-semibold text-muted-foreground">{i + 1}.</span>
-              <Select value={r.method} onValueChange={(v) => update(r.id, { method: v })}>
+              {/* "INR Transfer" is rupees: it puts the row back in INR. */}
+              <Select value={r.method} onValueChange={(v) => update(r.id, v === "inr_bank_account" ? { method: v, paidInAed: false } : { method: v })}>
                 <SelectTrigger className="h-8 w-[130px] shrink-0 text-xs" aria-label={`Payment ${i + 1} method`}>
                   <SelectValue placeholder="Paid by…" />
                 </SelectTrigger>
@@ -116,12 +132,32 @@ export function PaymentRowsEditor({ leadId, rows, onChange }: PaymentRowsEditorP
                   <span className="ml-1.5 text-[10px] text-muted-foreground">already on the lead</span>
                 </div>
               ) : (
-                <Input
-                  type="number" min="0" step="0.01" value={r.amountInput}
-                  onChange={(e) => update(r.id, { amountInput: e.target.value })}
-                  placeholder="Amount (₹)" className="h-8 min-w-0 flex-1 text-xs"
-                  aria-label={`Payment ${i + 1} amount in INR`}
-                />
+                <>
+                  <Select value={r.paidInAed ? "AED" : "INR"} onValueChange={(v) => update(r.id, { paidInAed: v === "AED" })}>
+                    <SelectTrigger className="h-8 w-[72px] shrink-0 text-xs" aria-label={`Payment ${i + 1} currency`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="INR" className="text-xs">INR</SelectItem>
+                      <SelectItem value="AED" className="text-xs">AED</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {r.paidInAed ? (
+                    <Input
+                      type="number" min="0" step="0.01" value={r.aedInput ?? ""}
+                      onChange={(e) => update(r.id, { aedInput: e.target.value })}
+                      placeholder="Paid in AED" className="h-8 min-w-0 flex-1 text-xs"
+                      aria-label={`Payment ${i + 1} amount in AED`}
+                    />
+                  ) : (
+                    <Input
+                      type="number" min="0" step="0.01" value={r.amountInput}
+                      onChange={(e) => update(r.id, { amountInput: e.target.value })}
+                      placeholder="Amount (₹)" className="h-8 min-w-0 flex-1 text-xs"
+                      aria-label={`Payment ${i + 1} amount in INR`}
+                    />
+                  )}
+                </>
               )}
               {!r.collectedBefore && removable && (
                 <motion.button
@@ -135,6 +171,19 @@ export function PaymentRowsEditor({ leadId, rows, onChange }: PaymentRowsEditorP
                 </motion.button>
               )}
             </div>
+            {/* Handed over in AED: the rate, 1 AED = ₹ how much, and the rupees it comes to. */}
+            {inAed(r) && (
+              <div className="flex flex-wrap items-center gap-2 pl-7">
+                <span className="text-[11px] text-muted-foreground">1 AED = ₹</span>
+                <Input
+                  type="number" min="0" step="0.0001" value={r.rateInput ?? ""}
+                  onChange={(e) => update(r.id, { rateInput: e.target.value })}
+                  placeholder="rate" className="h-7 w-20 text-xs"
+                  aria-label={`Payment ${i + 1} rate, rupees for one dirham`}
+                />
+                <span className="text-[11px] font-medium text-foreground">= {fmtINR(rowAmount(r))}</span>
+              </div>
+            )}
             {r.receipt ? (
               <div className="flex items-center gap-2 rounded-md border border-border/50 bg-card px-2.5 py-1.5">
                 <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
