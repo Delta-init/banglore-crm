@@ -242,7 +242,35 @@ export function UpcomingBatch({ teamId, canEdit }: UpcomingBatchProps) {
 
   if (!data) return null;
 
-  const { totalUnassigned, splitTime, splitTimes, nextSplitAt, autoAssign, unassignedLeads, previewDistribution } = data;
+  const { totalUnassigned, splitTime, splitTimes, splitStrategy, nextSplitAt, autoAssign, unassignedLeads, previewDistribution } = data;
+
+  // ── Live mode — leads assign instantly, no daily batch queue ──
+  if (autoAssign && splitStrategy === "live") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center justify-center gap-4 py-20 text-center"
+      >
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10">
+          <Zap className="h-8 w-8 text-emerald-400" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">Live split is on</p>
+          <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+            Every lead is assigned the moment it arrives — sources and lead counts stay equal across
+            the participating members, so nothing queues here.
+            {totalUnassigned > 0 && (
+              <span className="block mt-1 text-amber-400">
+                {totalUnassigned} unassigned lead{totalUnassigned === 1 ? "" : "s"} remain (e.g. all
+                eligible members excluded for their source) — use Split Now in Settings if needed.
+              </span>
+            )}
+          </p>
+        </div>
+      </motion.div>
+    );
+  }
 
   // ── Empty state — no split time configured ──
   if (!splitTime || !autoAssign) {

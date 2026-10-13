@@ -666,6 +666,7 @@ const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 const teamSettingsSchema = z.object({
   autoAssign:            z.boolean(),
   splitMode:             z.enum(["round_robin", "equal_load"]),
+  splitStrategy:         z.enum(["scheduled", "live"]).optional(),
   includedMembers:       z.array(z.string()).optional(),
   splitTime:             z.string().regex(HHMM, "Must be a valid time HH:mm (00:00–23:59)").nullable().optional(),
   splitTimes:            z.array(z.string().regex(HHMM, "Each time must be HH:mm (00:00–23:59)")).optional(),
@@ -704,7 +705,8 @@ export async function updateTeamSettings(
     const team = await Team.findById(req.params.id);
     if (!team) return sendError(res, "Team not found", 404);
 
-    const { autoAssign, splitMode, includedMembers, splitTime, splitTimes, sourceExclusions, roundRobinStartDate } = parsed.data;
+    const { autoAssign, splitMode, splitStrategy, includedMembers, splitTime, splitTimes, sourceExclusions, roundRobinStartDate } = parsed.data;
+    const newStrategy = splitStrategy ?? "scheduled";
 
     // Effective times: prefer the multi-time array; fall back to the legacy
     // single field. Dedupe + sort so the schedule is deterministic, and mirror
@@ -724,6 +726,7 @@ export async function updateTeamSettings(
       $set: {
         "settings.autoAssign":            autoAssign,
         "settings.splitMode":             splitMode,
+        "settings.splitStrategy":         newStrategy,
         "settings.includedMembers":       includedMembers ?? [],
         "settings.splitTimes":            normalizedTimes,
         "settings.splitTime":             primaryTime,
@@ -736,6 +739,7 @@ export async function updateTeamSettings(
     sendSuccess(res, "Team settings updated", {
       autoAssign,
       splitMode,
+      splitStrategy: newStrategy,
       includedMembers: includedMembers ?? [],
       splitTimes: normalizedTimes,
       splitTime: primaryTime,

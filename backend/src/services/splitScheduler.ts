@@ -92,6 +92,7 @@ async function tick() {
     const candidates = await Team.find({
       status: "active",
       "settings.autoAssign": true,
+      "settings.splitStrategy": { $ne: "live" }, // live teams assign instantly — no daily batch
       $or: [
         { "settings.splitTime": { $nin: [null, ""] } },
         { "settings.splitTimes.0": { $exists: true } },

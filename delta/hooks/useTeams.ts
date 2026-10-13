@@ -645,6 +645,7 @@ export const useUpdateTeamSettings = (teamId: string) => {
     mutationFn: async (settings: {
       autoAssign: boolean;
       splitMode: "round_robin" | "equal_load";
+      splitStrategy?: "scheduled" | "live";
       includedMembers: string[];
       splitTime?: string | null;
       splitTimes?: string[];
@@ -727,6 +728,7 @@ export interface UpcomingBatchData {
   totalUnassigned: number;
   splitTime: string | null;
   splitTimes?: string[];
+  splitStrategy?: "scheduled" | "live";
   nextSplitAt: string | null;
   autoAssign: boolean;
   unassignedLeads: UpcomingBatchLead[];

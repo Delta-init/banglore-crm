@@ -141,6 +141,7 @@ export interface PaginationQuery {
 export interface ITeamSettings {
   autoAssign: boolean;
   splitMode: "round_robin" | "equal_load";
+  splitStrategy?: "scheduled" | "live"; // scheduled = daily batch at splitTime(s); live = assign instantly on arrival
   roundRobinIndex: number;
   includedMembers: Types.Array<Types.ObjectId | IUser>;
   splitTime?: string | null;           // legacy single "HH:mm" IST (mirror of splitTimes[0])
