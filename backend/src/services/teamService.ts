@@ -597,6 +597,7 @@ export class TeamService {
 
     const settings = team.settings as any;
     const autoAssign: boolean = settings?.autoAssign ?? false;
+    const splitStrategy: string = settings?.splitStrategy ?? "scheduled";
     // Effective times: multi-time array wins; else the legacy single time.
     const splitTimes: string[] = (settings?.splitTimes?.length
       ? settings.splitTimes
@@ -629,6 +630,8 @@ export class TeamService {
       }
       if (soonest !== Infinity) nextSplitAt = new Date(soonest).toISOString();
     }
+    // Live teams have no scheduled batch instant.
+    if (splitStrategy === "live") nextSplitAt = null;
 
     // Build eligible member pool (same logic as autoAssignTeamLeadsToMembers)
     const leaderIds = new Set(
@@ -691,6 +694,7 @@ export class TeamService {
       totalUnassigned: unassignedLeads.length,
       splitTime,
       splitTimes,
+      splitStrategy,
       nextSplitAt,
       autoAssign,
       unassignedLeads,

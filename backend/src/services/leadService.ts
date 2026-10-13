@@ -209,7 +209,9 @@ async function autoSplitLead(
     //    of what time they arrive. The scheduler fires once at splitTime each day
     //    and assigns everything accumulated since the last run.
     //    bypassSplitTime=true skips this gate (used by manual redistribute).
-    if (!bypassSplitTime) {
+    //    LIVE strategy also skips the gate — live teams assign instantly on arrival.
+    const splitStrategy: string = (team.settings as any)?.splitStrategy ?? "scheduled";
+    if (!bypassSplitTime && splitStrategy !== "live") {
       const splitTime: string | null = (team.settings as any)?.splitTime ?? null;
       if (splitTime) return; // always hold — scheduler handles assignment at splitTime
     }
@@ -251,7 +253,8 @@ async function autoSplitLead(
     }
     // Per-member source exclusions — a member never receives this lead's source.
     const leadSrcDoc = await Lead.findById(leadId).select("source").lean();
-    const srcNorm = ((leadSrcDoc?.source as string | undefined) ?? "").trim().toLowerCase();
+    const leadSource = ((leadSrcDoc?.source as string | undefined) ?? "").trim();
+    const srcNorm = leadSource.toLowerCase();
     const exRaw = (team.settings as any)?.sourceExclusions;
     const exclusions: Record<string, string[]> =
       exRaw instanceof Map ? Object.fromEntries(exRaw) : (exRaw ?? {});
@@ -264,24 +267,53 @@ async function autoSplitLead(
 
     if (pool.length === 0) return; // nobody eligible (e.g. all exclude this source) → stays unassigned
 
-    // ── Assignee selection — EVEN ROUND-ROBIN PER BATCH ─────────────────────────
-    // Rotate a stored pointer across the present pool, one step per lead. Over a
-    // batch of N this hands ~N/pool.length leads to each present member, and the
-    // pointer persists across batches so consecutive batches stay balanced.
-    //
-    // We deliberately do NOT pick "the member with the fewest cumulative leads"
-    // (the old equal_load and roundRobinStartDate paths). Cumulative balancing
-    // dumps the ENTIRE catch-up backlog onto a returning-absent member in a
-    // single batch — e.g. someone back from one day off received 74 of 97 leads.
-    // See scripts/test-split-scheduler.ts (Case 2) for the reproduction, and
-    // scripts/report-daily-splits.ts for the production evidence. Even round-robin
-    // gives a returning member only their fair share of today's batch instead.
-    const idx = (team.settings.roundRobinIndex ?? 0) % pool.length;
-    const assigneeId = pool[idx];
-    await Team.updateOne(
-      { _id: teamId },
-      { $set: { "settings.roundRobinIndex": (idx + 1) % pool.length } },
-    );
+    // ── Assignee selection ──────────────────────────────────────────────────────
+    let assigneeId: string;
+
+    if (splitStrategy === "live") {
+      // LIVE mode — SOURCE + TOTAL fair, per IST day: the lead goes to the pool
+      // member with the fewest leads of THIS source today, tie-broken by fewest
+      // total leads today, then stable pool order. Sources stay evenly spread AND
+      // daily totals never drift more than 1 apart (a small source's single lead
+      // flows to whoever is lowest overall, instead of whoever a blind rotation
+      // points at). Each lead is assigned the instant it arrives.
+      const liveDayStart = istMidnightUTC();
+      const stats = await Promise.all(
+        pool.map(async (id) => ({
+          id,
+          srcCount: leadSource
+            ? await Lead.countDocuments({ assignedTo: id, assignedAt: { $gte: liveDayStart }, source: leadSource })
+            : 0,
+          totalCount: await Lead.countDocuments({ assignedTo: id, assignedAt: { $gte: liveDayStart } }),
+        })),
+      );
+      let best = stats[0];
+      for (const st of stats) {
+        if (st.srcCount < best.srcCount || (st.srcCount === best.srcCount && st.totalCount < best.totalCount)) {
+          best = st;
+        }
+      }
+      assigneeId = best.id;
+    } else {
+      // SCHEDULED mode — EVEN ROUND-ROBIN PER BATCH.
+      // Rotate a stored pointer across the present pool, one step per lead. Over a
+      // batch of N this hands ~N/pool.length leads to each present member, and the
+      // pointer persists across batches so consecutive batches stay balanced.
+      //
+      // We deliberately do NOT pick "the member with the fewest cumulative leads"
+      // (the old equal_load and roundRobinStartDate paths). Cumulative balancing
+      // dumps the ENTIRE catch-up backlog onto a returning-absent member in a
+      // single batch — e.g. someone back from one day off received 74 of 97 leads.
+      // See scripts/test-split-scheduler.ts (Case 2) for the reproduction, and
+      // scripts/report-daily-splits.ts for the production evidence. Even round-robin
+      // gives a returning member only their fair share of today's batch instead.
+      const idx = (team.settings.roundRobinIndex ?? 0) % pool.length;
+      assigneeId = pool[idx];
+      await Team.updateOne(
+        { _id: teamId },
+        { $set: { "settings.roundRobinIndex": (idx + 1) % pool.length } },
+      );
+    }
 
     const user = await User.findById(assigneeId).select("_id name").lean();
     if (!user) return;
@@ -310,7 +342,7 @@ async function autoSplitLead(
         $push: {
           activityLogs: {
             action: "lead_assigned",
-            description: `Auto-assigned to "${user.name}" via ${team.settings.splitMode === "equal_load" ? "equal load" : "round robin"}`,
+            description: `Auto-assigned to "${user.name}" via ${splitStrategy === "live" ? "live split (source + total fair)" : team.settings.splitMode === "equal_load" ? "equal load" : "round robin"}`,
             performedBy: performer,
             createdAt: new Date(),
           },

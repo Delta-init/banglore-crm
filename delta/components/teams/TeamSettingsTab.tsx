@@ -100,6 +100,7 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
 
   const [autoAssign, setAutoAssign]         = useState(false);
   const [splitMode, setSplitMode]           = useState<"round_robin" | "equal_load">("round_robin");
+  const [splitStrategy, setSplitStrategy]   = useState<"scheduled" | "live">("scheduled");
   const [splitTimes, setSplitTimes]         = useState<string[]>([]);
   const [roundRobinStartDate, setStartDate] = useState<string>("");
   // userId → sources that must never be auto-assigned to them
@@ -125,6 +126,7 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
     if (!settings) return;
     setAutoAssign(settings.autoAssign ?? false);
     setSplitMode(settings.splitMode ?? "round_robin");
+    setSplitStrategy(settings.splitStrategy ?? "scheduled");
     // Prefer the multi-time array; fall back to the legacy single time.
     setSplitTimes(
       settings.splitTimes?.length
@@ -194,6 +196,7 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
     save({
       autoAssign,
       splitMode,
+      splitStrategy,
       includedMembers,
       splitTimes: cleanedTimes,
       splitTime: cleanedTimes[0] ?? null,
@@ -325,6 +328,41 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {/* Scheduled / Live mode switch */}
+              <div className="inline-flex rounded-lg border border-border/60 bg-muted/30 p-0.5">
+                <button
+                  type="button"
+                  onClick={() => isLeaderOrAdmin && setSplitStrategy("scheduled")}
+                  disabled={!isLeaderOrAdmin}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    splitStrategy === "scheduled"
+                      ? "bg-orange-500/15 text-orange-400"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Clock className="h-3.5 w-3.5" /> Scheduled
+                </button>
+                <button
+                  type="button"
+                  onClick={() => isLeaderOrAdmin && setSplitStrategy("live")}
+                  disabled={!isLeaderOrAdmin}
+                  className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    splitStrategy === "live"
+                      ? "bg-emerald-500/15 text-emerald-400"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Zap className="h-3.5 w-3.5" /> Live
+                </button>
+              </div>
+
+              {splitStrategy === "live" ? (
+                <p className="text-xs text-emerald-400/90">
+                  Live mode — every lead is assigned the moment it arrives, keeping both sources and
+                  lead counts equal across the participating members. No daily batch queues up.
+                </p>
+              ) : (
+              <>
               <p className="text-xs text-muted-foreground">
                 At each time (IST) every day, all unassigned leads in this team will be automatically distributed. Add as many times as you need — remove them all to disable the scheduled split.
               </p>
@@ -387,6 +425,8 @@ export function TeamSettingsTab({ teamId, team, isLeaderOrAdmin }: Props) {
                 <p className="text-xs text-muted-foreground">
                   No times set — scheduled auto-split is disabled for this team.
                 </p>
+              )}
+              </>
               )}
             </CardContent>
           </Card>

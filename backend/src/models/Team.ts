@@ -5,6 +5,7 @@ const teamSettingsSchema = new Schema(
   {
     autoAssign: { type: Boolean, default: false },
     splitMode: { type: String, enum: ["round_robin", "equal_load"], default: "round_robin" },
+    splitStrategy: { type: String, enum: ["scheduled", "live"], default: "scheduled" }, // live = assign instantly, no daily batch
     roundRobinIndex: { type: Number, default: 0 },
     includedMembers: [{ type: Schema.Types.ObjectId, ref: "User" }],
     splitTime: { type: String, default: null },             // legacy single "HH:mm" IST (kept in sync with splitTimes[0])

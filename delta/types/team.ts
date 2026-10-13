@@ -3,6 +3,7 @@ import type { User } from "@/types";
 export interface TeamSettings {
   autoAssign: boolean;
   splitMode: "round_robin" | "equal_load";
+  splitStrategy?: "scheduled" | "live";
   roundRobinIndex: number;
   includedMembers: string[];
   splitTime?: string | null;
