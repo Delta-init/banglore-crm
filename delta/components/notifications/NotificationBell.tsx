@@ -18,6 +18,7 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { usePushNotification } from "@/hooks/usePushNotification";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { toast } from "@/lib/toast";
+import { SaleAnnouncementControls } from "@/components/notifications/SaleAnnouncementControls";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -199,6 +200,11 @@ function NotificationContent({
           {list}
         </div>
       )}
+
+      {/* Closed sales: try the celebration, and mute it on this device */}
+      <div className="border-t border-border/50 px-4 py-3 shrink-0">
+        <SaleAnnouncementControls />
+      </div>
 
       {/* Footer */}
       {notifications.length > 0 && (

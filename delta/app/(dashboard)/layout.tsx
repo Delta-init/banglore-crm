@@ -8,6 +8,7 @@ import { navItems } from "@/components/layout/Sidebar";
 import { useReminderNotifications } from "@/hooks/useReminderNotifications";
 import { useCallRecordingNotifications } from "@/hooks/useCallRecordingNotifications";
 import { RecentPageTracker } from "@/components/shared/CommandPalette";
+import { SaleCelebration } from "@/components/shared/SaleCelebration";
 import { ImpersonationBanner } from "@/components/shared/ImpersonationBanner";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -50,6 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-dvh overflow-hidden bg-slate-200 dark:bg-background pwa-safe-top">
       <RecentPageTracker />
+      <SaleCelebration />
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <ImpersonationBanner />

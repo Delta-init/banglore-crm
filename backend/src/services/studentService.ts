@@ -11,6 +11,7 @@ import { Student } from "../models/Student.js";
 import { Lead } from "../models/Lead.js";
 import type { IRole, IStudent, IStudentPayment } from "../types/index.js";
 import { emailKey, emailPattern, samePerson, takenMessage, type EmailHolder, type Person } from "../utils/clientEmail.js";
+import { announceSaleClosed } from "./saleAnnouncement.js";
 
 function createError(msg: string, status: number) {
   return Object.assign(new Error(msg), { statusCode: status });
@@ -332,7 +333,10 @@ export class StudentService {
     // invoice follows when finance is reachable. See financeHandoverWorker.
     await this.queueFinanceHandover(String(student._id), data.leadId);
 
-    return this.populateStudent(String(student._id));
+    const closed = await this.populateStudent(String(student._id));
+    // Every signed-in screen celebrates it (the user, 2026-10-15). Not waited for.
+    announceSaleClosed(closed, performedBy);
+    return closed;
   }
 
   /**
