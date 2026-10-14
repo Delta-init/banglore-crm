@@ -1000,3 +1000,8 @@
 **Props:** `teams: Team[]`, `selectedTeamIds: Set<string>`, `selectedMemberIds: Record<string, Set<string>>`, `lockedTeamId?: string | null`, `lockedMemberId?: string | null`, `onToggleTeam: (id: string) => void`, `onToggleMember: (teamId: string, memberId: string) => void`, `onSetAllMembers: (teamId: string, all: boolean) => void`
 **Used in:** upload page
 **Purpose:** Vertical list of team rows, each expands to show `MemberSelector`. BDE sees only their team (locked, non-removable). Admins can toggle any team + any member. Framer Motion AnimatePresence for expand/collapse.
+
+### Change log — 2026-10-14 (exact money figures)
+- `lib/currency.ts` — `fmtFull` caps at two decimals and reads a missing amount as 0; `fmtCompact` is now only for chart axes.
+- `app/(dashboard)/reports/page.tsx` — `fmtUSD` is `fmtFull` (was `fmtCompact`); `KpiCard` puts the value on its own full-width line, smaller when long; the revenue chart's Y axis keeps `fmtCompact`.
+- `app/(dashboard)/teams/[teamId]/page.tsx` — `fmtUSD` is `fmtFull`; new local `MoneyFigure` for the Total Received / Total Pending / Avg per Lead cards; the Y axis keeps `fmtCompact`.
