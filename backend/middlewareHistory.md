@@ -525,3 +525,12 @@ view | create | edit | delete | approve | export
 #### `settings`
 - `view` — access settings page
 - `edit` — modify system settings (VAPID keys, Sheets API key, etc.)
+
+### Preferences (2026-10-15)
+
+| Method | Route | Chain |
+|--------|-------|-------|
+| GET / PUT | `/api/v1/auth/preferences` | `authenticate` → `getPreferences` / `updatePreferences` (zod, strict) |
+
+An impersonation here is a full sign-in as the person (`POST /users/:id/impersonate`), so the server can't tell it
+from them: the web neither reads nor saves the currency while impersonating.

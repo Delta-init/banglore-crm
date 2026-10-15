@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { login, refreshToken, getProfile, changePassword, ssoLogin } from "../controllers/authController.js";
+import { login, refreshToken, getProfile, changePassword, ssoLogin, getPreferences, updatePreferences } from "../controllers/authController.js";
 import { authenticate } from "../middleware/auth.js";
 
 const router = Router();
@@ -12,5 +12,8 @@ router.post("/sso-login", ssoLogin); // Root portal SSO
 // Protected routes
 router.get("/profile", authenticate, getProfile);
 router.put("/change-password", authenticate, changePassword);
+// The signed-in person's own preferences — the currency they see amounts in, on every device (2026-10-15).
+router.get("/preferences", authenticate, getPreferences);
+router.put("/preferences", authenticate, updatePreferences);
 
 export default router;

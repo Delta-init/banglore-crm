@@ -500,3 +500,20 @@ Each feature documents:
 **Change Log**:
 - Initial PDF export for teams
 - Added user-scoped PDF export
+
+## Currency on the person's account (2026-10-15)
+
+**What it does**: The currency someone picks to see amounts in (Settings → Currency — the symbol and number format;
+nothing is converted) is kept on their account, so it follows them to every device they sign in on. Never picked: none
+(the app's default, USD).
+
+**Routes**: `GET /api/v1/auth/preferences` → `{ currency, currencyAt }` (null when never picked);
+`PUT /api/v1/auth/preferences` `{ currency, pickedAgoMs? }` — one of USD, INR, EUR, GBP, AED, SAR, CAD, AUD, SGD,
+JPY, MYR (`utils/currencies.ts`, the web's list); anything else → 400. The newest pick wins by when it was picked — this
+server's time, less `pickedAgoMs` for a pick sent late (the app was offline), measured on the device's own clock so a
+clock set wrong doesn't matter: not kept over a newer one, and the answer says what is (`applied`). Signed in, their own only — an impersonation is a full sign-in as the person, so the web keeps
+out of it while impersonating. `GET /auth/profile` carries it too.
+
+**Models Used**: `User` (`currency`, `currencyAt`, new, default null).
+
+**Tests**: `scripts/preferences-check.sh` — 28 checks (scratch mongod).

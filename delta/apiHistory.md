@@ -1325,3 +1325,16 @@ Copy the template at the top of this file and add under the correct module secti
 **Params:** `memberId`, `isDone`, `search`, `page`, `limit`
 **Response:** `{ data: TeamReminderItem[], pagination }`
 **Used by:** `TeamRemindersTab`
+
+### Currency on the account (2026-10-15)
+- `useSyncedCurrency()` (`hooks/useSyncedCurrency.ts`) — when the app opens: `GET /auth/preferences`; a pick of theirs
+  not yet saved goes then — `PUT { currency }` ("now") if the account is as this device last saw it, else
+  `PUT { currency, pickedAgoMs }` (how long ago, by this device's clock; a clock gone back since sends a year); the
+  account keeps the newest pick and answers what it keeps. localStorage: `crm_currency_user` (whose choice the device
+  holds), and per person `crm_currency_pending`, `crm_currency_seen` (the account's `currencyAt` as this device last
+  saw it) and `crm_currency_asked`. Only a pick writes; an older device choice is offered with a "Keep" toast at
+  up to 3 openings. Not while impersonating someone. Mounted in the dashboard layout; `useCurrencyRedraw` redraws the page (via
+  `CurrencyRedraw`) when the account's currency arrives, not while typing.
+- `chooseCurrency(code)` — this device at once (`useCurrencyStore`), then `PUT /auth/preferences { currency }` ("now")
+  (one at a time, in order, and only while they're still the one signed in); kept pending for them until saved; a
+  failure says "your account gets it the next time the app can reach it".

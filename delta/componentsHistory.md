@@ -1005,3 +1005,10 @@
 - `lib/currency.ts` — `fmtFull` caps at two decimals and reads a missing amount as 0; `fmtCompact` is now only for chart axes.
 - `app/(dashboard)/reports/page.tsx` — `fmtUSD` is `fmtFull` (was `fmtCompact`); `KpiCard` puts the value on its own full-width line, smaller when long; the revenue chart's Y axis keeps `fmtCompact`.
 - `app/(dashboard)/teams/[teamId]/page.tsx` — `fmtUSD` is `fmtFull`; new local `MoneyFigure` for the Total Received / Total Pending / Avg per Lead cards; the Y axis keeps `fmtCompact`.
+
+### Change log — 2026-10-15 (currency on the account)
+- `app/(dashboard)/settings/page.tsx` — the Currency card uses `chooseCurrency`; its text says the choice follows you.
+- `app/(dashboard)/layout.tsx` — `useSyncedCurrency()`; the page sits in `CurrencyRedraw` (new,
+  `components/shared/CurrencyRedraw.tsx`), which draws it again when the account's currency arrives as the app opens —
+  not on a pick in Settings, nor while someone is typing.
+- `app/(dashboard)/settings/page.tsx` — its toasts go through `@/lib/toast` (the app's toaster; `sonner`'s never showed).

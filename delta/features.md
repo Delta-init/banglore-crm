@@ -620,3 +620,12 @@ Copy the template at the top and place it in the correct module section.
 - **Where**: Reports (KPI cards, rankings, leaderboards, Top Revenue Earners, tables, chart tooltips) and the team page (revenue cards, member revenue)
 - **What**: the whole amount — "$2,250", "$71,570.25" — where it used to be shortened to one decimal ("$2.3K"). Only chart axes stay short ("$1.5K"), being the scale, not a figure. At most two decimals (`fmtFull`). The same as Draw and the Sales CRM.
 - **Cards**: the figure sits on its own line under the title and icon, a size smaller when long, so the whole amount fits on a phone (`KpiCard` on Reports, `MoneyFigure` on the team page)
+
+## Currency follows you (2026-10-15)
+
+- Settings → Currency is kept on your account as well as this device, so every device you sign in on shows amounts in
+  the currency you picked. When the app opens it takes the account's (and redraws the page, unless you're typing). A
+  device that already had one picked before this (not the USD default) asks — "Keep it on your account?", at up to
+  three openings — since on a shared computer it may be someone else's; a choice the device holds for another person
+  goes back to USD. A pick that can't reach the account is kept on the device, for you, and sent next time: the newest
+  pick wins, by when it was picked. Not while impersonating someone (picks are refused then).

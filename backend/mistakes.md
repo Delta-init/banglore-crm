@@ -244,3 +244,11 @@ router.patch("/:teamId/leads/:leadId/assign", authenticate, checkPermission("tea
 **Bug:** When adding `getTeamReminders` aggregation pipeline, typed as `object[]` instead of `PipelineStage[]`. Mongoose aggregation requires the stricter `PipelineStage[]` type from mongoose.
 **Fix:** `import { type PipelineStage } from "mongoose"` and typed pipeline as `PipelineStage[]`.
 **Also:** `preserveNullAndEmpty` is not valid — correct key is `preserveNullAndEmptyArrays` in `$unwind` stage.
+
+## [2026-10-15] Currency on the account — what the test rounds found (fixed before shipping)
+
+- **A pick time taken from the device's clock** let a slow clock's fresh picks lose and a fast clock's late pick win.
+  **Fix**: a save sent at once is "now" by this server; a late one sends how long ago it was made (`pickedAgoMs`, on
+  the device's own clock) and is placed at server time minus that.
+- **An impersonation here is a full sign-in as the person**, so the server can't refuse writes made while impersonating;
+  the web keeps out of preferences then (documented in features.md / middlewareHistory.md).
