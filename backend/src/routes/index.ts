@@ -1,4 +1,5 @@
 import { Router } from "express";
+import mentorRoutes from "./mentorRoutes.js";
 import authRoutes from "./authRoutes.js";
 import myTrackerRoutes from "./myTrackerRoutes.js";
 import userRoutes from "./userRoutes.js";
@@ -38,6 +39,8 @@ router.use("/ai",       aiRoutes);
 router.use("/students", studentRoutes);
 // Part-paid closes and their next payments, for finance to approve (2026-10-13).
 router.use("/balance-payments", balancePaymentRoutes);
+// The mentor calendar this CRM reads from the Delta LMS (2026-10-17, as in Draw) — see mentorRoutes.
+router.use("/mentors", mentorRoutes);
 router.use("/calls",    callRoutes);
 router.use("/app",      appRoutes);       // CallRecorder auto-update
 router.use("/public",   publicRoutes);    // Public routes — no auth required

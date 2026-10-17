@@ -64,6 +64,11 @@ export const CRM_MODULES = [
    * the page, create records a payment for finance. Open by default.
    */
   "balancePayments",
+  /*
+   * Mentors (2026-10-17, as in Draw): the mentor calendar from the LMS — view it, create books time with a mentor,
+   * edit changes a booking, delete cancels one. Open to everyone by default.
+   */
+  "mentors",
 ] as const;
 
 export type CrmModule = (typeof CRM_MODULES)[number];
@@ -75,6 +80,7 @@ export type CrmModule = (typeof CRM_MODULES)[number];
  */
 export const OPEN_BY_DEFAULT: Partial<Record<CrmModule, Partial<ModulePermissions>>> = {
   balancePayments: { view: true, create: true },
+  mentors: { view: true, create: true, edit: true, delete: true },
 };
 
 export type PermissionsMap = {

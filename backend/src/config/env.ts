@@ -57,6 +57,12 @@ const envSchema = z.object({
    * screen. Unset, the public Delta LMS address is used.
    */
   LMS_API_URL: z.string().default(""),
+  /**
+   * The mentor calendar (2026-10-17): the LMS's service secret for the sales CRMs (its SALES_CRM_SECRET), and which
+   * academy this CRM is — the Bangalore Academy unless told otherwise. Unset secret: the page says it is not set up.
+   */
+  LMS_SERVICE_SECRET: z.string().default(""),
+  LMS_REMOTE_ORG_ID: z.string().default("6a674c5404d2749585961f29"),
 
   /**
    * Object storage for payment receipts — the same bucket finance uses, with

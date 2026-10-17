@@ -25,6 +25,7 @@ import {
   PhoneCall,
   Receipt,
   HandCoins,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/lib/store/uiStore";
@@ -61,6 +62,8 @@ export const navItems: { href: string; label: string; icon: React.ElementType; p
   { href: "/enrolments",label: "My Enrolments",      icon: Receipt,         permModule: "enrolments" },
   /* Part-paid closes and their next payments, for finance to approve (2026-10-13); the number is what is overdue or due in 3 days. */
   { href: "/balance-payments", label: "Balance payments", icon: HandCoins, permModule: "balancePayments" },
+  /* The mentor calendar from the LMS (2026-10-17, as in Draw). */
+  { href: "/mentors",   label: "Mentors",            icon: CalendarDays,    permModule: "mentors" },
   { href: "/roles",     label: "Roles & Permissions",icon: Shield,          permModule: "roles"     },
   { href: "/settings",  label: "Settings",           icon: Settings,        permModule: null        },
 ];
