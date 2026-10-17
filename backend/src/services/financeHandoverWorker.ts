@@ -1,6 +1,7 @@
 import { FinanceHandover } from "../models/FinanceHandover.js";
 import { Student } from "../models/Student.js";
 import { financeConfigured, sendEnrolment, fetchEnrolmentStatuses } from "./financeClient.js";
+import { drainSalesNotes } from "./financeSalesNote.js";
 
 /**
  * Delivers queued enrolments to Delta Finance.
@@ -47,6 +48,8 @@ export async function drainFinanceHandovers(): Promise<void> {
         invoiceNumber: result.invoiceNumber,
         flags: result.flags ?? [],
         sentAt: new Date(),
+        // It went with the note as it was queued — nothing left to catch up on.
+        salesNotePending: false,
         lastError: undefined,
       });
       await row.save();
@@ -204,6 +207,8 @@ async function drainNow(): Promise<void> {
       again = false;
       await drainFinanceHandovers();
     } while (again);
+    // Sales notes changed after their enrolment went, that finance has not taken yet.
+    await drainSalesNotes();
   } catch (err) {
     console.error("[finance] handover sweep failed", err);
   } finally {
