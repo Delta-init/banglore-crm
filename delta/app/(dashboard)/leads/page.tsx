@@ -50,6 +50,7 @@ import { useAuthStore } from "@/lib/store/authStore";
 import { formatDate } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Lead } from "@/types/lead";
+import { CameAgainTag } from "@/components/leads/CameAgainTag";
 import type { LeadStatus } from "@/lib/statusConfig";
 import type { User } from "@/types";
 import { INITIAL_RESPONSE_CONFIG, PRIMARY_CONCERN_CONFIG, FOLLOWUP_STRATEGY_CONFIG } from "@/lib/leadConfig";
@@ -163,6 +164,8 @@ function LeadsPageContent() {
   const [teamId, setTeamId] = useState<string>(() => searchParams.get("team") ?? "all");
   const [demoScheduled, setDemoScheduled] = useState<string>(() => searchParams.get("demoScheduled") ?? "all");
   const [demoAttended, setDemoAttended] = useState<string>(() => searchParams.get("demoAttended") ?? "all");
+  // Leads whose number came in again (2026-10-23)
+  const [cameAgain, setCameAgain] = useState<string>(() => searchParams.get("cameAgain") ?? "all");
   const [followupFrom, setFollowupFrom] = useState<string>(() => searchParams.get("followupFrom") ?? "");
   const [followupTo, setFollowupTo] = useState<string>(() => searchParams.get("followupTo") ?? "");
   const [source, setSource] = useState<string>(() => searchParams.get("source") ?? "all");
@@ -171,7 +174,7 @@ function LeadsPageContent() {
   const [showFilters, setShowFilters] = useState(() => {
     // Auto-open filters panel if any filter param is present in URL
     const sp = searchParams;
-    return !!(sp.get("status") || sp.get("assignedTo") || sp.get("reporter") || sp.get("course") || sp.get("team") || sp.get("from") || sp.get("to") || sp.get("splitFrom") || sp.get("splitTo") || sp.get("demoScheduled") || sp.get("demoAttended") || sp.get("followupFrom") || sp.get("source"));
+    return !!(sp.get("status") || sp.get("assignedTo") || sp.get("reporter") || sp.get("course") || sp.get("team") || sp.get("from") || sp.get("to") || sp.get("splitFrom") || sp.get("splitTo") || sp.get("demoScheduled") || sp.get("demoAttended") || sp.get("cameAgain") || sp.get("followupFrom") || sp.get("source"));
   });
 
   // ── View mode — synced to ?view= URL param ────────────────────────────────────
@@ -290,6 +293,7 @@ function LeadsPageContent() {
     if (colId === "name") return (
       <td key="name" className="px-4 py-4">
         <p className="font-medium text-sm">{lead.name}</p>
+        <CameAgainTag count={lead.repeatCount} last={lead.lastRepeatAt} className="mt-1" />
       </td>
     );
     if (colId === "lostNotes") return (
@@ -530,12 +534,13 @@ function LeadsPageContent() {
     if (splitDateTo) params.set("splitTo", splitDateTo);
     if (demoScheduled !== "all") params.set("demoScheduled", demoScheduled);
     if (demoAttended !== "all") params.set("demoAttended", demoAttended);
+    if (cameAgain !== "all") params.set("cameAgain", cameAgain);
     if (followupFrom) params.set("followupFrom", followupFrom);
     if (followupTo) params.set("followupTo", followupTo);
     if (sortBy !== "createdAt") params.set("sortBy", sortBy);
     if (sortOrder !== "desc") params.set("sortOrder", sortOrder);
     router.replace(`?${params.toString()}`, { scroll: false });
-  }, [viewMode, debouncedSearch, page, limit, status, lostReason, assignedTo, reporter, courseId, teamId, source, dateFrom, dateTo, splitDateFrom, splitDateTo, demoScheduled, demoAttended, followupFrom, followupTo, sortBy, sortOrder]);
+  }, [viewMode, debouncedSearch, page, limit, status, lostReason, assignedTo, reporter, courseId, teamId, source, dateFrom, dateTo, splitDateFrom, splitDateTo, demoScheduled, demoAttended, cameAgain, followupFrom, followupTo, sortBy, sortOrder]);
 
   // ── Dialog state ─────────────────────────────────────────────────────────────
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -560,7 +565,7 @@ function LeadsPageContent() {
   const { mutate: updateLeadField } = useUpdateLead();
 
   // Clear selection when page/filters change
-  useEffect(() => { setSelectedIds(new Set()); }, [page, debouncedSearch, status, lostReason, assignedTo, reporter, dateFrom, dateTo, courseId, teamId, source, demoScheduled, demoAttended, followupFrom, followupTo]);
+  useEffect(() => { setSelectedIds(new Set()); }, [page, debouncedSearch, status, lostReason, assignedTo, reporter, dateFrom, dateTo, courseId, teamId, source, demoScheduled, demoAttended, cameAgain, followupFrom, followupTo]);
 
   const toggleId = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -633,11 +638,12 @@ function LeadsPageContent() {
     ...(splitDateTo ? { splitDateTo } : {}),
     ...(demoScheduled !== "all" ? { demoScheduled } : {}),
     ...(demoAttended !== "all" ? { demoAttended } : {}),
+    ...(cameAgain !== "all" ? { cameAgain } : {}),
     ...(followupFrom ? { followupFrom } : {}),
     ...(followupTo ? { followupTo } : {}),
     sortBy,
     sortOrder,
-  }), [page, limit, debouncedSearch, status, lostReason, assignedTo, reporter, courseId, teamId, source, dateFrom, dateTo, splitDateFrom, splitDateTo, demoScheduled, demoAttended, followupFrom, followupTo, sortBy, sortOrder]);
+  }), [page, limit, debouncedSearch, status, lostReason, assignedTo, reporter, courseId, teamId, source, dateFrom, dateTo, splitDateFrom, splitDateTo, demoScheduled, demoAttended, cameAgain, followupFrom, followupTo, sortBy, sortOrder]);
 
   const { data, isLoading, isFetching } = useLeads(filters);
   const { data: usersData } = useUsers({ status: "active", limit: "200" });
@@ -689,6 +695,7 @@ function LeadsPageContent() {
     !!splitDateTo,
     demoScheduled !== "all",
     demoAttended !== "all",
+    cameAgain !== "all",
     !!followupFrom,
     !!followupTo,
     !!debouncedSearch,
@@ -710,6 +717,7 @@ function LeadsPageContent() {
     setSplitDateTo("");
     setDemoScheduled("all");
     setDemoAttended("all");
+    setCameAgain("all");
     setFollowupFrom("");
     setFollowupTo("");
     setSearch("");
@@ -1119,6 +1127,20 @@ function LeadsPageContent() {
                       </Select>
                     </div>
 
+                    {/* Came in again (2026-10-23) */}
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Came in again</p>
+                      <Select value={cameAgain} onValueChange={(v) => applyFilter(setCameAgain, v)}>
+                        <SelectTrigger className="h-9 text-sm">
+                          <SelectValue placeholder="Any" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Any</SelectItem>
+                          <SelectItem value="true">Only leads that came in again</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     {/* Team — only visible to super admins */}
                     {isSuperAdmin && (teamsData?.data?.length ?? 0) > 0 && (
                       <div className="space-y-1">
@@ -1345,6 +1367,9 @@ function LeadsPageContent() {
                 {demoAttended !== "all" && (
                   <FilterPill label={`Demo Attended: ${demoAttended === "true" ? "Yes" : "No"}`} onRemove={() => applyFilter(setDemoAttended, "all")} />
                 )}
+                {cameAgain !== "all" && (
+                  <FilterPill label="Came in again" onRemove={() => applyFilter(setCameAgain, "all")} />
+                )}
               </motion.div>
             )}
           </CardHeader>
@@ -1424,6 +1449,7 @@ function LeadsPageContent() {
                               {/* Name + status */}
                               <div className="flex items-center justify-between gap-2 flex-wrap">
                                 <p className="font-medium text-sm truncate">{lead.name}</p>
+                                <CameAgainTag count={lead.repeatCount} last={lead.lastRepeatAt} />
                                 <DropdownMenu>
                                   <DropdownMenuTrigger
                                     disabled={getUserId(lead.assignedTo as User | string | null) !== user?._id && !isAdmin}

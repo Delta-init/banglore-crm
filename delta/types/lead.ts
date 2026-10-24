@@ -105,6 +105,9 @@ export interface Lead {
   primaryConcern?: PrimaryConcern | null;
   followupStrategyType?: FollowupStrategyType | null;
   sellingAmount?: number | null;
+  /** Times this number came in again after the first, and the last time (2026-10-23). */
+  repeatCount?: number;
+  lastRepeatAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -121,6 +124,8 @@ export interface LeadFilters {
   /** One of LOST_REASONS — only meaningful with status="lost" */
   lostReason?: string;
   campaignId?: string;
+  /** "true": only leads that came in again. */
+  cameAgain?: string;
   demoScheduled?: string;
   demoAttended?: string;
   followupFrom?: string;
@@ -165,6 +170,9 @@ export interface UploadLeadsResult {
   assigned: number;
   invalid: number;
   invalidDetails: InvalidRow[];
+  /** Rows whose number was already a lead: given back to its holder, not created again (2026-10-23). */
+  cameAgain?: number;
+  repeatDetails?: { row: number; phone: string; leadId: string; outcome: string; heldBy: string | null; message: string }[];
 }
 
 export interface AutoAssignResult {

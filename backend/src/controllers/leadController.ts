@@ -12,6 +12,7 @@ import { Lead } from "../models/Lead.js";
 import { User } from "../models/User.js";
 import { Team } from "../models/Team.js";
 import mongoose from "mongoose";
+import { findLeadByPhone, repeatEnquiry, repeatMessage, splitAgainAs } from "../services/repeatEnquiryService.js";
 
 const leadService = new LeadService();
 const excelService = new ExcelService();
@@ -155,7 +156,8 @@ export const uploadLeads = async (
       file.mimetype,
     );
 
-    if (parseResult.valid.length === 0 && parseResult.invalid.length > 0) {
+    const repeatsFound = parseResult.repeats ?? [];
+    if (parseResult.valid.length === 0 && repeatsFound.length === 0 && parseResult.invalid.length > 0) {
       sendError(res, "No valid leads found in the file", 400, {
         invalid: parseResult.invalid,
       });
@@ -163,6 +165,19 @@ export const uploadLeads = async (
     }
 
     const reporterId = req.user!.userId;
+
+    // Numbers already in the CRM: those leads came in again — back to their holders, not created twice (2026-10-23).
+    const repeatDetails: { row: number; phone: string; leadId: string; outcome: string; heldBy: string | null; message: string }[] = [];
+    for (const r of repeatsFound) {
+      const existing = await findLeadByPhone(r.phone);
+      if (!existing) continue;
+      try {
+        const out = await repeatEnquiry(existing, { via: "upload", source: r.source, by: reporterId, split: splitAgainAs(reporterId) });
+        repeatDetails.push({ row: r.row, phone: r.phone, leadId: out.leadId, outcome: out.outcome, heldBy: out.holderName, message: repeatMessage(out) });
+      } catch (err) {
+        console.error("[upload] repeat enquiry failed:", err instanceof Error ? err.message : err);
+      }
+    }
     let createdLeads: unknown[] = [];
 
     if (parseResult.valid.length > 0) {
@@ -215,11 +230,13 @@ export const uploadLeads = async (
       res,
       "Leads uploaded successfully",
       {
-        total: parseResult.valid.length + parseResult.invalid.length,
+        total: parseResult.valid.length + parseResult.invalid.length + repeatsFound.length,
         created: createdLeads.length,
         assigned: assignmentResult.assigned,
         invalid: parseResult.invalid.length,
         invalidDetails: parseResult.invalid,
+        cameAgain: repeatDetails.length,
+        repeatDetails,
       },
       201,
     );
@@ -678,6 +695,15 @@ export const createLead = async (
     }
     if (!data.assignedTo && !teamAutoAssign) {
       data.assignedTo = req.user!.userId;
+    }
+
+    // A number already in the CRM is that lead coming in again, never a second copy (2026-10-23): back to whoever holds
+    // it, and the person adding it is told where it went.
+    const existing = await findLeadByPhone(data.phone);
+    if (existing) {
+      const out = await repeatEnquiry(existing, { via: "manual", source: data.source, by: req.user!.userId, split: splitAgainAs(req.user!.userId) });
+      sendError(res, repeatMessage(out), 409, { leadId: [out.leadId], heldBy: [out.holderName ?? ""], outcome: [out.outcome] });
+      return;
     }
 
     const lead = await leadService.createLead(data, req.user!.userId);

@@ -1,6 +1,7 @@
 "use client";
 
 
+import { CameAgainTag } from "@/components/leads/CameAgainTag";
 import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -564,7 +565,10 @@ export default function LeadDetailPage() {
                       )}
                     </div>
                   </div>
-                  <StatusBadge status={lead.status} />
+                  <div className="flex flex-col items-end gap-1">
+                    <StatusBadge status={lead.status} />
+                    <CameAgainTag count={lead.repeatCount} last={lead.lastRepeatAt} />
+                  </div>
                 </div>
               </CardHeader>
 

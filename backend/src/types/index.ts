@@ -294,6 +294,11 @@ export interface ILead extends Document {
   course?: Types.ObjectId | ICourse;
   assignedTo?: Types.ObjectId | IUser;
   assignedAt?: Date | null;
+  /** The first created date, once the lead came in again (createdAt then moves to that day, 2026-10-23). */
+  originalCreatedAt?: Date | null;
+  /** Times the number came in again after the first, and the last time. */
+  repeatCount?: number;
+  lastRepeatAt?: Date | null;
   team?: Types.ObjectId | ITeam;
   reporter: Types.ObjectId | IUser;
   notes: Types.DocumentArray<ILeadNote & Document>;
@@ -350,6 +355,8 @@ export interface LeadFilters {
   followupFrom?: string;
   /** ISO date — last follow-up on or before this day */
   followupTo?: string;
+  /** "true": only leads that came in again (repeatCount ≥ 1, 2026-10-23). */
+  cameAgain?: string;
   page?: string;
   limit?: string;
   sortBy?: string;
@@ -499,6 +506,8 @@ export interface ParsedLead {
 export interface ExcelParseResult {
   valid: ParsedLead[];
   invalid: { row: number; data: Record<string, unknown>; errors: string[] }[];
+  /** Rows whose number is already a lead: that lead came in again (2026-10-23) — handed back, not created. */
+  repeats?: { row: number; leadId: string; phone: string; source?: string }[];
 }
 
 export interface AutoAssignResult {

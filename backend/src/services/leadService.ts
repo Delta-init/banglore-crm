@@ -449,6 +449,8 @@ export class LeadService {
     }
 
     if (filters.status) query.status = filters.status;
+    // Leads whose number came in again (repeatEnquiryService.ts).
+    if (filters.cameAgain === "true") query.repeatCount = { $gte: 1 };
     // Asking for a reason implies the lost leads, so the status narrows itself:
     // "Unresponsive" with no status filter should not return an open lead that
     // happens to carry a stale reason.

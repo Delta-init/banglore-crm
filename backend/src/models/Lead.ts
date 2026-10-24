@@ -204,6 +204,11 @@ const leadSchema = new Schema<ILead>(
       type: Date,
       default: null,
     },
+    // The first created date, kept once when the lead comes in again and starts over as today's (2026-10-23).
+    originalCreatedAt: { type: Date, default: undefined },
+    // How many times this number came in again after the first, and when last (repeatEnquiryService.ts).
+    repeatCount: { type: Number, default: 0 },
+    lastRepeatAt: { type: Date, default: null },
     team: {
       type: Schema.Types.ObjectId,
       ref: "Team",

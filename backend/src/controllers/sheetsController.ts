@@ -4,6 +4,7 @@ import { Lead } from "../models/Lead.js";
 import { User } from "../models/User.js";
 import { LeadService } from "../services/leadService.js";
 import { sendSuccess, sendError } from "../utils/response.js";
+import { findLeadByPhone, repeatEnquiry, repeatMessage, splitAgainAs } from "../services/repeatEnquiryService.js";
 
 const leadService = new LeadService();
 
@@ -143,6 +144,12 @@ function buildNote(row: SheetRow): string {
   return lines.join("\n");
 }
 
+/** A lead that came in again with nobody to give it back to: split in its team, or to a team like a new one. */
+async function splitAgain(leadId: string, teamId: string | null): Promise<void> {
+  const superAdmin = await User.findOne({ email: process.env.SUPER_ADMIN_EMAIL }).select("_id").lean();
+  await splitAgainAs(superAdmin ? String(superAdmin._id) : "system")(leadId, teamId);
+}
+
 // ─── Controller ───────────────────────────────────────────────────────────────
 
 /**
@@ -151,7 +158,8 @@ function buildNote(row: SheetRow): string {
  * Accepts a single row from the Google Sheet (one object per call).
  * - Maps core fields → Lead document
  * - Stores extra metadata as a Note on the lead
- * - Skips silently if a lead with the same phone already exists (returns existing lead ID)
+ * - A number already in the CRM (its last 9 digits) is that lead coming in again: back to its holder as a new lead
+ *   (repeatEnquiryService.ts) — still answered as a duplicate, with the existing lead ID, so Root's counts hold
  * - The Super Admin user is used as the system reporter
  */
 export const syncSheetLead = async (
@@ -175,13 +183,16 @@ export const syncSheetLead = async (
     const phone = cleanPhone(row.phone_number);
     const email = sanitizeEmail(row.email);
 
-    // ── Duplicate check on phone ───────────────────────────────────────────
-    const existing = await Lead.findOne({ phone });
+    // ── Already in the CRM: it came in again ───────────────────────────────
+    const existing = await findLeadByPhone(phone);
     if (existing) {
-      sendSuccess(res, "Lead already exists — skipped", {
+      const repeat = await repeatEnquiry(existing, { via: "sheet", source: row.source?.trim() || mapPlatformToSource(row.platform), split: splitAgain });
+      sendSuccess(res, repeatMessage(repeat), {
         leadId: existing._id.toString(),
         duplicate: true,
         phone,
+        repeat: repeat.outcome,
+        heldBy: repeat.holderName,
       });
       return;
     }
@@ -322,6 +333,9 @@ export const syncSheetLeadsBatch = async (
       leadId?: string;
       phone?: string;
       reason?: string;
+      /** A duplicate is the lead coming in again: what happened to it (2026-10-23). */
+      repeat?: string;
+      heldBy?: string | null;
     }> = [];
 
     for (let i = 0; i < rows.length; i++) {
@@ -340,14 +354,17 @@ export const syncSheetLeadsBatch = async (
       const phone = cleanPhone(row.phone_number);
       const email = sanitizeEmail(row.email);
 
-      // Check duplicate
-      const exists = await Lead.findOne({ phone });
+      // Already in the CRM: it came in again — back to its holder (still a duplicate to Root's counts)
+      const exists = await findLeadByPhone(phone);
       if (exists) {
+        const repeat = await repeatEnquiry(exists, { via: "sheet", source: row.source?.trim() || mapPlatformToSource(row.platform), split: splitAgain })
+          .catch((err) => { console.error("[sheets] repeat enquiry failed:", err instanceof Error ? err.message : err); return null; });
         results.push({
           index: i,
           status: "duplicate",
           leadId: exists._id.toString(),
           phone,
+          ...(repeat ? { repeat: repeat.outcome, heldBy: repeat.holderName, reason: repeatMessage(repeat) } : {}),
         });
         continue;
       }
@@ -436,7 +453,7 @@ export const syncSheetLeadsBatch = async (
 
     sendSuccess(
       res,
-      `Batch processed: ${created} created, ${duplicate} skipped (duplicate), ${invalid} invalid`,
+      `Batch processed: ${created} created, ${duplicate} came in again (given back to their holders), ${invalid} invalid`,
       {
         summary: {
           total: rows.length,
