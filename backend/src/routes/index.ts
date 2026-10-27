@@ -18,6 +18,7 @@ import callRoutes from "./callRoutes.js";
 import appRoutes from "./appRoutes.js";
 import publicRoutes from "./publicRoutes.js";
 import portalRoutes from "./portalRoutes.js";
+import whatsappRoutes from "./whatsappRoutes.js";
 
 const router = Router();
 
@@ -42,6 +43,8 @@ router.use("/balance-payments", balancePaymentRoutes);
 // The mentor calendar this CRM reads from the Delta LMS (2026-10-17, as in Draw) — see mentorRoutes.
 router.use("/mentors", mentorRoutes);
 router.use("/calls",    callRoutes);
+// WhatsApp (2026-10-27): each person's own linked WhatsApp, its chats and the lead page's card. Its media links are signed, not authenticated.
+router.use("/whatsapp", whatsappRoutes);
 router.use("/app",      appRoutes);       // CallRecorder auto-update
 router.use("/public",   publicRoutes);    // Public routes — no auth required
 

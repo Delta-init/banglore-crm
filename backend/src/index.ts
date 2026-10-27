@@ -15,6 +15,7 @@ import { startReminderScheduler } from "./services/reminderScheduler.js";
 import { startSplitScheduler } from "./services/splitScheduler.js";
 import { startBackupScheduler } from "./services/backupService.js";
 import { startFinanceHandoverWorker } from "./services/financeHandoverWorker.js";
+import { startWhatsApp } from "./services/whatsapp/service.js";
 
 // ─── Ensure upload directories exist ─────────────────────────────────────────
 mkdirSync(path.join(process.cwd(), "uploads", "recordings"), { recursive: true });
@@ -63,6 +64,8 @@ const start = async () => {
     // Off in a second process against the same database: these assign leads and
     // notify people on a timer, and two of them do it twice.
     if (env.RUN_SCHEDULERS) {
+      // Each person's linked WhatsApp, back after a restart (WHATSAPP=off keeps a server out of it). One process only.
+      startWhatsApp();
       startReminderScheduler();
       startSplitScheduler();
       startBackupScheduler();

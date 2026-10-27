@@ -25,7 +25,7 @@ import {
   PhoneCall,
   Receipt,
   HandCoins,
-  CalendarDays,
+  CalendarDays, MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/lib/store/uiStore";
@@ -44,6 +44,7 @@ import { toast } from "@/lib/toast";
 import { useUserLeadStats } from "@/hooks/useLeads";
 import { useMyReminderCount } from "@/hooks/useReminders";
 import { useBalanceDueCount } from "@/hooks/useBalancePayments";
+import { useWhatsAppUnread } from "@/hooks/useWhatsApp";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSocket } from "@/lib/socket";
 
@@ -52,6 +53,7 @@ export const navItems: { href: string; label: string; icon: React.ElementType; p
   { href: "/my-tracker",label: "My Tracker",         icon: ClipboardCheck,  permModule: "tracker"   },
   { href: "/leads",     label: "Leads",              icon: FileText,        permModule: "leads"     },
   { href: "/calls",     label: "Calls",              icon: PhoneCall,       permModule: "leads"     },
+  { href: "/whatsapp",  label: "WhatsApp",           icon: MessageCircle,   permModule: "whatsapp"  },
   { href: "/reminders", label: "Reminders",          icon: Bell,            permModule: "reminders" },
   { href: "/teams",     label: "Teams",              icon: UsersRound,      permModule: "teams"     },
   { href: "/courses",   label: "Courses",            icon: BookOpen,        permModule: "courses"   },
@@ -81,6 +83,8 @@ function NavLinks({ collapsed = false, onNavigate }: NavLinksProps) {
   const newLeadsCount = myStats?.assigned ?? 0;
   const { data: reminderCount = 0 } = useMyReminderCount();
   const { data: balanceDue = 0 } = useBalanceDueCount(useAuthStore((st) => st.hasPermission)("balancePayments", "view"));
+  // Your unread WhatsApp (2026-10-27).
+  const { data: waUnread = 0 } = useWhatsAppUnread(useAuthStore((st) => st.hasPermission)("whatsapp", "view"));
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -95,9 +99,17 @@ function NavLinks({ collapsed = false, onNavigate }: NavLinksProps) {
       }
     }
 
+    // A WhatsApp message came in: the count and the open chats refresh at once.
+
+    const handleWhatsApp = () => queryClient.invalidateQueries({ queryKey: ["whatsapp"] });
+
+    socket.on("whatsapp_message", handleWhatsApp);
+
     socket.on("notification", handleNotification);
     return () => {
       socket.off("notification", handleNotification);
+
+      socket.off("whatsapp_message", handleWhatsApp);
     };
   }, [userId, queryClient]);
 
@@ -108,7 +120,7 @@ function NavLinks({ collapsed = false, onNavigate }: NavLinksProps) {
       {navItems.map(({ href, label, icon: Icon, permModule }) => {
         const isActive = pathname === href || pathname.startsWith(href + "/");
         const allowed = permModule === null ? true : hasPermission(permModule ?? href.split("/")[1], "view");
-        const badgeCount = href === "/leads" ? newLeadsCount : href === "/reminders" ? reminderCount : href === "/balance-payments" ? balanceDue : 0;
+        const badgeCount = href === "/leads" ? newLeadsCount : href === "/reminders" ? reminderCount : href === "/balance-payments" ? balanceDue : href === "/whatsapp" ? waUnread : 0;
         const showBadge = badgeCount > 0;
 
         const linkEl = (

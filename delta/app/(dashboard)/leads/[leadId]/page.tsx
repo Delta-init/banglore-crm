@@ -50,6 +50,7 @@ import LeadDialog from "@/components/leads/LeadDialog";
 import { ReminderPanel } from "@/components/leads/ReminderPanel";
 import { AiChatPanel } from "@/components/leads/AiChatPanel";
 import { PaymentPanel } from "@/components/leads/PaymentPanel";
+import { LeadWhatsAppCard } from "@/components/leads/LeadWhatsAppCard";
 import { CallsPanel } from "@/components/leads/CallsPanel";
 import { ClickToCall } from "@/components/leads/ClickToCall";
 import { fmtFull } from "@/lib/currency";
@@ -1358,6 +1359,8 @@ export default function LeadDetailPage() {
             }
             canEdit={canEdit}
           />
+          {/* Their WhatsApp chats, and a box to message them (2026-10-27). */}
+          {hasPermission("whatsapp", "view") && <LeadWhatsAppCard leadId={lead._id} />}
           <ReminderPanel
             leadId={lead._id}
             reminders={lead.reminders ?? []}

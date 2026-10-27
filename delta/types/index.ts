@@ -30,6 +30,8 @@ export const CRM_MODULES = [
   "balancePayments",
   /* Mentors (2026-10-17): the mentor calendar from the LMS. Open by default. */
   "mentors",
+  /* WhatsApp (2026-10-27): each person links their own WhatsApp and chats with their leads. Open by default. */
+  "whatsapp",
 ] as const;
 
 export type CrmModule = (typeof CRM_MODULES)[number];
@@ -48,6 +50,7 @@ export const MODULE_LABELS: Record<CrmModule, string> = {
   students: "Students",
   enrolments: "My Enrolments",
   balancePayments: "Balance payments",
+  whatsapp: "WhatsApp",
   mentors: "Mentors",
 };
 
@@ -63,6 +66,7 @@ const NO_PERMISSIONS: ModulePermissions = { view: false, create: false, edit: fa
 export const OPEN_BY_DEFAULT: Partial<Record<CrmModule, Partial<ModulePermissions>>> = {
   balancePayments: { view: true, create: true },
   mentors: { view: true, create: true, edit: true, delete: true },
+  whatsapp: { view: true, create: true },
 };
 
 /** A role's permissions on one module — what it was given, or the module's default. */

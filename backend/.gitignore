@@ -46,3 +46,7 @@ sheets
 
 # Telegram backup temp files
 backups/
+
+# WhatsApp: the linked devices' keys and the chats' files (env WHATSAPP_SESSION_DIR / WHATSAPP_MEDIA_DIR)
+whatsapp-sessions/
+whatsapp-media/
