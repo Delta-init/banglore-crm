@@ -9,7 +9,7 @@ import type { EnrolmentStatus } from "./financeClient.js";
  * Shown on every My Enrolments card and on the enrolment's own page, green /
  * yellow / red. Worked out from finance's answer for the enrolment — which
  * carries the LMS's side — and the outbox's own record, for what happened
- * before finance had it. Banglore students do not go to Tetra Commission, so
+ * before finance had it. Banglore students do not go to CS Portal, so
  * the Remote CRM's CS / onboarded / MT5 bonus steps are not here.
  */
 

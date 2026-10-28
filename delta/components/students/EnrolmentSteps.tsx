@@ -10,7 +10,7 @@ import type { EnrolmentStep } from "@/hooks/useEnrolments";
 /* ─────────────────────────────────────────────────────────────────────────────
    An enrolment's steps after the close: finance approved → LMS account. Green
    done, yellow waiting, red stopped; grey when not known yet. (Banglore
-   students do not go to Tetra Commission, so there are no CS / onboarded /
+   students do not go to CS Portal, so there are no CS / onboarded /
    MT5 bonus steps here.)
    The server works the steps out (backend/src/services/enrolmentSteps.ts);
    this only draws them — a strip on each My Enrolments card, and the full list

@@ -159,8 +159,8 @@ export interface EnrolmentStatus {
   /**
    * Once approved, what the Delta LMS made of the student. Passed on to My
    * Enrolments as finance gives it; absent from a finance before it said.
-   * (Finance may also send a Tetra Commission block; Banglore students do not
-   * go to Tetra Commission, so it is not read here.)
+   * (Finance may also send a CS Portal block; Banglore students do not
+   * go to CS Portal, so it is not read here.)
    */
   lms?: { state: string; detail?: string; courses: string[] } | null;
 }

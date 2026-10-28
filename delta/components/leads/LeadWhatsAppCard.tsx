@@ -10,7 +10,7 @@ import { Composer, Thread, WA_GREEN } from "@/components/whatsapp/waUi";
 import { errMsg, useLeadWhatsApp, useWhatsAppSend } from "@/hooks/useWhatsApp";
 
 /**
- * The lead page's WhatsApp (2026-10-27, as Tetra Commission's student card): their chats you may read — yours, and for
+ * The lead page's WhatsApp (2026-10-27, as CS Portal's student card): their chats you may read — yours, and for
  * a team leader, the Sales Manager or a Super Admin their people's — and, when your WhatsApp is linked, a box to
  * message them on one of the numbers on their record.
  */

@@ -5,9 +5,9 @@
  *
  *   - the secret;
  *   - every close at the step it stands at — here two: finance approved, LMS
- *     account (no Tetra Commission) — and whom that waits on: not sent yet /
+ *     account (no CS Portal) — and whom that waits on: not sent yet /
  *     with finance (finance), sent back (its closer), the LMS;
- *   - finished ones (both done) only counted, whatever Tetra Commission might say;
+ *   - finished ones (both done) only counted, whatever CS Portal might say;
  *   - the closer with their email, the course, the invoice.
  *
  * Run by enrolment-flow-check.sh. Scratch database only.
@@ -117,7 +117,7 @@ try {
   check("not sent yet, and with finance: waiting on finance", who(queued) === "finance/waiting/finance/" && who(withFinance) === "finance/waiting/finance/", `${who(queued)} ${who(withFinance)}`);
   check("sent back: on its closer, with finance's reason", who(sentBack) === "finance/failed/salesperson/Sally Sales" && /Wrong fee/.test(of.get(sentBack)?.detail ?? ""), who(sentBack));
   check("the LMS", who(lms) === "lms/waiting/lms/", who(lms));
-  check("Tetra Commission's steps are not here", !of.has(noCs) && !of.has(welcome) && !of.has(broker) && !of.has(mt5) && of.get(lms)?.steps?.length === 2 && of.get(lms)?.academy === "bangalore");
+  check("CS Portal's steps are not here", !of.has(noCs) && !of.has(welcome) && !of.has(broker) && !of.has(mt5) && of.get(lms)?.steps?.length === 2 && of.get(lms)?.academy === "bangalore");
   const x = of.get(sentBack);
   check("a close: its closer with email, course", x?.closedBy?.name === "Sally Sales" && x.closedBy.email === "sally@test.local" && x.course === "Market Breakout", JSON.stringify(x));
 } finally {
