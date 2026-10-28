@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { createReadStream, existsSync } from "node:fs";
+import { createReadStream, existsSync, statSync } from "node:fs";
 import { Router, type NextFunction, type Response } from "express";
 import multer from "multer";
 import { Types } from "mongoose";
@@ -45,8 +45,12 @@ function fail(res: Response, next: NextFunction, err: unknown) {
 
 const MEDIA_TTL_S = 60 * 60;
 const sign = (payload: string) => createHmac("sha256", `${env.JWT_SECRET}|whatsapp-media`).update(payload).digest("base64url");
+/**
+ * A file's link — the same for an hour (2026-10-28): the chat asks again every few seconds, and a link that changed
+ * each time made the page reload an audio or video mid-play. Good for one to two hours from when it is given.
+ */
 function mediaUrl(messageId: string, userId: string): string {
-  const e = Math.floor(Date.now() / 1000) + MEDIA_TTL_S;
+  const e = (Math.floor(Date.now() / 1000 / MEDIA_TTL_S) + 2) * MEDIA_TTL_S;
   const q = new URLSearchParams({ m: messageId, e: String(e), u: userId, s: sign(`${messageId}.${e}.${userId}`) });
   return `/api/v1/whatsapp/media?${q}`;
 }
@@ -66,6 +70,28 @@ router.get("/media", async (req, res, next) => {
     res.setHeader("Content-Type", doc!.media!.mime || "application/octet-stream");
     res.setHeader("Content-Disposition", `inline; filename="${name}"`);
     res.setHeader("Cache-Control", "private, max-age=3600");
+    // Its length, and parts of it on request: an audio or video plays through, shows its length and can be skipped
+    // in (Safari plays none without).
+    const size = statSync(path).size;
+    res.setHeader("Accept-Ranges", "bytes");
+    const range = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? "").trim());
+    if (req.headers.range && range && (range[1] || range[2])) {
+      let start = range[1] ? Number(range[1]) : size - Number(range[2]);
+      let end = range[1] && range[2] ? Number(range[2]) : size - 1;
+      start = Math.max(0, start);
+      end = Math.min(end, size - 1);
+      if (start > end || start >= size) {
+        res.status(416).setHeader("Content-Range", `bytes */${size}`);
+        res.end();
+        return;
+      }
+      res.status(206);
+      res.setHeader("Content-Range", `bytes ${start}-${end}/${size}`);
+      res.setHeader("Content-Length", String(end - start + 1));
+      createReadStream(path, { start, end }).on("error", next).pipe(res);
+      return;
+    }
+    res.setHeader("Content-Length", String(size));
     createReadStream(path).on("error", next).pipe(res);
   } catch (err) { next(err); }
 });
