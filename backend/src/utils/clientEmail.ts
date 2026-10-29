@@ -43,9 +43,28 @@ export function samePerson(a: Person, b: Person): boolean {
   return nameKey(a.name) === nameKey(b.name);
 }
 
-/** Whoever else holds an email: a student, by its enrolment number, or a lead, by its name. */
+/*
+ * A made-up email (the user, 2026-10-29): noemail@gmail.com and the like, typed
+ * when the client gave none. Finance and the CS Portal tell clients apart by
+ * their email, so two closes with one such address became one client — Najad
+ * Ahmed's invoice and his $500 bonus went to Mohammed Lebbie. Refused wherever
+ * a taken email is: it stands for nobody, so it is everybody's.
+ */
+const MADE_UP_NAME =
+  /^(no[-_.]?e?[-_.]?mails?([-_.]?id)?|no[-_.]?mail[-_.]?address|none|nil|null|na|n[-_.]a|not[-_.]?available|not[-_.]?given|unknown|dummy|test(ing)?|example|sample|fake|abc|xyz|asdf|no[-_.]?reply|nothing)[-_.]?\d*$/;
+const MADE_UP_DOMAIN = /^(noemail|nomail|no-email)\.com$/;
+
+/** Whether an email is a made-up one: its name before the @ (noemail, none, na, test…) or its domain (noemail.com). */
+export function madeUpEmail(v: unknown): boolean {
+  const key = emailKey(v);
+  const at = key.lastIndexOf("@");
+  if (at <= 0) return false;
+  return MADE_UP_NAME.test(key.slice(0, at)) || MADE_UP_DOMAIN.test(key.slice(at + 1));
+}
+
+/** Whoever else holds an email: a student, by its enrolment number, or a lead, by its name — or, for a made-up one, nobody (`name` is the email). */
 export interface EmailHolder {
-  kind: "student" | "lead";
+  kind: "student" | "lead" | "made_up";
   id: string;
   name: string;
   /** The student's enrolment number (STU-0021). Never set for a lead. */
@@ -63,6 +82,10 @@ export const emailPattern = (email: string): RegExp => new RegExp(`^\\s*${escape
  * by mohammed lebbie (STU-0021), a different client — enter Halif's own email."
  */
 export function takenMessage(holder: Pick<EmailHolder, "kind" | "name" | "code">, clientName?: string | null): string {
+  if (holder.kind === "made_up") {
+    const client = String(clientName ?? "").trim();
+    return `${holder.name} is a made-up email — enter ${client ? `${client}'s` : "the client's"} own email. Finance and the CS Portal tell clients apart by their email, so a made-up one makes different clients one.`;
+  }
   const name = String(holder.name ?? "").trim();
   const who = holder.kind === "student"
     ? `${name || "another client"}${holder.code ? ` (${holder.code})` : ""}`

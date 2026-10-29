@@ -10,7 +10,7 @@ import {
 import { Student } from "../models/Student.js";
 import { Lead } from "../models/Lead.js";
 import type { IRole, IStudent, IStudentPayment } from "../types/index.js";
-import { emailKey, emailPattern, samePerson, takenMessage, type EmailHolder, type Person } from "../utils/clientEmail.js";
+import { emailKey, emailPattern, madeUpEmail, samePerson, takenMessage, type EmailHolder, type Person } from "../utils/clientEmail.js";
 import { announceSaleClosed } from "./saleAnnouncement.js";
 import { syncSalesNote } from "./financeSalesNote.js";
 
@@ -34,6 +34,8 @@ async function emailHolder(input: {
   studentId?: unknown;
 }): Promise<EmailHolder | null> {
   if (!emailKey(input.email)) return null;
+  // A made-up email (noemail@…, 2026-10-29) is nobody's in particular, so it is taken for everybody.
+  if (madeUpEmail(input.email)) return { kind: "made_up", id: "", name: emailKey(input.email) };
   const match = emailPattern(input.email);
   const leadId = objectIdOrNull(input.leadId);
   const studentId = objectIdOrNull(input.studentId);
@@ -412,7 +414,7 @@ export class StudentService {
     if (!holder) return { ok: true };
     return {
       ok: false,
-      takenBy: { kind: holder.kind, name: holder.name, ...(holder.code ? { code: holder.code } : {}) },
+      ...(holder.kind === "made_up" ? {} : { takenBy: { kind: holder.kind, name: holder.name, ...(holder.code ? { code: holder.code } : {}) } }),
       message: takenMessage(holder, client.name),
     };
   }
