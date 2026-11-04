@@ -19,6 +19,7 @@ import appRoutes from "./appRoutes.js";
 import publicRoutes from "./publicRoutes.js";
 import portalRoutes from "./portalRoutes.js";
 import whatsappRoutes from "./whatsappRoutes.js";
+import walletRoutes from "./walletRoutes.js";
 
 const router = Router();
 
@@ -45,6 +46,7 @@ router.use("/mentors", mentorRoutes);
 router.use("/calls",    callRoutes);
 // WhatsApp (2026-10-27): each person's own linked WhatsApp, its chats and the lead page's card. Its media links are signed, not authenticated.
 router.use("/whatsapp", whatsappRoutes);
+router.use("/wallet",   walletRoutes);    // My Wallet, from the HRMS (2026-11-04)
 router.use("/app",      appRoutes);       // CallRecorder auto-update
 router.use("/public",   publicRoutes);    // Public routes — no auth required
 

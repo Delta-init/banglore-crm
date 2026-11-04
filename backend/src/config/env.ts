@@ -52,6 +52,16 @@ const envSchema = z.object({
   /** Which organization in finance these enrolments belong to. */
   FINANCE_ORG_ID:             z.string().default(""),
 
+  /*
+   * The HRMS's signed integration API — only My Wallet (2026-11-04): somebody's
+   * pay from the HRMS, found by the email they sign in here with. The same
+   * pair the other portals use (the HRMS's INTEGRATION_CLIENT_ID /
+   * INTEGRATION_SECRET). Unset, My Wallet says this CRM isn't linked yet.
+   */
+  HRMS_API_URL:            z.string().default(""),
+  HRMS_CLIENT_ID:          z.string().default(""),
+  HRMS_INTEGRATION_SECRET: z.string().default(""),
+
   /**
    * The Delta LMS, read only for its public course list on the course mapping
    * screen. Unset, the public Delta LMS address is used.

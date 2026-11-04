@@ -26,6 +26,7 @@ import {
   Receipt,
   HandCoins,
   CalendarDays, MessageCircle,
+  WalletCards,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/lib/store/uiStore";
@@ -66,6 +67,8 @@ export const navItems: { href: string; label: string; icon: React.ElementType; p
   { href: "/balance-payments", label: "Balance payments", icon: HandCoins, permModule: "balancePayments" },
   /* The mentor calendar from the LMS (2026-10-17, as in Draw). */
   { href: "/mentors",   label: "Mentors",            icon: CalendarDays,    permModule: "mentors" },
+  /* My Wallet, from the HRMS (2026-11-04): salary a day at a time, deductions and why, commission, what finance paid — everyone's own. */
+  { href: "/wallet",    label: "My Wallet",          icon: WalletCards,     permModule: null },
   { href: "/roles",     label: "Roles & Permissions",icon: Shield,          permModule: "roles"     },
   { href: "/settings",  label: "Settings",           icon: Settings,        permModule: null        },
 ];
