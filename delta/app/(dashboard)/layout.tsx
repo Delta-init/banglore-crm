@@ -11,6 +11,7 @@ import { CurrencyRedraw } from "@/components/shared/CurrencyRedraw";
 import { useCallRecordingNotifications } from "@/hooks/useCallRecordingNotifications";
 import { RecentPageTracker } from "@/components/shared/CommandPalette";
 import { SaleCelebration } from "@/components/shared/SaleCelebration";
+import { RewardsPopup } from "@/components/rewards/RewardsPopup";
 import { ImpersonationBanner } from "@/components/shared/ImpersonationBanner";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -56,6 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-dvh overflow-hidden bg-slate-200 dark:bg-background pwa-safe-top">
       <RecentPageTracker />
       <SaleCelebration />
+      <RewardsPopup />
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <ImpersonationBanner />

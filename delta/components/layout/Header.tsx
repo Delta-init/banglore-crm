@@ -17,6 +17,7 @@ import { useUiStore } from "@/lib/store/uiStore";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { RewardsButton } from "@/components/rewards/RewardsPopup";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { navItems } from "@/components/layout/Sidebar";
 import { CommandPalette } from "@/components/shared/CommandPalette";
@@ -93,6 +94,8 @@ export function Header() {
             ⌘K
           </kbd>
         </button>
+
+        <RewardsButton />
 
         <NotificationBell />
 
