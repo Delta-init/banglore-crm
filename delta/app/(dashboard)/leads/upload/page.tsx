@@ -89,7 +89,7 @@ function ResultSummary({ result }: { result: UploadLeadsResult }) {
       {(result.repeatDetails?.length ?? 0) > 0 && (
         <div className="rounded-lg border border-orange-500/20 bg-orange-500/5 p-3 space-y-1">
           <p className="text-sm font-medium text-orange-500">
-            {result.repeatDetails!.length} number{result.repeatDetails!.length !== 1 ? "s were" : " was"} already in the CRM — not added twice, given back to whoever holds them
+            {result.repeatDetails!.length} number{result.repeatDetails!.length !== 1 ? "s were" : " was"} already in the CRM — not added twice; whoever holds them was told, status kept
           </p>
           <ul className="space-y-0.5 text-xs text-muted-foreground">
             {result.repeatDetails!.map((r) => (

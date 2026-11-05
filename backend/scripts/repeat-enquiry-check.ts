@@ -1,13 +1,13 @@
 /**
- * A lead that comes in again (the user, 2026-10-23: "a duplicate lead needs to go to whoever is managing it — he gets
- * it again, as a new one"), through every door: the sheet (one row, and Root's batch), an Excel upload, adding it by
- * hand.
- *   Case 1  happy path   the same number in another format, hours later: the same lead back to its holder as new
- *                        (Assigned, today's date, first date kept, counted, history);
- *                        answered as a duplicate with the lead's id, so Root's counts hold; the "came in again" filter
- *   Case 2  edge         within the hour: only noted; a closed lead keeps its status, its holder told; a lost lead
- *                        reopened; a deactivated holder → split again in its team; a short number matches exactly;
- *                        the batch; the upload (one new, one again); a copy marked "repeated" is the last choice
+ * A lead that comes in again, through every door: the sheet (one row, and Root's batch), an Excel upload, adding it by
+ * hand. It stays the same lead and its status never changes (the user, 2026-11-05: "the came-again lead's status doesn't
+ * need to change — same as before"); only the repeat is counted, noted and told.
+ *   Case 1  happy path   the same number in another format, hours later: still its holder's, status and dates kept,
+ *                        counted, history; answered as a duplicate with the lead's id, so Root's counts hold; the
+ *                        "came in again" filter
+ *   Case 2  edge         within the hour: only noted; a closed lead keeps its status; a lost lead stays Lost with its
+ *                        reason; a deactivated holder → split again now (not held for a scheduled batch), status kept;
+ *                        a short number matches exactly; the batch; the upload; a copy marked "repeated" is the last choice
  *   Case 3  errors       adding a known number by hand: 409 naming the holder, no second lead
  *   Case 4  permission   the sheet without its key: 401; the filter stays inside a salesperson's own leads
  *
@@ -62,9 +62,13 @@ await db.collection("users").insertMany([
   { _id: ben, name: "Ben", email: "ben@test.local", password: "x", role: agent, status: "active" },
   { _id: gone, name: "Gone", email: "gone@test.local", password: "x", role: agent, status: "inactive" },
 ]);
-// A team without auto-assign: a lead split again there waits as New in the team, unassigned.
+// A team without auto-assign: a lead split again there waits in the team, unassigned.
 const team = new Types.ObjectId();
 await db.collection("teams").insertOne({ _id: team, name: "Falcons", status: "active", members: [ann, ben, gone], leaders: [], settings: { autoAssign: false } });
+// A team with a scheduled split (10:30): a lead split again there goes to an active member now, not at 10:30.
+const hawks = new Types.ObjectId();
+await db.collection("teams").insertOne({ _id: hawks, name: "Hawks", status: "active", members: [ben, gone], leaders: [], inactiveMembers: [gone], absentToday: [],
+  settings: { autoAssign: true, splitMode: "round_robin", roundRobinIndex: 0, includedMembers: [], splitTime: "10:30", splitTimes: ["10:30"], sourceExclusions: {} } });
 
 const H = 3_600_000;
 const longAgo = new Date(Date.now() - 20 * 86_400_000), hoursAgo = new Date(Date.now() - 5 * H);
@@ -102,7 +106,7 @@ async function call(method: string, path: string, body?: unknown, headers: Recor
 const sheet = (row: Json, key = "repeat-enquiry-check-sheets-key") => call("POST", "/sheets/sync", row, { "x-api-key": key });
 const settle = () => new Promise((ok) => setTimeout(ok, 150));
 
-section("Case 1 — the same number again, hours later: back to its holder as new");
+section("Case 1 — the same number again, hours later: still its holder's, status kept");
 {
   const id = await lead({ phone: "+971 50 123 4567", status: "followup", createdAt: longAgo });
   const before = await read(id);
@@ -110,18 +114,18 @@ section("Case 1 — the same number again, hours later: back to its holder as ne
   await settle();
   const l = await read(id);
   check("answered as a duplicate with the existing lead's id (Root's counts hold)", r.status === 200 && r.body.data?.duplicate === true && r.body.data?.leadId === String(id), r.body);
-  check("…saying it went back to Ann", r.body.data?.repeat === "back_to_holder" && r.body.data?.heldBy === "Ann" && /given back to Ann/.test(r.body.message ?? ""), r.body);
+  check("…saying Ann holds it and was told", r.body.data?.repeat === "back_to_holder" && r.body.data?.heldBy === "Ann" && /Ann was told it came in again \(status kept\)/.test(r.body.message ?? ""), r.body);
   check("no second lead for that number", (await leadsWith("501234567")).length === 1);
-  check("still Ann's, status Assigned, assigned now", String(l.assignedTo) === String(ann) && l.status === "assigned" && Date.now() - new Date(l.assignedAt).getTime() < 60_000, [l.status, l.assignedTo]);
-  check("today's lead: createdAt now, the first date kept in originalCreatedAt", Date.now() - new Date(l.createdAt).getTime() < 60_000 && new Date(l.originalCreatedAt).getTime() === before.createdAt.getTime(), [l.createdAt, l.originalCreatedAt]);
+  check("still Ann's, status kept (Follow Up), assigned date untouched", String(l.assignedTo) === String(ann) && l.status === "followup" && new Date(l.assignedAt).getTime() === before.assignedAt.getTime(), [l.status, l.assignedTo, l.assignedAt]);
+  check("its created date untouched, no originalCreatedAt", new Date(l.createdAt).getTime() === before.createdAt.getTime() && l.originalCreatedAt === undefined, [l.createdAt, l.originalCreatedAt]);
   check("counted: repeatCount 1, lastRepeatAt now", l.repeatCount === 1 && Date.now() - new Date(l.lastRepeatAt).getTime() < 60_000, [l.repeatCount, l.lastRepeatAt]);
-  check("its history says it came in again, the 2nd time, back to Ann, and what it was", /Came in again from META \(2nd time\) — back to Ann as a new lead \(was Follow Up\)/.test(l.activityLogs.at(-1)?.description ?? ""), l.activityLogs.at(-1));
+  check("its history says it came in again, the 2nd time, status kept, still Ann's", /Came in again from META \(2nd time\) — status kept \(Follow Up\), still Ann's/.test(l.activityLogs.at(-1)?.description ?? ""), l.activityLogs.at(-1));
   // Hours later again: the third time
   await Lead.collection.updateOne({ _id: id }, { $set: { lastRepeatAt: hoursAgo, createdAt: hoursAgo, status: "not_connected" } });
   const r3 = await sheet({ full_name: "Asha", phone_number: "0501234567", source: "GOOGLE" });
   const l3 = await read(id);
-  check("the third time: repeatCount 2, history says 3rd time, from GOOGLE", r3.status === 200 && l3.repeatCount === 2 && /from GOOGLE \(3rd time\).*\(was Not connected\)/.test(l3.activityLogs.at(-1)?.description ?? ""), l3.activityLogs.at(-1));
-  check("…the first date still the very first", new Date(l3.originalCreatedAt).getTime() === before.createdAt.getTime());
+  check("the third time: repeatCount 2, history says 3rd time, from GOOGLE, still Not connected", r3.status === 200 && l3.repeatCount === 2 && l3.status === "not_connected" && /from GOOGLE \(3rd time\) — status kept \(Not connected\)/.test(l3.activityLogs.at(-1)?.description ?? ""), l3.activityLogs.at(-1));
+  check("…its created date still untouched", new Date(l3.createdAt).getTime() === hoursAgo.getTime() && l3.originalCreatedAt === undefined, [l3.createdAt, l3.originalCreatedAt]);
   const f = await call("GET", "/leads?cameAgain=true&limit=50", undefined, { authorization: `Bearer ${ROOT}` });
   const ids = (f.body.data?.leads ?? f.body.data ?? []).map((x: Json) => String(x._id));
   check("the came-in-again filter lists it", f.status === 200 && ids.includes(String(id)), f.body);
@@ -147,15 +151,23 @@ section("Case 2 — edges");
   const id = await lead({ phone: "+971502220002", status: "lost", lostReason: "price_too_high", lostNotes: "Too dear" });
   await sheet({ full_name: "Lost", phone_number: "+971502220002" });
   const l = await read(id);
-  check("a lost lead: reopened to its holder as new, the lost reason cleared", l.status === "assigned" && String(l.assignedTo) === String(ann) && l.lostReason === null && l.lostNotes === null, [l.status, l.lostReason]);
+  check("a lost lead: stays Lost with its reason and notes, still Ann's, counted", l.status === "lost" && String(l.assignedTo) === String(ann) && l.lostReason === "price_too_high" && l.lostNotes === "Too dear" && l.repeatCount === 1, [l.status, l.lostReason, l.lostNotes]);
 }
 {
   const id = await lead({ phone: "+971502220003", status: "followup", assignedTo: gone });
   const r = await sheet({ full_name: "Orphan", phone_number: "+971502220003" });
   const l = await read(id);
-  check("its holder deactivated: split again in its team — New there, nobody's yet (no auto-assign)", r.body.data?.repeat === "resplit" && l.status === "new" && l.assignedTo === null && String(l.team) === String(team) && l.repeatCount === 1, [l.status, l.assignedTo]);
-  check("…its history says why", /Gone is no longer active, split as a new lead/.test(l.activityLogs.at(-1)?.description ?? ""), l.activityLogs.at(-1));
+  check("its holder deactivated, team without auto-assign: unassigned in its team, status kept (Follow Up)", r.body.data?.repeat === "resplit" && l.status === "followup" && l.assignedTo === null && String(l.team) === String(team) && l.repeatCount === 1, [l.status, l.assignedTo]);
+  check("…its history says why", /Gone is no longer active, split again, status kept \(Follow Up\)/.test(l.activityLogs.find((g: Json) => /Came in again/.test(g.description))?.description ?? ""), l.activityLogs);
   check("…and Gone isn't notified", (await notices(gone)).length === 0);
+}
+{
+  const id = await lead({ phone: "+971502220008", status: "lost", lostReason: "unresponsive", assignedTo: gone, team: hawks });
+  const r = await sheet({ full_name: "Orphan, scheduled team", phone_number: "+971502220008" });
+  await settle();
+  const l = await read(id);
+  check("holder deactivated, team on a 10:30 split: given to Ben now, not held for the batch", r.body.data?.repeat === "resplit" && String(l.assignedTo) === String(ben) && r.body.data?.heldBy === "Ben", [l.assignedTo, r.body.data]);
+  check("…still Lost with its reason", l.status === "lost" && l.lostReason === "unresponsive", [l.status, l.lostReason]);
 }
 {
   const id = await lead({ phone: "12345", status: "followup" });
@@ -179,7 +191,7 @@ section("Case 2 — edges");
   check("Root's batch: the known number a duplicate with its lead id, back to Ben; the new one created", r.status === 201
     && res[0]?.status === "duplicate" && res[0]?.leadId === String(known) && res[0]?.repeat === "back_to_holder" && res[0]?.heldBy === "Ben"
     && res[1]?.status === "created" && r.body.data?.summary?.duplicate === 1 && r.body.data?.summary?.created === 1, r.body);
-  check("…the known one Assigned to Ben again", (await read(known)).status === "assigned");
+  check("…the known one still MIA, still Ben's", (await read(known)).status === "mia" && String((await read(known)).assignedTo) === String(ben));
 }
 {
   const known = await lead({ phone: "+971502220006", status: "callback", assignedTo: ann });
@@ -189,8 +201,8 @@ section("Case 2 — edges");
   const r = await call("POST", "/leads/upload", fd, { authorization: `Bearer ${ROOT}` });
   const d = r.body.data ?? {};
   check("an upload: the new row created, the known one came in again (not refused)", r.status === 201 && d.created === 1 && d.cameAgain === 1 && d.invalid === 0
-    && d.repeatDetails?.[0]?.leadId === String(known) && /given back to Ann/.test(d.repeatDetails?.[0]?.message ?? ""), d);
-  check("…no second lead for it; it's Ann's as new, from the upload", (await leadsWith("502220006")).length === 1 && (await read(known)).status === "assigned"
+    && d.repeatDetails?.[0]?.leadId === String(known) && /Ann was told it came in again/.test(d.repeatDetails?.[0]?.message ?? ""), d);
+  check("…no second lead for it; still Ann's Callback, from the upload", (await leadsWith("502220006")).length === 1 && (await read(known)).status === "callback"
     && /in an upload/.test((await read(known)).activityLogs.at(-1)?.description ?? ""));
 }
 
@@ -198,8 +210,8 @@ section("Case 3 — adding a known number by hand");
 {
   const known = await lead({ phone: "+971502220007", status: "followup", assignedTo: ann });
   const r = await call("POST", "/leads", { name: "Typed again", phone: "050 222 0007", source: "WALK-IN" }, { authorization: `Bearer ${BEN}` });
-  check("409, naming who has it", r.status === 409 && /given back to Ann/.test(r.body.message ?? ""), r);
-  check("…no second lead; Ann's as new, the history says added again by hand", (await leadsWith("502220007")).length === 1 && (await read(known)).status === "assigned"
+  check("409, naming who has it", r.status === 409 && /Ann was told it came in again/.test(r.body.message ?? ""), r);
+  check("…no second lead; still Ann's Follow Up, the history says added again by hand", (await leadsWith("502220007")).length === 1 && (await read(known)).status === "followup"
     && /added again by hand/.test((await read(known)).activityLogs.at(-1)?.description ?? ""));
   const fresh = await call("POST", "/leads", { name: "Brand new by hand", phone: "+971509990003", source: "WALK-IN" }, { authorization: `Bearer ${BEN}` });
   check("a new number by hand: created as before", fresh.status === 201, fresh.status);

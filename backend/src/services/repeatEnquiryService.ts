@@ -18,13 +18,13 @@ async function notify(n: { userIds: string[]; type: string; title: string; body:
  * assigned to whoever is managing the lead — he gets it again, as a new one"). Until now a number already in the CRM
  * was skipped (sheets, Root), refused (Excel) or entered a second time (by hand), and its holder never knew.
  *
- * The same lead, never a second copy — its notes, calls and history stay:
- *   - an open or lost lead whose holder is still active goes back to that holder as a new lead: status Assigned, today's
- *     date (the first one kept in originalCreatedAt, as a hand-over keeps it), a "came in again" notice in the bell, on
- *     the phone and with the new-lead sound;
- *   - nobody holds it, or the holder is deactivated: split in its team like a new lead (or to a team, when it has none);
- *   - a closed or booked lead (a student, a booking or part-booking) keeps its status — the holder is told the client
- *     enquired again;
+ * The same lead, never a second copy — its notes, calls and history stay. Its status never changes (the user,
+ * 2026-11-05: "the came-again lead's status doesn't need to change — same as before"):
+ *   - its holder is still active: it stays theirs as it was — status, lost reason and dates untouched — and they get a
+ *     "came in again" notice in the bell and on the phone;
+ *   - nobody holds it, or the holder is deactivated: split to an active member in its team (or to a team, when it has
+ *     none), its status put back as it was;
+ *   - a closed or booked lead (a student, a booking or part-booking) likewise keeps its status, the holder told;
  *   - the same number again within the hour (a row sent twice): only noted in its history.
  * Each time counts on the lead (repeatCount, lastRepeatAt): the "Came in again" tag and filter.
  *
@@ -130,39 +130,42 @@ export async function repeatEnquiry(
     return { outcome: "closed_client", leadId: id, holderId: holder ? String(holder._id) : null, holderName, times };
   }
 
-  const was = LABEL[lead.status ?? ""] ?? lead.status ?? "—";
-  // Fresh again: today's lead, its first date kept once (as a hand-over keeps it). Straight to the collection, so the
-  // model's hooks don't run over it; what a status change would clear is cleared here.
-  const fresh = {
-    originalCreatedAt: { $ifNull: ["$originalCreatedAt", "$createdAt"] },
-    createdAt: now, lastRepeatAt: now, repeatCount: { $add: [{ $ifNull: ["$repeatCount", 0] }, 1] },
-    lostReason: null, lostNotes: null,
-  };
+  // Open or lost: the status stays as it was. Only the repeat is counted, noted and told; its status, lost reason and
+  // dates stay.
+  const status = LABEL[lead.status ?? ""] ?? lead.status ?? "—";
 
   if (holderActive) {
-    await Lead.collection.updateOne({ _id: lead._id }, [{ $set: { ...fresh, status: "assigned", assignedAt: now } }]);
     await Lead.collection.updateOne({ _id: lead._id }, {
-      $push: { activityLogs: log(`Came in again${how} (${ordinal(times)} time) — back to ${holderName ?? "its holder"} as a new lead (was ${was})`) } as never,
+      ...counted,
+      $push: { activityLogs: log(`Came in again${how} (${ordinal(times)} time) — status kept (${status}), still ${holderName ?? "its holder"}'s`) } as never,
     });
     await notify({
       userIds: [String(holder!._id)], type: "lead_assigned",
-      title: "Lead came in again", body: `${lead.name || "A lead"} came in again${sourceText(opts.source ?? lead.source)} (${ordinal(times)} time) — it's in your leads as new`,
+      title: "Your lead enquired again", body: `${lead.name || "A lead"} came in again${sourceText(opts.source ?? lead.source)} (${ordinal(times)} time) — still ${status}`,
       url: `/leads/${id}`, tag: `lead-again-${id}-${now.getTime()}`, data: { leadId: id, repeat: true },
     }).catch(() => null);
     return { outcome: "back_to_holder", leadId: id, holderId: String(holder!._id), holderName, times };
   }
 
-  // Nobody to give it back to: a new lead in its team (or for a team), split as any other.
-  await Lead.collection.updateOne({ _id: lead._id }, [{ $set: { ...fresh, status: "new", assignedTo: null, assignedAt: null } }]);
+  // Nobody active holds it: split to an active member in its team (or to a team), then its status put back as it was
+  // (the split sets Assigned/New). splitAgainAs skips the split-time wait, so a scheduled batch doesn't reset it later.
   await Lead.collection.updateOne({ _id: lead._id }, {
-    $push: { activityLogs: log(`Came in again${how} (${ordinal(times)} time) — ${holder ? `${holderName ?? "its holder"} is no longer active` : "nobody held it"}, split as a new lead (was ${was})`) } as never,
+    $inc: { repeatCount: 1 },
+    $set: { lastRepeatAt: now, assignedTo: null, assignedAt: null },
+    $push: { activityLogs: log(`Came in again${how} (${ordinal(times)} time) — ${holder ? `${holderName ?? "its holder"} is no longer active` : "nobody held it"}, split again, status kept (${status})`) } as never,
   });
   try {
     await opts.split(id, lead.team ? String(lead.team) : null);
   } catch (err) {
     console.error("[repeatEnquiry] split failed:", err instanceof Error ? err.message : err);
   }
-  const after = await Lead.findById(lead._id).select("assignedTo").populate("assignedTo", "name").lean<{ assignedTo?: { _id: Types.ObjectId; name?: string } | null }>();
+  const after = await Lead.findById(lead._id).select("assignedTo status").populate("assignedTo", "name")
+    .lean<{ assignedTo?: { _id: Types.ObjectId; name?: string } | null; status?: string }>();
+  // "Assigned" with nobody to hold it (the split found no one) reads wrong — that one stays New.
+  const keep = lead.status === "assigned" && !after?.assignedTo ? null : lead.status;
+  if (keep && after?.status !== keep && (after?.status === "new" || after?.status === "assigned")) {
+    await Lead.collection.updateOne({ _id: lead._id }, { $set: { status: keep } });
+  }
   return { outcome: "resplit", leadId: id, holderId: after?.assignedTo ? String(after.assignedTo._id) : null, holderName: after?.assignedTo?.name ?? null, times };
 }
 
@@ -170,7 +173,7 @@ export async function repeatEnquiry(
 export function splitAgainAs(by: string) {
   return async (leadId: string, teamId: string | null) => {
     const { LeadService, autoSplitLeadPublic } = await import("./leadService.js");
-    if (teamId) await autoSplitLeadPublic(teamId, leadId, by);
+    if (teamId) await autoSplitLeadPublic(teamId, leadId, by, undefined, true); // now, not held for the batch
     else await new LeadService().autoAssignLeads([leadId]);
   };
 }
@@ -178,8 +181,8 @@ export function splitAgainAs(by: string) {
 /** A sentence for whoever sent it: the sheet, Root, the upload summary, the person adding it. */
 export function repeatMessage(r: RepeatResult): string {
   switch (r.outcome) {
-    case "back_to_holder": return `Already in the CRM — given back to ${r.holderName ?? "its holder"} as a new lead`;
-    case "resplit": return `Already in the CRM — split again${r.holderName ? ` to ${r.holderName}` : ""} (its holder is no longer active)`;
+    case "back_to_holder": return `Already in the CRM — ${r.holderName ?? "its holder"} was told it came in again (status kept)`;
+    case "resplit": return `Already in the CRM — split again${r.holderName ? ` to ${r.holderName}` : ""} (its holder is no longer active; status kept)`;
     case "closed_client": return `Already a client — ${r.holderName ?? "their salesperson"} was told they enquired again`;
     default: return "Already in the CRM — came in again within the hour, kept as it is";
   }

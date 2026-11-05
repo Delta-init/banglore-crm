@@ -158,7 +158,7 @@ async function splitAgain(leadId: string, teamId: string | null): Promise<void> 
  * Accepts a single row from the Google Sheet (one object per call).
  * - Maps core fields → Lead document
  * - Stores extra metadata as a Note on the lead
- * - A number already in the CRM (its last 9 digits) is that lead coming in again: back to its holder as a new lead
+ * - A number already in the CRM (its last 9 digits) is that lead coming in again: its holder told, status kept
  *   (repeatEnquiryService.ts) — still answered as a duplicate, with the existing lead ID, so Root's counts hold
  * - The Super Admin user is used as the system reporter
  */
@@ -453,7 +453,7 @@ export const syncSheetLeadsBatch = async (
 
     sendSuccess(
       res,
-      `Batch processed: ${created} created, ${duplicate} came in again (given back to their holders), ${invalid} invalid`,
+      `Batch processed: ${created} created, ${duplicate} came in again (holders told, status kept), ${invalid} invalid`,
       {
         summary: {
           total: rows.length,
