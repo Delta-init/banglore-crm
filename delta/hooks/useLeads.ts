@@ -192,7 +192,7 @@ export const useCreateLead = () => {
       // A number already in the CRM isn't a failure: that lead came in again and went back to whoever holds it.
       if ((error as { response?: { status?: number } })?.response?.status === 409) {
         queryClient.invalidateQueries({ queryKey: LEADS_KEY });
-        toast.info(errMsg(error, "That number is already a lead — given back to whoever holds it"));
+        toast.info(errMsg(error, "That number is already a lead — whoever holds it was told"));
         return;
       }
       toast.error(errMsg(error, "Failed to create lead"));

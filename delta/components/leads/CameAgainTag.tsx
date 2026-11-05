@@ -3,8 +3,8 @@
 import { Repeat } from "lucide-react";
 
 /*
- * "Came in again" — a lead whose number arrived again after the first time (2026-10-23): handed back to whoever holds
- * it as a new lead, the same record with all its history. ×N counts every time it came in, the first included.
+ * "Came in again" — a lead whose number arrived again after the first time (2026-10-23): its holder is told and its
+ * status kept (2026-11-05), the same record with all its history. ×N counts every time it came in, the first included.
  */
 export function CameAgainTag({ count, last, className = "" }: { count?: number | null; last?: string | null; className?: string }) {
   if (!count || count < 1) return null;
