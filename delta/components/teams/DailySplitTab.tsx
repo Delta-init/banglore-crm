@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarDays, ChevronLeft, ChevronRight, Split, Users, Inbox } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Split, Users, Inbox, ArrowLeftRight } from "lucide-react";
 import { useTeamDailySourceSplit } from "@/hooks/useTeams";
 import { getInitials } from "@/lib/utils";
 
@@ -54,7 +54,7 @@ export function DailySplitTab({ teamId }: DailySplitTabProps) {
           <div>
             <h3 className="text-sm font-semibold text-foreground">Daily Split</h3>
             <p className="text-[11px] text-muted-foreground">
-              Actual sources each member received on the selected day (IST)
+              Leads the split gave each member on the selected day (IST) — transfers shown separately
             </p>
           </div>
         </div>
@@ -123,7 +123,7 @@ export function DailySplitTab({ teamId }: DailySplitTabProps) {
           <p className="text-sm text-red-400">Failed to load daily split</p>
           <p className="mt-1 text-[11px] text-muted-foreground">{(error as { message?: string })?.message ?? "Unknown error"}</p>
         </div>
-      ) : !data || data.totalAssigned === 0 ? (
+      ) : !data || (data.totalAssigned === 0 && (data.totalTransferred ?? 0) === 0) ? (
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -147,8 +147,15 @@ export function DailySplitTab({ teamId }: DailySplitTabProps) {
             <div className="flex items-center gap-1.5">
               <Split className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-semibold text-foreground tabular-nums">{data.totalAssigned}</span>
-              <span className="text-[11px] text-muted-foreground">leads assigned</span>
+              <span className="text-[11px] text-muted-foreground">split</span>
             </div>
+            {(data.totalTransferred ?? 0) > 0 && (
+              <div className="flex items-center gap-1.5">
+                <ArrowLeftRight className="h-3.5 w-3.5 text-amber-500" />
+                <span className="text-xs font-semibold text-amber-500 tabular-nums">{data.totalTransferred}</span>
+                <span className="text-[11px] text-muted-foreground">transferred · not counted</span>
+              </div>
+            )}
             <div className="flex flex-wrap items-center gap-1.5 ml-auto">
               {data.sourceTotals.map((s) => (
                 <span
@@ -161,8 +168,13 @@ export function DailySplitTab({ teamId }: DailySplitTabProps) {
             </div>
           </div>
 
-          {/* Member rows */}
+          {/* Member rows — split only */}
           <div className="p-4 space-y-2">
+            {data.members.length === 0 && (
+              <p className="py-3 text-center text-[11px] text-muted-foreground">
+                No leads were split on this day — only transfers below.
+              </p>
+            )}
             <AnimatePresence mode="popLayout">
               {data.members.map((m, idx) => (
                 <motion.div
@@ -199,6 +211,54 @@ export function DailySplitTab({ teamId }: DailySplitTabProps) {
               ))}
             </AnimatePresence>
           </div>
+
+          {/* Transfers — moved member → member this day, not counted in the split */}
+          {(data.transfers?.length ?? 0) > 0 && (
+            <div className="border-t border-border/40 p-4 space-y-2">
+              <div className="flex items-center gap-1.5 pb-1">
+                <ArrowLeftRight className="h-3.5 w-3.5 text-amber-500" />
+                <p className="text-xs font-semibold text-foreground">Transferred</p>
+                <p className="text-[11px] text-muted-foreground">
+                  — moved from another member, not counted in the split
+                </p>
+              </div>
+              <AnimatePresence mode="popLayout">
+                {data.transfers.map((t, idx) => (
+                  <motion.div
+                    key={`${date}-t-${t.memberId}`}
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: idx * 0.04 }}
+                    className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2.5"
+                  >
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold">
+                      {getInitials(t.memberName)}
+                    </div>
+                    <div className="w-28 shrink-0 min-w-0">
+                      <p className="truncate text-xs font-medium text-foreground">{t.memberName}</p>
+                      {t.designation && <p className="truncate text-[10px] text-muted-foreground">{t.designation}</p>}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+                      {t.from.map((f) => (
+                        <motion.span
+                          key={f.memberId}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="inline-flex items-center gap-1 rounded-full border border-border/50 bg-muted/30 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                        >
+                          from {f.memberName}<span className="opacity-80">×{f.count}</span>
+                        </motion.span>
+                      ))}
+                    </div>
+                    <span className="shrink-0 rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-500">
+                      ⇄{t.total}
+                    </span>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
       )}
     </motion.div>

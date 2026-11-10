@@ -316,14 +316,47 @@ export class TeamService {
     }
     const dayEnd = new Date(dayStart.getTime() + 86_400_000);
 
-    const agg = await Lead.aggregate([
+    const dayMatch: PipelineStage = {
+      $match: {
+        team: teamObjId,
+        assignedTo: { $exists: true, $ne: null },
+        assignedAt: { $gte: dayStart, $lt: dayEnd },
+      },
+    };
+
+    // Classify each lead's CURRENT assignment. A "transfer" is one whose latest
+    // lead_assigned log recorded a previous owner other than the current one —
+    // every manual path (assignLead, assignLeadToMember, bulk assign) writes
+    // changes.assignedTo.from. Auto-split and leader assigns of fresh pool leads
+    // have no previous owner, so they stay in the split.
+    const classify: PipelineStage[] = [
       {
-        $match: {
-          team: teamObjId,
-          assignedTo: { $exists: true, $ne: null },
-          assignedAt: { $gte: dayStart, $lt: dayEnd },
+        $addFields: {
+          _lastAssign: {
+            $last: {
+              $filter: {
+                input: { $ifNull: ["$activityLogs", []] },
+                as: "l",
+                cond: { $eq: ["$$l.action", "lead_assigned"] },
+              },
+            },
+          },
         },
       },
+      { $addFields: { _fromId: { $toString: { $ifNull: ["$_lastAssign.changes.assignedTo.from", ""] } } } },
+      {
+        $addFields: {
+          _isTransfer: {
+            $and: [{ $ne: ["$_fromId", ""] }, { $ne: ["$_fromId", { $toString: "$assignedTo" }] }],
+          },
+        },
+      },
+    ];
+
+    const agg = await Lead.aggregate([
+      dayMatch,
+      ...classify,
+      { $match: { _isTransfer: false } },
       {
         $group: {
           _id: { member: "$assignedTo", source: { $ifNull: [{ $trim: { input: "$source" } }, "Unknown"] } },
@@ -366,13 +399,57 @@ export class TeamService {
       for (const s of m.sources) sourceTotals.set(s.source, (sourceTotals.get(s.source) ?? 0) + s.count);
     }
 
+    // Transfers — leads moved from one member to another this day. Shown on
+    // their own, never counted in the split above.
+    const transferAgg = await Lead.aggregate<{ _id: { to: mongoose.Types.ObjectId; from: string }; count: number }>([
+      dayMatch,
+      ...classify,
+      { $match: { _isTransfer: true } },
+      { $group: { _id: { to: "$assignedTo", from: "$_fromId" }, count: { $sum: 1 } } },
+    ]);
+
+    const userIds = new Set<string>();
+    for (const t of transferAgg) {
+      userIds.add(t._id.to.toString());
+      if (mongoose.isValidObjectId(t._id.from)) userIds.add(t._id.from);
+    }
+    const users = await User.find({ _id: { $in: [...userIds] } }).select("name designation").lean();
+    const userById = new Map(users.map((u) => [u._id.toString(), u]));
+
+    const transferMap = new Map<string, {
+      memberId: string; memberName: string; designation?: string; total: number;
+      from: { memberId: string; memberName: string; count: number }[];
+    }>();
+    for (const t of transferAgg) {
+      const toId = t._id.to.toString();
+      const toUser = userById.get(toId);
+      const entry = transferMap.get(toId) ?? {
+        memberId: toId,
+        memberName: toUser?.name ?? "Unknown",
+        designation: toUser?.designation,
+        total: 0,
+        from: [],
+      };
+      entry.total += t.count;
+      entry.from.push({
+        memberId: t._id.from,
+        memberName: userById.get(t._id.from)?.name ?? "Unknown",
+        count: t.count,
+      });
+      transferMap.set(toId, entry);
+    }
+    const transfers = [...transferMap.values()].sort((a, b) => b.total - a.total);
+    for (const t of transfers) t.from.sort((a, b) => b.count - a.count);
+
     return {
       date,
-      totalAssigned: agg.reduce((sum, m) => sum + m.total, 0),
+      totalAssigned: agg.reduce((sum, m) => sum + m.total, 0), // split only — transfers excluded
       sourceTotals: Array.from(sourceTotals.entries())
         .map(([source, count]) => ({ source, count }))
         .sort((a, b) => b.count - a.count),
       members: agg,
+      totalTransferred: transfers.reduce((sum, t) => sum + t.total, 0),
+      transfers,
     };
   }
 

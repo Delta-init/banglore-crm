@@ -180,11 +180,21 @@ export interface DailySplitMember {
   total: number;
   sources: DailySplitSourceCount[];
 }
+export interface DailySplitTransferFrom { memberId: string; memberName: string; count: number; }
+export interface DailySplitTransfer {
+  memberId: string;
+  memberName: string;
+  designation?: string;
+  total: number;
+  from: DailySplitTransferFrom[];
+}
 export interface DailySourceSplitData {
   date: string;
-  totalAssigned: number;
+  totalAssigned: number;            // split only — transfers excluded
   sourceTotals: DailySplitSourceCount[];
   members: DailySplitMember[];
+  totalTransferred: number;         // leads moved member → member this day
+  transfers: DailySplitTransfer[];
 }
 
 export const useTeamDailySourceSplit = (teamId: string, date: string, enabled = true) => {
