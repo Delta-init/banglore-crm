@@ -8,6 +8,7 @@
  *   Case 2  edge         within the hour: only noted; a closed lead keeps its status; a lost lead stays Lost with its
  *                        reason; a deactivated holder → split again now (not held for a scheduled batch), status kept;
  *                        a short number matches exactly; the batch; the upload; a copy marked "repeated" is the last choice
+ *                        a sheet re-sync (an old row, form dated before the lead came in) ignored — no tag, no ping
  *   Case 3  errors       adding a known number by hand: 409 naming the holder, no second lead
  *   Case 4  permission   the sheet without its key: 401; the filter stays inside a salesperson's own leads
  *
@@ -204,6 +205,33 @@ section("Case 2 — edges");
     && d.repeatDetails?.[0]?.leadId === String(known) && /Ann was told it came in again/.test(d.repeatDetails?.[0]?.message ?? ""), d);
   check("…no second lead for it; still Ann's Callback, from the upload", (await leadsWith("502220006")).length === 1 && (await read(known)).status === "callback"
     && /in an upload/.test((await read(known)).activityLogs.at(-1)?.description ?? ""));
+}
+
+{
+  // A sheet re-synced: the old row sent again, its form date (Google's format) before the lead came in.
+  const id = await lead({ phone: "+971502220009", status: "lost", lostReason: "unresponsive", assignedTo: ann, createdAt: longAgo });
+  const googleStyle = new Date(longAgo.getTime() - 10 * 86_400_000).toString(); // "Wed Jun 10 2026 05:15:00 GMT+0400 (…)"
+  const r = await sheet({ full_name: "Old row", phone_number: "+971502220009", created_time: googleStyle });
+  const l = await read(id);
+  check("a sheet re-sync — an old row again (enquired before the lead came in): a duplicate, ignored", r.body.data?.duplicate === true && r.body.data?.leadId === String(id)
+    && r.body.data?.repeat === "same_enquiry" && /same enquiry sent again/.test(r.body.message ?? ""), r.body);
+  check("…no count, no tag, no history line; still Ann's, still Lost", (l.repeatCount ?? 0) === 0 && !l.lastRepeatAt && l.activityLogs.length === 0
+    && l.status === "lost" && String(l.assignedTo) === String(ann), [l.repeatCount, l.activityLogs.length, l.status]);
+  const r2 = await sheet({ full_name: "New form", phone_number: "+971502220009", created_time: new Date().toISOString() });
+  const l2 = await read(id);
+  check("a new form, dated after the lead came in: a real repeat — counted, status kept", r2.body.data?.repeat === "back_to_holder" && l2.repeatCount === 1 && l2.status === "lost", [r2.body.data, l2.repeatCount]);
+  await Lead.collection.updateOne({ _id: id }, { $set: { lastRepeatAt: hoursAgo } });
+  const r3 = await sheet({ full_name: "New form again", phone_number: "+971502220009", created_time: new Date(hoursAgo.getTime() - 60_000).toISOString() });
+  const l3 = await read(id);
+  check("…that form re-sent hours later: ignored too (enquired before its last repeat)", r3.body.data?.repeat === "same_enquiry" && l3.repeatCount === 1
+    && l3.activityLogs.length === l2.activityLogs.length, [r3.body.data, l3.repeatCount]);
+  const rb = await call("POST", "/sheets/sync/batch", { rows: [{ full_name: "Old row in a batch", phone_number: "+971502220009", created_time: googleStyle }] },
+    { "x-api-key": "repeat-enquiry-check-sheets-key" });
+  const res = rb.body.data?.results ?? [];
+  check("…and in a batch: the old row a duplicate, ignored the same way", res[0]?.status === "duplicate" && res[0]?.repeat === "same_enquiry" && (await read(id)).repeatCount === 1, res[0]);
+  const id2 = await lead({ phone: "+971502220010", status: "followup", assignedTo: ann, createdAt: longAgo });
+  const rg = await sheet({ full_name: "Bad date", phone_number: "+971502220010", created_time: "not a date" });
+  check("a row whose date can't be read: treated as before — a real repeat", rg.body.data?.repeat === "back_to_holder" && (await read(id2)).repeatCount === 1, rg.body.data);
 }
 
 section("Case 3 — adding a known number by hand");

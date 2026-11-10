@@ -68,7 +68,11 @@ export async function findLeadByPhone(raw: unknown): Promise<LeadLike | null> {
 }
 
 export type RepeatOutcome = "back_to_holder" | "resplit" | "closed_client" | "same_enquiry";
-export interface RepeatResult { outcome: RepeatOutcome; leadId: string; holderId: string | null; holderName: string | null; times: number }
+export interface RepeatResult {
+  outcome: RepeatOutcome; leadId: string; holderId: string | null; holderName: string | null; times: number;
+  /** same_enquiry because the row is an old enquiry sent again (a sheet re-sync), not because it came within the hour. */
+  resent?: boolean;
+}
 
 const LABEL: Record<string, string> = {
   new: "New", assigned: "Assigned", pending_response: "Pending response", followup: "Follow Up", closed: "Closed",
@@ -90,6 +94,8 @@ export async function repeatEnquiry(
     source?: string | null;
     by?: string | null;
     now?: Date;
+    /** When the person actually enquired (the sheet row's created_time), if known. */
+    enquiredAt?: string | Date | null;
     split: (leadId: string, teamId: string | null) => Promise<unknown>;
   },
 ): Promise<RepeatResult> {
@@ -105,8 +111,17 @@ export async function repeatEnquiry(
   const how = `${sourceText(opts.source ?? lead.source)}${opts.via === "manual" ? " (added again by hand)" : opts.via === "upload" ? " (in an upload)" : ""}`;
   const log = (description: string) => ({ action: "lead_updated", description: description.slice(0, 500), ...performedBy, createdAt: now });
 
-  // The same enquiry sent twice: noted, nothing moves, nobody is pinged again.
   const last = Math.max(new Date(lead.lastRepeatAt ?? 0).getTime(), new Date(lead.createdAt ?? 0).getTime());
+
+  // An old enquiry sent again — a sheet re-synced, its rows re-sent (Google Ads, 4–6 Nov 2026: 364 "repeats", none
+  // real). The person enquired no later than the CRM already had them, so nothing new happened: no count, no tag, no
+  // ping, no history line. A real repeat is a new form, dated after the lead was last here.
+  const enquired = opts.enquiredAt ? new Date(opts.enquiredAt).getTime() : NaN;
+  if (!Number.isNaN(enquired) && last > 0 && enquired <= last) {
+    return { outcome: "same_enquiry", resent: true, leadId: id, holderId: holder ? String(holder._id) : null, holderName, times: (lead.repeatCount ?? 0) + 1 };
+  }
+
+  // The same enquiry sent twice: noted, nothing moves, nobody is pinged again.
   if (now.getTime() - last < REPEAT_QUIET_MS) {
     await Lead.collection.updateOne({ _id: lead._id }, { $push: { activityLogs: log(`Came in again${how} within the hour — kept as it is`) } as never });
     return { outcome: "same_enquiry", leadId: id, holderId: holder ? String(holder._id) : null, holderName, times: (lead.repeatCount ?? 0) + 1 };
@@ -184,6 +199,6 @@ export function repeatMessage(r: RepeatResult): string {
     case "back_to_holder": return `Already in the CRM — ${r.holderName ?? "its holder"} was told it came in again (status kept)`;
     case "resplit": return `Already in the CRM — split again${r.holderName ? ` to ${r.holderName}` : ""} (its holder is no longer active; status kept)`;
     case "closed_client": return `Already a client — ${r.holderName ?? "their salesperson"} was told they enquired again`;
-    default: return "Already in the CRM — came in again within the hour, kept as it is";
+    default: return r.resent ? "Already in the CRM — the same enquiry sent again, kept as it is" : "Already in the CRM — came in again within the hour, kept as it is";
   }
 }
