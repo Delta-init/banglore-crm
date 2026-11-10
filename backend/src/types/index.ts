@@ -246,7 +246,8 @@ export type ActivityAction =
   | "team_assigned"
   | "note_added"
   | "note_updated"
-  | "note_deleted";
+  | "note_deleted"
+  | "lead_transferred";
 
 export interface ILeadNote {
   _id: Types.ObjectId;

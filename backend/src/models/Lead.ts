@@ -1,3 +1,4 @@
+import { handOverOnAssign } from "./leadHandOver.js";
 import mongoose, { Schema } from "mongoose";
 import type { ILead, ILeadNote, IActivityLog, IReminder, IPayment } from "../types/index.js";
 
@@ -37,6 +38,8 @@ const activityLogSchema = new Schema<IActivityLog>(
         "note_added",
         "note_updated",
         "note_deleted",
+        // A person's leads transferred to someone else (Users page, 2026-11-10), and undone.
+        "lead_transferred",
       ],
     },
     description: {
@@ -204,6 +207,9 @@ const leadSchema = new Schema<ILead>(
       type: Date,
       default: null,
     },
+    // Declared so it can change: a lead handed to someone takes the hand-over time as its created date
+    // (leadHandOver.ts, 2026-11-10). Still set on create by timestamps.
+    createdAt: { type: Date },
     // The first created date, kept once when the lead comes in again and starts over as today's (2026-10-23).
     originalCreatedAt: { type: Date, default: undefined },
     // How many times this number came in again after the first, and when last (repeatEnquiryService.ts).
@@ -333,5 +339,8 @@ leadSchema.index({ assignedTo: 1 });
 leadSchema.index({ team: 1 });
 leadSchema.index({ reporter: 1 });
 leadSchema.index({ createdAt: -1 });
+
+// A lead given to someone is new for them (2026-11-10, as in the other CRMs).
+handOverOnAssign(leadSchema);
 
 export const Lead = mongoose.model<ILead>("Lead", leadSchema);
