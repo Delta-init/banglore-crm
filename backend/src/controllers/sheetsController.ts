@@ -186,7 +186,7 @@ export const syncSheetLead = async (
     // ── Already in the CRM: it came in again ───────────────────────────────
     const existing = await findLeadByPhone(phone);
     if (existing) {
-      const repeat = await repeatEnquiry(existing, { via: "sheet", source: row.source?.trim() || mapPlatformToSource(row.platform), split: splitAgain });
+      const repeat = await repeatEnquiry(existing, { via: "sheet", source: row.source?.trim() || mapPlatformToSource(row.platform), enquiredAt: row.created_time, split: splitAgain });
       sendSuccess(res, repeatMessage(repeat), {
         leadId: existing._id.toString(),
         duplicate: true,
@@ -357,7 +357,7 @@ export const syncSheetLeadsBatch = async (
       // Already in the CRM: it came in again — back to its holder (still a duplicate to Root's counts)
       const exists = await findLeadByPhone(phone);
       if (exists) {
-        const repeat = await repeatEnquiry(exists, { via: "sheet", source: row.source?.trim() || mapPlatformToSource(row.platform), split: splitAgain })
+        const repeat = await repeatEnquiry(exists, { via: "sheet", source: row.source?.trim() || mapPlatformToSource(row.platform), enquiredAt: row.created_time, split: splitAgain })
           .catch((err) => { console.error("[sheets] repeat enquiry failed:", err instanceof Error ? err.message : err); return null; });
         results.push({
           index: i,
