@@ -234,6 +234,25 @@ section("Case 2 — edges");
   check("a row whose date can't be read: treated as before — a real repeat", rg.body.data?.repeat === "back_to_holder" && (await read(id2)).repeatCount === 1, rg.body.data);
 }
 
+{
+  // Every came-in-again line needs a performer, or the lead can't be saved again — its next status change failed with
+  // "Path `performedBy` is required" (156 leads, 10 Nov 2026). The sheet sends no user: the lead's reporter stands in.
+  const lacking = (l: Json) => (l.activityLogs as Json[]).filter((g) => !g.performedBy).length;
+  const statusTo = (id: Types.ObjectId, status: string) => call("PATCH", `/leads/${id}/status`, { status }, { authorization: `Bearer ${ROOT}` });
+  const a = await lead({ phone: "+971502220011", status: "followup", assignedTo: ann, createdAt: longAgo });
+  await sheet({ full_name: "Again", phone_number: "+971502220011" });
+  const b = await lead({ phone: "+971502220012", status: "followup", assignedTo: ann, createdAt: new Date(Date.now() - 20 * 60_000) });
+  await sheet({ full_name: "Within the hour", phone_number: "+971502220012" });
+  const cc = await lead({ phone: "+971502220013", status: "callback", assignedTo: ann, createdAt: longAgo });
+  await call("POST", "/sheets/sync/batch", { rows: [{ full_name: "In a batch", phone_number: "+971502220013" }] }, { "x-api-key": "repeat-enquiry-check-sheets-key" });
+  check("from a sheet — again, within the hour, in a batch: every history line has a performer (the lead's reporter)",
+    lacking(await read(a)) === 0 && lacking(await read(b)) === 0 && lacking(await read(cc)) === 0
+    && String((await read(a)).activityLogs.at(-1)?.performedBy) === String(root), [(await read(a)).activityLogs.at(-1), (await read(b)).activityLogs.at(-1)]);
+  const [sa, sb, sc] = [await statusTo(a, "callback"), await statusTo(b, "cnc"), await statusTo(cc, "followup")];
+  check("…and each can still be saved: a status change after it succeeds (no \"performedBy is required\")",
+    sa.status === 200 && sb.status === 200 && sc.status === 200 && (await read(a)).status === "callback", [sa.status, sb.status, sc.status, sa.body?.errors ?? sb.body?.errors ?? sc.body?.errors]);
+}
+
 section("Case 3 — adding a known number by hand");
 {
   const known = await lead({ phone: "+971502220007", status: "followup", assignedTo: ann });

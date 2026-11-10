@@ -46,7 +46,7 @@ const SEP = "[\\s\\-.()]*";
 type LeadLike = {
   _id: Types.ObjectId; name?: string; phone?: string; status?: string; source?: string;
   assignedTo?: Types.ObjectId | null; team?: Types.ObjectId | null; createdAt?: Date; updatedAt?: Date;
-  lastRepeatAt?: Date | null; repeatCount?: number;
+  lastRepeatAt?: Date | null; repeatCount?: number; reporter?: Types.ObjectId | null;
 };
 
 /**
@@ -59,7 +59,7 @@ export async function findLeadByPhone(raw: unknown): Promise<LeadLike | null> {
   if (!tail) return phone ? Lead.findOne({ phone }).lean<LeadLike>() : null;
   const pattern = `${tail.split("").join(SEP)}(?!${SEP}\\d)`;
   const found = await Lead.find({ phone: { $regex: pattern } })
-    .select("name phone status source assignedTo team createdAt updatedAt lastRepeatAt repeatCount")
+    .select("name phone status source assignedTo team createdAt updatedAt lastRepeatAt repeatCount reporter")
     .limit(50).lean<LeadLike[]>();
   const same = found.filter((l) => tailsOf(l.phone).has(tail));
   same.sort((a, b) => Number(a.status === "repeated") - Number(b.status === "repeated")
@@ -106,7 +106,10 @@ export async function repeatEnquiry(
     : null;
   const holderActive = !!holder && holder.status === "active";
   const holderName = holder?.name ?? null;
-  const performedBy = opts.by && Types.ObjectId.isValid(opts.by) ? { performedBy: new Types.ObjectId(opts.by) } : {};
+  // Every history line needs a performer, or the lead can't be saved again ("Path `performedBy` is required" on its next
+  // status change — 156 leads, 2026-11-10). By hand: whoever added it; from a sheet: the lead's own reporter.
+  const performer = opts.by && Types.ObjectId.isValid(opts.by) ? new Types.ObjectId(opts.by) : lead.reporter ?? null;
+  const performedBy = performer ? { performedBy: performer } : {};
   const times = (lead.repeatCount ?? 0) + 2; // the first time, then each repeat: this one is the (count + 2)th
   const how = `${sourceText(opts.source ?? lead.source)}${opts.via === "manual" ? " (added again by hand)" : opts.via === "upload" ? " (in an upload)" : ""}`;
   const log = (description: string) => ({ action: "lead_updated", description: description.slice(0, 500), ...performedBy, createdAt: now });
