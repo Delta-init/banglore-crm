@@ -493,7 +493,11 @@ export class LeadService {
     if (filters.team) query.team = filters.team;
     if (filters.reporter) query.reporter = filters.reporter;
     if (filters.course) query.course = filters.course;
-    if (filters.source) query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+    // One source, or several joined by commas (the Leads page's multi-select, 2026-11-12) — a lead with any of them.
+    if (filters.source) {
+      const sources = String(filters.source).split(",").map((x) => x.trim()).filter(Boolean);
+      if (sources.length) query.source = { $in: sources.map((x) => new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")) };
+    }
 
     // ── Split-date filter — matches assignedAt (when the lead was distributed),
     // independent of the created/assigned OR filter below. ──────────────────────
@@ -844,7 +848,9 @@ export class LeadService {
     const statusMatch = buildStatusMatch(filters.status);
     if (statusMatch !== undefined) query.status = statusMatch;
     if (filters.source && filters.source !== "all") {
-      query.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      // One source, or several joined by commas (2026-11-12) — a lead with any of them.
+      const sources = String(filters.source).split(",").map((x) => x.trim()).filter(Boolean);
+      query.source = { $in: sources.map((x) => new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")) };
     }
     if (filters.course && filters.course !== "all") query.course = filters.course;
 
@@ -898,7 +904,9 @@ export class LeadService {
     // so the stat cards recompute for the selected range instead of all-time.
     const base: Record<string, unknown> = { assignedTo: userId };
     if (filters.source && filters.source !== "all") {
-      base.source = new RegExp(filters.source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      // One source, or several joined by commas (2026-11-12) — a lead with any of them.
+      const sources = String(filters.source).split(",").map((x) => x.trim()).filter(Boolean);
+      base.source = { $in: sources.map((x) => new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i")) };
     }
     if (filters.course && filters.course !== "all") base.course = filters.course;
     // Date range matches createdAt OR assignedAt (split date).

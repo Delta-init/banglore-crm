@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { TodayLeadsButton } from "@/components/leads/LeadsDateFilter";
 import { ClickToCall } from "@/components/leads/ClickToCall";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -168,7 +169,9 @@ function LeadsPageContent() {
   const [cameAgain, setCameAgain] = useState<string>(() => searchParams.get("cameAgain") ?? "all");
   const [followupFrom, setFollowupFrom] = useState<string>(() => searchParams.get("followupFrom") ?? "");
   const [followupTo, setFollowupTo] = useState<string>(() => searchParams.get("followupTo") ?? "");
+  // "all", or one or more sources joined by commas (picked several at once since 2026-11-12).
   const [source, setSource] = useState<string>(() => searchParams.get("source") ?? "all");
+  const pickedSources = source === "all" ? [] : source.split(",").filter(Boolean);
   const [sortBy, setSortBy] = useState<string>(() => searchParams.get("sortBy") ?? "createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">(() => (searchParams.get("sortOrder") as "asc" | "desc") ?? "desc");
   const [showFilters, setShowFilters] = useState(() => {
@@ -1162,17 +1165,16 @@ function LeadsPageContent() {
                     {/* Source */}
                     <div className="space-y-1">
                       <p className="text-xs font-medium text-muted-foreground">Source</p>
-                      <Select value={source} onValueChange={(v) => applyFilter(setSource, v)}>
-                        <SelectTrigger className="h-9 text-sm">
-                          <SelectValue placeholder="All Sources" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-60">
-                          <SelectItem value="all">All Sources</SelectItem>
-                          {allSources.map((s) => (
-                            <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {/* Several at once, with a search (2026-11-12): leads with any of them */}
+                      <MultiSelect
+                        options={allSources.map((s) => ({ value: s, label: s }))}
+                        selected={pickedSources}
+                        onChange={(v) => applyFilter(setSource, v.length ? v.join(",") : "all")}
+                        placeholder="All Sources"
+                        searchPlaceholder="Find a source…"
+                        emptyText="No source matches"
+                        className="min-h-9 py-1.5"
+                      />
                     </div>
 
                     <div className="md:block hidden"></div>
@@ -1337,12 +1339,13 @@ function LeadsPageContent() {
                     onRemove={() => applyFilter(setTeamId, "all")}
                   />
                 )}
-                {source !== "all" && (
+                {pickedSources.map((s) => (
                   <FilterPill
-                    label={`Source: ${source}`}
-                    onRemove={() => applyFilter(setSource, "all")}
+                    key={`source-${s}`}
+                    label={`Source: ${s}`}
+                    onRemove={() => applyFilter(setSource, pickedSources.filter((x) => x !== s).join(",") || "all")}
                   />
-                )}
+                ))}
                 {dateFrom && (
                   <FilterPill label={`Created From: ${dateFrom}`} onRemove={() => { setDateFrom(""); setPage(1); }} />
                 )}
