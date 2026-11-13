@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { fmtINR } from "@/lib/currency";
 import { uploadReceipt } from "@/hooks/useStudents";
-import { ENROLMENT_PAYMENT_METHODS, PAYMENT_METHOD_LABELS, type PaymentOriginal, type StoredReceipt } from "@/types/student";
+import { ENROLMENT_PAYMENT_METHODS, PAYMENT_METHOD_LABELS, RUPEE_PAYMENT_METHODS, type PaymentOriginal, type StoredReceipt } from "@/types/student";
 
 /*
  * The payments taken at a close, one row each (the user, 2026-10-05): a client
@@ -115,8 +115,8 @@ export function PaymentRowsEditor({ leadId, rows, onChange }: PaymentRowsEditorP
           >
             <div className="flex items-center gap-2">
               <span className="w-5 shrink-0 text-[10px] font-semibold text-muted-foreground">{i + 1}.</span>
-              {/* "INR Transfer" is rupees: it puts the row back in INR. */}
-              <Select value={r.method} onValueChange={(v) => update(r.id, v === "inr_bank_account" ? { method: v, paidInAed: false } : { method: v })}>
+              {/* "INR Transfer" is rupees: it puts the row back in INR. So does Razorpay (2026-11-13). */}
+              <Select value={r.method} onValueChange={(v) => update(r.id, RUPEE_PAYMENT_METHODS.includes(v) ? { method: v, paidInAed: false } : { method: v })}>
                 <SelectTrigger className="h-8 w-[130px] shrink-0 text-xs" aria-label={`Payment ${i + 1} method`}>
                   <SelectValue placeholder="Paid by…" />
                 </SelectTrigger>
