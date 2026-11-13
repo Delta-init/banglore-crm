@@ -11,6 +11,8 @@
  *   - Case 3: payments that don't add up, without a receipt, an unknown method,
  *     nothing, too many — and anything collected above the fee — refused, on a
  *     close and on an edit, with nothing saved;
+ *   - Case 3c: POS and Razorpay (the owner, 2026-11-13) — taken, kept and sent
+ *     to finance as "pos" and "razorpay";
  *   - Case 4: who may close;
  *   - Case 5: Banglore — the payload is tagged crm "banglore" and academy "bangalore", in INR with no
  *     conversion, and a close needs the client's email (kept on the lead).
@@ -203,6 +205,24 @@ section("Case 3b — a payment handed over in AED (the user, 2026-10-13): INR by
   await refused("AED that doesn't come to its rupees: 422", { paidAmount: 500, totalFee: 500, payments: [pay("cash", 500, "aed-off", { original: { currency: "AED", amount: 10, rate: 22.5 } })] }, /comes to ₹225, not ₹500/);
   await refused("AED with no rate: 422", { paidAmount: 500, totalFee: 500, payments: [pay("cash", 225, "aed-norate", { original: { currency: "AED", amount: 10 } }), pay("cash", 275)] }, /needs its rate/);
   await refused("another currency than AED: 422", { paidAmount: 500, totalFee: 500, payments: [pay("cash", 500, "usd", { original: { currency: "USD", amount: 6, rate: 83.3 } })] }, /in INR, or AED with its rate — not USD/);
+}
+
+section("Case 3c — POS and Razorpay (the owner, 2026-11-13): taken at the close, sent to finance as pos and razorpay");
+{
+  r = await close({ paidAmount: 500, totalFee: 500, payments: [pay("pos", 300, "pos-a"), pay("razorpay", 200, "razorpay-b")] });
+  s = await studentOf(r);
+  check("201: 300 by POS and 200 by Razorpay, each kept with its method, amount and receipt", r.status === 201
+    && s?.payments?.map((p) => `${p.method}:${p.amount}:${p.receipt?.key}`).join(",") === "pos:300:receipts/pos-a.jpg,razorpay:200:receipts/razorpay-b.jpg",
+    `${r.status} ${r.body.message} ${JSON.stringify(s?.payments)}`);
+  check("…the first, POS, also as the one method", s?.paymentMethod === "pos", String(s?.paymentMethod));
+  payload = r.status === 201 ? await service.buildHandoverPayload(String(s!._id)) as Record<string, any> : null;
+  check("…finance is sent each under its own name, in paise, with its receipt",
+    payload?.payments?.map((p: any) => `${p.method}:${p.amountMinor}:${p.receipt?.key}`).join(",") === "pos:30000:receipts/pos-a.jpg,razorpay:20000:receipts/razorpay-b.jpg"
+      && payload?.declaredPaymentMethod === "pos" && payload?.declaredPaidMinor === 50000, JSON.stringify(payload?.payments));
+  r = await close({ paidAmount: 500, paymentMethod: "razorpay", paymentReceipt: receipt("razorpay-only") });
+  s = await studentOf(r);
+  payload = r.status === 201 ? await service.buildHandoverPayload(String(s!._id)) as Record<string, any> : null;
+  check("an older screen with Razorpay as its one method: 201, declared to finance as razorpay", r.status === 201 && s?.paymentMethod === "razorpay" && payload?.declaredPaymentMethod === "razorpay", `${r.status} ${r.body.message}`);
 }
 
 section("Case 4 — who may close");
