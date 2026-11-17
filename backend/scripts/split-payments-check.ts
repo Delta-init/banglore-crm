@@ -207,6 +207,19 @@ section("Case 3b — a payment handed over in AED (the user, 2026-10-13): INR by
   await refused("another currency than AED: 422", { paidAmount: 500, totalFee: 500, payments: [pay("cash", 500, "usd", { original: { currency: "USD", amount: 6, rate: 83.3 } })] }, /in INR, or AED with its rate — not USD/);
 }
 
+section("Case 3d — Tamara KSA (2026-11-17): its own method beside Tamara, a plain AED payment");
+{
+  r = await close({ paidAmount: 500, totalFee: 500, payments: [pay("tamara", 300, "tam-a"), pay("tamara_ksa", 200, "tamksa-b")] });
+  s = await studentOf(r);
+  check("201: Tamara and Tamara KSA kept apart, both in AED", r.status === 201
+    && s?.payments?.map((p) => `${p.method}:${p.amount}`).join(",") === "tamara:300,tamara_ksa:200" && !s?.payments?.[1]?.original,
+    `${r.status} ${r.body.message} ${JSON.stringify(s?.payments)}`);
+  payload = r.status === 201 ? await service.buildHandoverPayload(String(s!._id)) as Record<string, any> : null;
+  check("finance is told `tamara` AED 300 and `tamara_ksa` AED 200, neither with an original",
+    payload?.payments?.map((p: any) => `${p.method}:${p.amountMinor}`).join(",") === "tamara:30000,tamara_ksa:20000"
+      && payload?.payments?.every((p: any) => p.original === undefined), JSON.stringify(payload?.payments));
+}
+
 section("Case 3c — POS and Razorpay (the owner, 2026-11-13): taken at the close, sent to finance as pos and razorpay");
 {
   r = await close({ paidAmount: 500, totalFee: 500, payments: [pay("pos", 300, "pos-a"), pay("razorpay", 200, "razorpay-b")] });

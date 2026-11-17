@@ -110,7 +110,7 @@ export const ENROLMENT_PAYMENT_METHODS = [
   "cash", "bank_transfer", "cheque", "card",
   // The card machine at the desk (the owner, 2026-11-13) — beside Card, and treated as Card is.
   "pos",
-  "easebuzz_emi", "tabby", "tamara", "billexpro",
+  "easebuzz_emi", "tabby", "tamara", "tamara_ksa", "billexpro", // tamara_ksa: Tamara's Saudi account (2026-11-17)
   // Rupees into the INR account (the user, 2026-10-13) — finance's "INR Bank Account".
   "inr_bank_account",
   // Razorpay pays out in rupees (the owner, 2026-11-13) — treated as INR Transfer is.
@@ -134,6 +134,7 @@ export const PAYMENT_METHOD_LABELS: Record<EnrolmentPaymentMethod, string> = {
   easebuzz_emi: "Easebuzz EMI",
   tabby: "Tabby",
   tamara: "Tamara",
+  tamara_ksa: "Tamara KSA",
   billexpro: "BillExPro",
   inr_bank_account: "INR Transfer",
   razorpay: "Razorpay",
