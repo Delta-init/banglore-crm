@@ -580,3 +580,18 @@ This file documents every service in `backend/src/services/`. Read this before w
 **Filters:** `memberId`, `isDone` ("true"/"false"), `search` (lead name / reminder title / note), `page`, `limit`.
 **Returns:** `{ reminders: [{ reminder, lead: { _id, name, phone, status, assignedTo } }], pagination }`
 **Pipeline:** $match lead → $unwind reminders → optional filters → $sort remindAt ASC → paginate → $lookup assignedTo + createdBy.
+
+---
+
+## courseChangeService — Change course after finance approval (added 2026-11-23)
+
+**Class:** `CourseChangeService` — `info(viewer, studentId)` (the dialog's start: canRequest/whyNot, course, fee, paid,
+finance's invoice, the changes) and `request(viewer, studentId, { courseId, fee, reason, key? })` (checked, sent to
+finance synchronously with `sendCourseChange`, then pushed onto `Student.courseChanges` as pending; the same `key`
+again is the same request). Who: the closer their own, `students:edit`/Super Admin any.
+**Read-back:** `syncCourseChanges()` — run by the finance worker every minute: asks finance about students with a
+pending change or `courseChangeAskedAt` set; `adoptCourseChange` (one finance has that isn't here),
+`applyApprovedCourseChange` (student + lead + activity, once), `applyRejectedCourseChange` (reason, once).
+**Also:** `studentService.financeCourseOf(course)` — the course object the close sends (name, itemId, hsnSac, LMS
+slugs), extracted from `buildHandoverPayload` unchanged; `financeClient.sendCourseChange(payload, orgId)`;
+`EnrolmentStatus.courseChanges`.

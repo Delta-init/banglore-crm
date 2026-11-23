@@ -7,6 +7,7 @@ import {
   getStudentByLeadId, updateStudent, deleteStudent,
   getMyEnrolments,
   getEnrolment, requestInvoice, getCorrection, correctEnrolment, uploadPaymentReceipt, checkEmail,
+  getCourseChange, requestCourseChange,
 } from "../controllers/studentController.js";
 
 const router = Router();
@@ -57,6 +58,10 @@ router.post("/:id/invoice", authenticate, checkPermission("enrolments", "edit"),
 // Correct an enrolment finance sent back, and send it again — from the same screen.
 router.get("/:id/correction", authenticate, checkPermission("enrolments", "edit"), getCorrection);
 router.put("/:id/correction", authenticate, checkPermission("enrolments", "edit"), correctEnrolment);
+// Change the course of an enrolment finance approved (2026-11-23) — asked here, decided in finance. Gated as Correct
+// it is: the closer their own, anyone who may edit students any; the service tells them apart.
+router.get("/:id/course-change", authenticate, checkPermission("enrolments", "edit"), getCourseChange);
+router.post("/:id/course-change", authenticate, checkPermission("enrolments", "edit"), requestCourseChange);
 
 router.get("/",    authenticate, checkPermission("students", "view"),   getStudents);
 router.post("/",   authenticate, checkPermission("students", "create"), createStudent);

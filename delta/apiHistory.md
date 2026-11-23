@@ -1338,3 +1338,11 @@ Copy the template at the top of this file and add under the correct module secti
 - `chooseCurrency(code)` — this device at once (`useCurrencyStore`), then `PUT /auth/preferences { currency }` ("now")
   (one at a time, in order, and only while they're still the one signed in); kept pending for them until saved; a
   failure says "your account gets it the next time the app can reach it".
+
+### Change course (2026-11-23)
+- `useCourseChangeInfo(studentId, enabled?)` (`hooks/useCourseChange.ts`) — `GET /students/:id/course-change` →
+  `{ canRequest, whyNot, academy, currency, course, fee, paid, invoice, changes }`. Key `["students", id, "course-change"]`.
+- `useRequestCourseChange(studentId)` — `POST /students/:id/course-change { courseId, fee, reason, key }` (key: one UUID
+  per open dialog); invalidates `["students"]`; finance's refusal shown as is.
+- `useEnrolment(id)` is also used on the lead page, for finance's invoice on the Payments card (only once the enrolment
+  is in finance and for whoever may see it).

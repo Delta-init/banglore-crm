@@ -629,3 +629,13 @@ Copy the template at the top and place it in the correct module section.
   three openings — since on a shared computer it may be someone else's; a choice the device holds for another person
   goes back to USD. A pick that can't reach the account is kept on the device, for you, and sent next time: the newest
   pick wins, by when it was picked. Not while impersonating someone (picks are refused then).
+
+## Change course after finance approval (2026-11-23)
+
+- An enrolled lead's course can't be edited any more (nor by reopening and closing it again). **Change course** on the
+  lead (Quick Actions) or the student asks finance instead: the new course, its fee in ₹ (filled in from the course,
+  editable — not below what is paid) and why. It waits in finance's Approvals; approved, the invoice, the enrolment and
+  the lead move to it and the lead's activity says so; rejected, a banner says why. One at a time. Who: the closer for
+  their own close, whoever may edit students for any (with enrolments edit, as Correct it).
+- The lead's Payments card follows finance once the enrolment is there: the fee is the invoice's total, paid and left
+  are finance's — not the course's catalogue price.

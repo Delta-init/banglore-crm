@@ -51,6 +51,9 @@ interface Props {
 
 export function CreateStudentModal({ open, lead, existingStudent, progress, onClose, onCreated }: Props) {
   const editing = Boolean(existingStudent);
+  // Delivered to finance: its course and fee then change only with Change course (2026-11-23) — the server refuses
+  // them here, so the fee is not offered for editing.
+  const inFinance = Boolean(existingStudent?.financeInvoiceNumber);
 
   /** The course the lead already carries, if it was picked during the sale. */
   const leadCourse = lead.course && typeof lead.course === "object" ? lead.course as Course : null;
@@ -473,7 +476,12 @@ export function CreateStudentModal({ open, lead, existingStudent, progress, onCl
                         type="number" min="0" step="0.01" value={feeInput}
                         onChange={(e) => setFeeInput(e.target.value)}
                         placeholder="0" className="h-8 text-xs"
+                        // In finance (2026-11-23): the fee changes with Change course, which finance approves.
+                        disabled={editing && inFinance}
                       />
+                      {editing && inFinance && (
+                        <p className="text-[10px] text-muted-foreground">In finance — the course and fee change with Change course.</p>
+                      )}
                     </div>
                     {/* A new close takes its payments one by one, below. */}
                     {editing && (

@@ -2,6 +2,7 @@ import { FinanceHandover } from "../models/FinanceHandover.js";
 import { Student } from "../models/Student.js";
 import { financeConfigured, sendEnrolment, fetchEnrolmentStatuses } from "./financeClient.js";
 import { drainSalesNotes } from "./financeSalesNote.js";
+import { syncCourseChanges } from "./courseChangeService.js";
 
 /**
  * Delivers queued enrolments to Delta Finance.
@@ -236,5 +237,9 @@ export function startFinanceHandoverWorker(): void {
   setInterval(() => {
     void drainNow();
     void pollFinanceOutcomes().catch((err) => console.error("[finance] outcome sweep failed", err));
+    // Course changes asked of finance (2026-11-23) come back with the enrolment's status, and are applied here too.
+    void syncCourseChanges()
+      .then((n) => { if (n) console.log(`[finance] ${n} course change decision(s) from finance applied`); })
+      .catch((err) => console.error("[finance] course change sweep failed", err));
   }, INTERVAL_MS);
 }

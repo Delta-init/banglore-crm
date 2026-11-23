@@ -517,3 +517,33 @@ out of it while impersonating. `GET /auth/profile` carries it too.
 **Models Used**: `User` (`currency`, `currencyAt`, new, default null).
 
 **Tests**: `scripts/preferences-check.sh` — 28 checks (scratch mongod).
+
+## Change course after finance approved the enrolment (2026-11-23)
+
+**What it does**: A lead reopened after finance approved it, put on a cheaper course and closed again, left finance's
+invoice on the old course and price while the lead's Payments card said "100% paid". Now the course and fee of an
+enrolment finance has (and hasn't sent back) change only through **Change course**: the new course, its fee (INR) and
+why go to finance at once (`POST /integrations/enrolments/course-changes`, source `"crm"` as the close, org
+`FINANCE_ORG_ID`, the course object exactly as the close sends it less its amount — `financeCourseOf`), and wait in
+finance's Approvals as a "Course change". Finance's decision comes back with the enrolment's status (every minute, in
+the finance worker): approved → the student's course, fee, left-to-pay and fee status, the lead's course (and selling
+amount, where set) and an activity line; rejected → the reason, shown on the lead and the student. One pending at a
+time; applied once. A request finance kept while this CRM never heard back (a timeout) is taken from finance's answer
+(`courseChangeAskedAt` keeps the enrolment looked at for 10 minutes after a send). No commission is counted here, so
+none is recounted.
+
+**Routes**: `GET /api/v1/students/:id/course-change` (what the dialog starts from); `POST /api/v1/students/:id/course-change`
+`{ courseId, fee, reason, key? }` → 201 pending. Who: as Correct it — `enrolments:edit` at the door, then the closer
+their own, `students:edit` (or Super Admin) any. Refused: not in finance yet / waiting / sent back / void (409),
+finance unreachable (502), a course not sold or gone, fee ≤ 0 or below what is paid, nothing changing, no reason (422);
+finance's own refusal passed on (409).
+
+**Locks**: `PUT /leads/:id` changing the course of an enrolled lead → 409; `PUT /students/:id` changing the course or
+fee once finance has it (not sent back) → 409 — so re-closing can't get round it either.
+
+**Models Used**: `Student.courseChanges[]`, `Student.courseChangeAskedAt` (new); `Lead` (course, sellingAmount, activityLogs).
+
+**Script**: `src/scripts/financeMismatch.ts` — read only: enrolments whose course or fee differs from finance's
+invoice, and leads whose course differs from their enrolment's.
+
+**Tests**: `scripts/course-change-check.sh` — 83 checks (scratch mongod, stand-in finance).

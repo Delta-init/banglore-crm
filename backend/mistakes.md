@@ -252,3 +252,14 @@ router.patch("/:teamId/leads/:leadId/assign", authenticate, checkPermission("tea
   the device's own clock) and is placed at server time minus that.
 - **An impersonation here is a full sign-in as the person**, so the server can't refuse writes made while impersonating;
   the web keeps out of preferences then (documented in features.md / middlewareHistory.md).
+
+## [2026-11-23] A course or fee changed after finance approved the enrolment never reached finance
+
+**Bug** (seen in the Sales CRM, the same hole here): a closed, approved lead was reopened, put on another course and
+closed again — `PUT /students/:id` took the new course and fee, finance's invoice kept the old ones, and the lead's
+Payments card measured the money against the new course ("100% paid").
+**Fix**: once finance has the enrolment (and hasn't sent it back) its course and fee change only with Change course
+(courseChangeService.ts), which finance approves; `updateStudent` and `updateLead` refuse them with 409.
+**Rule**: an activity line written straight to the collection (`$push` on `activityLogs`) must carry `performedBy` —
+mongoose checks every line on the lead's next save. A change taken from finance with nobody known as asking uses the
+lead's reporter, as the came-in-again lines do.

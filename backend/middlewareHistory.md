@@ -534,3 +534,13 @@ view | create | edit | delete | approve | export
 
 An impersonation here is a full sign-in as the person (`POST /users/:id/impersonate`), so the server can't tell it
 from them: the web neither reads nor saves the currency while impersonating.
+
+### Change course (2026-11-23)
+
+| Method | Route | Chain |
+|--------|-------|-------|
+| GET | `/api/v1/students/:id/course-change` | `authenticate` → `checkPermission("enrolments", "edit")` → `getCourseChange` |
+| POST | `/api/v1/students/:id/course-change` | `authenticate` → `checkPermission("enrolments", "edit")` → `requestCourseChange` |
+
+Gated as Correct it (`/:id/correction`): the service then lets the closer ask for their own close, and whoever has
+`students:edit` (or Super Admin) for any — anyone else 403.

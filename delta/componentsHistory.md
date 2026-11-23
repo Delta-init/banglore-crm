@@ -1012,3 +1012,14 @@
   `components/shared/CurrencyRedraw.tsx`), which draws it again when the account's currency arrives as the app opens —
   not on a pick in Settings, nor while someone is typing.
 - `app/(dashboard)/settings/page.tsx` — its toasts go through `@/lib/toast` (the app's toaster; `sonner`'s never showed).
+
+### Change log — 2026-11-23 (Change course after finance approval)
+- `components/students/CourseChangeDialog.tsx` (new) — `ChangeCourseDialog` (new course, fee prefilled from the course,
+  reason, paid so far and left after), `CourseChangeBanner` (waiting / rejected with why), `useMayChangeCourse(closerId)`.
+- `app/(dashboard)/leads/[leadId]/page.tsx` — enrolled: Quick Actions' course is read only with a Change course button,
+  the banner under the details, `LeadDialog courseLocked`, the Payments card gets finance's invoice.
+- `app/(dashboard)/students/[studentId]/page.tsx` — Change course button (in finance) and the banner.
+- `components/leads/LeadDialog.tsx` — `courseLocked` prop. `components/students/EditStudentModal.tsx` — course and
+  total fee disabled once in finance. `components/students/CreateStudentModal.tsx` — fee disabled when re-closing an
+  enrolment in finance.
+- `components/leads/PaymentPanel.tsx` — `finance` prop: with it, the summary is the invoice's total, paid and balance.

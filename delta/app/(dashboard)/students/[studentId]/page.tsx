@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import {
   ArrowLeft, GraduationCap, Phone, Mail, BookOpen, Users, User2,
   Calendar, DollarSign, StickyNote, ExternalLink, Edit2, Loader2,
-  CheckCircle2, XCircle, AlertTriangle, Target, MessageSquare, Gift, Undo2, Send,
+  CheckCircle2, XCircle, AlertTriangle, Target, MessageSquare, Gift, Undo2, Send, ArrowRightLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,6 +26,7 @@ import type { Course } from "@/types/course";
 import type { User } from "@/types";
 import type { StudentStatus, FeeStatus } from "@/types/student";
 import { EditStudentModal } from "@/components/students/EditStudentModal";
+import { ChangeCourseDialog, CourseChangeBanner, useMayChangeCourse } from "@/components/students/CourseChangeDialog";
 
 const STUDENT_STATUS: Record<StudentStatus, { label: string; color: string }> = {
   active:    { label: "Active",    color: "bg-green-500/15 text-green-400 border-green-500/30"   },
@@ -83,6 +84,11 @@ export default function StudentDetailPage() {
   const { hasPermission } = useAuthStore();
   const { data: correction } = useEnrolmentCorrection(studentId, hasPermission("enrolments", "edit"));
   const [correctOpen, setCorrectOpen] = useState(false);
+  // Change course once finance has it (2026-11-23): as Correct it — the closer their own, whoever edits students any.
+  const mayChangeCourse = useMayChangeCourse(
+    student?.assignedTo && typeof student.assignedTo === "object" ? (student.assignedTo as User)._id : (student?.assignedTo as string | null | undefined),
+  );
+  const [courseChangeOpen, setCourseChangeOpen] = useState(false);
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-32">
@@ -145,6 +151,12 @@ export default function StudentDetailPage() {
                     <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5" onClick={() => setEditOpen(true)}>
                       <Edit2 className="h-3 w-3" /> Edit
                     </Button>
+                    {/* In finance: its course changes only this way, approved there. */}
+                    {student.financeInvoiceNumber && mayChangeCourse && (
+                      <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5" onClick={() => setCourseChangeOpen(true)}>
+                        <ArrowRightLeft className="h-3 w-3" /> Change course
+                      </Button>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-3 mt-3 text-sm text-muted-foreground">
@@ -158,6 +170,8 @@ export default function StudentDetailPage() {
         </Card>
       </motion.div>
 
+      {/* A course change asked of finance: waiting, or rejected with why. */}
+      <CourseChangeBanner changes={student.courseChanges} />
       {/* Sent back by finance: why, and the correction — everything, sent again in one step. */}
       {correction?.sentBack && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-red-500/20 bg-red-500/5 p-4">
@@ -411,6 +425,7 @@ export default function StudentDetailPage() {
 
       <EditStudentModal open={editOpen} student={student} onClose={() => setEditOpen(false)} />
       {correctOpen && <CorrectEnrolmentDialog studentId={student._id} open onClose={() => setCorrectOpen(false)} />}
+      {courseChangeOpen && <ChangeCourseDialog studentId={student._id} name={student.name} onClose={() => setCourseChangeOpen(false)} />}
     </div>
   );
 }

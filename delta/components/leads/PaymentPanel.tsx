@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import type { Payment } from "@/types/lead";
 import { useAddPayment, useUpdatePayment, useDeletePayment } from "@/hooks/usePayments";
 import { useCurrencyStore } from "@/lib/store/currencyStore";
-import { fmtCurrency, getCurrencySymbol } from "@/lib/currency";
+import { fmtCurrency, fmtINR, getCurrencySymbol } from "@/lib/currency";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -115,9 +115,14 @@ interface PaymentPanelProps {
   sellingAmount?: number;  // negotiated price for this lead (preferred)
   courseAmount?: number;   // fallback: total fee from the linked course
   canEdit: boolean;
+  /**
+   * The lead's invoice as finance has it, once its enrolment is there (2026-11-23) — then the summary is finance's.
+   * Absent before, or for someone who may not see the enrolment.
+   */
+  finance?: { number: string; currency: string; totalMinor: number; paidMinor: number; balanceMinor: number } | null;
 }
 
-export function PaymentPanel({ leadId, payments, sellingAmount, courseAmount, canEdit }: PaymentPanelProps) {
+export function PaymentPanel({ leadId, payments, sellingAmount, courseAmount, canEdit, finance }: PaymentPanelProps) {
   useCurrencyStore(); // subscribe so component re-renders on currency change
   const [adding,    setAdding]    = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -131,13 +136,21 @@ export function PaymentPanel({ leadId, payments, sellingAmount, courseAmount, ca
     (a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime(),
   );
 
-  const totalPaid = payments.reduce((s, p) => s + p.amount, 0);
+  /*
+   * Once the close is in finance (the user, 2026-11-23), the summary is finance's: the fee is the invoice's total,
+   * what is paid and left are finance's — never the course's catalogue price, which said "100% paid" for a close put
+   * on a cheaper course behind finance's back. Otherwise, as before: the lead's payments against its selling price,
+   * else its course's fee.
+   */
+  const fin = finance && finance.totalMinor > 0 ? finance : null;
+  const money = (n: number) => (!fin ? fmt(n) : fin.currency === "INR" ? fmtINR(n) : `${fin.currency} ${n.toLocaleString("en-US", { maximumFractionDigits: 2 })}`);
+  const totalPaid = fin ? fin.paidMinor / 100 : payments.reduce((s, p) => s + p.amount, 0);
 
   // sellingAmount takes priority over courseAmount for progress tracking
-  const targetAmount = sellingAmount ?? courseAmount;
+  const targetAmount = fin ? fin.totalMinor / 100 : sellingAmount ?? courseAmount;
   const hasTotal     = targetAmount != null && targetAmount > 0;
   const pct          = hasTotal ? Math.min(100, (totalPaid / targetAmount!) * 100) : null;
-  const remaining    = hasTotal ? targetAmount! - totalPaid : null;
+  const remaining    = fin ? fin.balanceMinor / 100 : hasTotal ? targetAmount! - totalPaid : null;
   const isOverpaid   = hasTotal && totalPaid > targetAmount!;
   const overpaidBy   = isOverpaid ? totalPaid - targetAmount! : 0;
 
@@ -188,7 +201,7 @@ export function PaymentPanel({ leadId, payments, sellingAmount, courseAmount, ca
               >
                 <AlertTriangle className="h-3.5 w-3.5 text-red-400 shrink-0" />
                 <p className="text-xs font-medium text-red-400">
-                  Overpaid by {fmt(overpaidBy)} — exceeds the selling price
+                  Overpaid by {money(overpaidBy)} — exceeds {fin ? "the invoice total" : "the selling price"}
                 </p>
               </motion.div>
             )}
@@ -198,7 +211,7 @@ export function PaymentPanel({ leadId, payments, sellingAmount, courseAmount, ca
                   <Wallet className="h-3 w-3" /> Total Paid
                 </p>
                 <p className={cn("text-base font-bold", isOverpaid ? "text-red-400" : "text-green-400")}>
-                  {fmt(totalPaid)}
+                  {money(totalPaid)}
                 </p>
               </div>
               {hasTotal && (
@@ -211,13 +224,13 @@ export function PaymentPanel({ leadId, payments, sellingAmount, courseAmount, ca
                       "text-base font-bold",
                       isOverpaid ? "text-red-400" : remaining === 0 ? "text-green-400" : "text-amber-400",
                     )}>
-                      {isOverpaid ? fmt(overpaidBy) : fmt(remaining!)}
+                      {isOverpaid ? money(overpaidBy) : money(remaining!)}
                     </p>
                   </div>
                   <div className="col-span-2 space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-muted-foreground">
-                        {sellingAmount != null ? "Selling price" : "Course fee"}: {fmt(targetAmount!)}
+                        {fin ? `Fee in finance${fin.number ? ` (${fin.number})` : ""}` : sellingAmount != null ? "Selling price" : "Course fee"}: {money(targetAmount!)}
                       </span>
                       <span className={cn(
                         "font-semibold",
