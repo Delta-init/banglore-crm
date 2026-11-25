@@ -4,6 +4,7 @@ import { User } from "../models/User.js";
 import { Team } from "../models/Team.js";
 import { Lead } from "../models/Lead.js";
 import { COUNTED_PAYMENT } from "../utils/countedPayments.js";
+import { OLD_BOOKS_UNION } from "../utils/oldBooksRevenue.js";
 
 /*
  * Gift rewards (the user, 2026-11-04): a salesperson who closes AED 50,000 in a month takes home a gift worth up to
@@ -88,6 +89,7 @@ export async function closedBy(people: Types.ObjectId[], month: string): Promise
   const range = monthRange(month);
   const inMonth = { $gte: range.from, $lt: range.to };
   const [row] = await Lead.aggregate<{ n: number }>([
+    ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
     { $match: { assignedTo: { $in: people }, "payments.paidAt": inMonth } },
     { $unwind: "$payments" },
     // A balance payment sent to finance counts once finance approves it (2026-11-25).

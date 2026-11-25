@@ -15,6 +15,7 @@ import mongoose from "mongoose";
 import { findLeadByPhone, repeatEnquiry, repeatMessage, splitAgainAs } from "../services/repeatEnquiryService.js";
 import { closeIsInFinance, leadFinanceLink, sendLeadPayment } from "../services/leadFinancePaymentService.js";
 import { COUNTED_PAYMENT } from "../utils/countedPayments.js";
+import { OLD_BOOKS_UNION } from "../utils/oldBooksRevenue.js";
 
 const leadService = new LeadService();
 const excelService = new ExcelService();
@@ -968,6 +969,7 @@ export const getUserRevenue = async (
     }
 
     const result = await Lead.aggregate([
+      ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
       {
         $match: {
           assignedTo: new mongoose.Types.ObjectId(userId),

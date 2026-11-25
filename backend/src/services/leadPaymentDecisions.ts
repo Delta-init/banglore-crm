@@ -1,6 +1,7 @@
 import { Lead } from "../models/Lead.js";
 import { Student } from "../models/Student.js";
 import { syncFinanceOnlyPayments } from "./financeOnlyPayments.js";
+import { oldBooksTick } from "./oldBooks.js";
 import { fetchEnrolmentStatuses, type BalanceFields, type EnrolmentStatus, type FinanceBalancePayment } from "./financeClient.js";
 
 /*
@@ -121,6 +122,8 @@ async function tick() {
       const fa = await applyApprovedBalances();
       console.log(`[leadPayments] ${f.added} payment(s) recorded in finance put on their leads, ${fa} added to their enrolments; ${f.paidInFull} enrolment(s) paid in full as finance has them`);
     }
+    // Finance's old books (2026-11-25): counted for their salesperson here — every ten minutes.
+    await oldBooksTick();
   } catch (err) {
     console.error("[leadPayments] tick error:", err);
   } finally {

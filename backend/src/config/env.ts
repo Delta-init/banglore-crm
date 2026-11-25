@@ -57,6 +57,17 @@ const envSchema = z.object({
    * needed for now". An earlier day takes earlier payments in too; nothing before it is touched.
    */
   FINANCE_ONLY_PAYMENTS_FROM: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "FINANCE_ONLY_PAYMENTS_FROM is YYYY-MM-DD").default("2026-11-01"),
+  /**
+   * The old books (invoices imported from the previous system, finance's external.source "old_books") count for their
+   * salesperson from this day on (YYYY-MM-DD, finance's payment date) — services/oldBooks.ts. The user, 2026-11-25:
+   * "November onwards".
+   */
+  OLD_BOOKS_FROM: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "OLD_BOOKS_FROM is YYYY-MM-DD").default("2026-11-01"),
+  /**
+   * Old books are in dirhams and every figure here is in rupees: their payments are counted at this many rupees to
+   * the dirham (Root's Settings rate, 25 since 2026-11-20).
+   */
+  OLD_BOOKS_INR_PER_AED: z.coerce.number().positive().default(25),
 
   /*
    * The HRMS's signed integration API — only My Wallet (2026-11-04): somebody's

@@ -10,6 +10,7 @@ import {
   getRevenueOverview,
   getRevenueTimeline,
   getRevenueTeams,
+  getOldBooks,
   getSourceAnalytics,
   getSourceCampaigns,
   getLostAnalytics,
@@ -40,6 +41,8 @@ router.get("/lost",                       getLostAnalytics);
 router.get("/revenue/overview",  getRevenueOverview);
 router.get("/revenue/timeline",  getRevenueTimeline);
 router.get("/revenue/teams",     getRevenueTeams);
+// Finance's old books counted here (2026-11-25) — the "Old books collected" card
+router.get("/old-books",         getOldBooks);
 
 // Leaderboard — static before parameterized (none here but keep it first)
 router.get("/leaderboard",    getLeaderboard);

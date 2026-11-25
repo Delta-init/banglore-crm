@@ -3,6 +3,8 @@ import { Lead } from "../models/Lead.js";
 import { Team } from "../models/Team.js";
 import { User } from "../models/User.js";
 import { COUNTED_PAYMENT, COUNTED_TOTAL } from "../utils/countedPayments.js";
+import { OLD_BOOKS_UNION } from "../utils/oldBooksRevenue.js";
+import { OldBooksSale } from "../models/OldBooksSale.js";
 
 const ALL_STATUSES = [
   "new", "assigned", "pending_response", "followup", "closed", "lost",
@@ -438,6 +440,31 @@ export class ReportService {
 
   // ── 6. Revenue overview ───────────────────────────────────────────────────────
 
+  /**
+   * Finance's old books in the range (2026-11-25, services/oldBooks.ts): each payment counted for its salesperson
+   * here (in rupees), with the invoice, the client and the course — the Reports page's "Old books collected" card.
+   * Already inside every revenue figure (OLD_BOOKS_UNION); this only lists them.
+   */
+  async getOldBooks(dateFrom?: string, dateTo?: string) {
+    const paymentMatch = this.buildPaymentDateFilter(dateFrom, dateTo);
+    const rows = await OldBooksSale.aggregate<{ invoiceNumber: string; customerName: string; course: string; userId: unknown; name?: string; amount: number; aed: number; paidAt: Date; paidInFull: boolean }>([
+      { $match: { assignedTo: { $ne: null }, "payments.0": { $exists: true } } },
+      { $unwind: "$payments" },
+      { $match: paymentMatch },
+      { $lookup: { from: "users", localField: "assignedTo", foreignField: "_id", as: "u", pipeline: [{ $project: { name: 1 } }] } },
+      {
+        $project: {
+          _id: 0, invoiceNumber: 1, customerName: 1, course: 1, userId: "$assignedTo", name: { $first: "$u.name" },
+          amount: "$payments.amount", aed: "$payments.aed", paidAt: "$payments.paidAt", paidInFull: { $ne: ["$paidInFullAt", null] },
+        },
+      },
+      { $sort: { paidAt: -1 } },
+    ]);
+    const total = Math.round(rows.reduce((s, r) => s + (r.amount ?? 0), 0) * 100) / 100;
+    const totalAed = Math.round(rows.reduce((s, r) => s + (r.aed ?? 0), 0) * 100) / 100;
+    return { total, totalAed, currency: "INR", count: rows.length, rows: rows.map((r) => ({ ...r, userId: String(r.userId), name: r.name ?? "Unknown user" })) };
+  }
+
   async getRevenueOverview(dateFrom?: string, dateTo?: string) {
     const paymentMatch = this.buildPaymentDateFilter(dateFrom, dateTo);
     const leadMatch    = this.buildDateFilter(dateFrom, dateTo);
@@ -445,6 +472,7 @@ export class ReportService {
     const [summaryAgg, teamAgg, agentAgg, pendingAgg, overpaidAgg] = await Promise.all([
       // ── total revenue / payment count / paying leads
       Lead.aggregate([
+        ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
         { $unwind: "$payments" },
         { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
@@ -460,6 +488,7 @@ export class ReportService {
 
       // ── top teams by revenue
       Lead.aggregate([
+        ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
         { $unwind: "$payments" },
         { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
@@ -490,6 +519,7 @@ export class ReportService {
 
       // ── top agents by revenue (attributed to lead's assignedTo)
       Lead.aggregate([
+        ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
         { $unwind: "$payments" },
         { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
@@ -612,6 +642,7 @@ export class ReportService {
     }
 
     const agg = await Lead.aggregate([
+      ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
       { $unwind: "$payments" },
       { $match: COUNTED_PAYMENT },
       { $match: paymentMatch },
@@ -679,6 +710,7 @@ export class ReportService {
     const [agg, pendingTeamAgg, pendingMemberAgg] = await Promise.all([
       // ── existing: revenue by team × member (payment-filtered)
       Lead.aggregate([
+        ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
         { $unwind: "$payments" },
         { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
@@ -825,6 +857,7 @@ export class ReportService {
 
     const [summaryAgg, memberAgg, pendingAgg, pendingMemberAgg] = await Promise.all([
       Lead.aggregate([
+        ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
         { $match: teamFilter },
         { $unwind: "$payments" },
         { $match: COUNTED_PAYMENT },
@@ -840,6 +873,7 @@ export class ReportService {
       ]),
 
       Lead.aggregate([
+        ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
         { $match: teamFilter },
         { $unwind: "$payments" },
         { $match: COUNTED_PAYMENT },
@@ -983,6 +1017,7 @@ export class ReportService {
     }
 
     const agg = await Lead.aggregate([
+      ...OLD_BOOKS_UNION,   // finance's old books, as leads of their salesperson (utils/oldBooksRevenue.ts)
       { $match: { team: teamOid } },
       { $unwind: "$payments" },
       { $match: COUNTED_PAYMENT },

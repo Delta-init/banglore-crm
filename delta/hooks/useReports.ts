@@ -143,6 +143,30 @@ export function useRevenueOverview(dateFrom: string, dateTo: string) {
   });
 }
 
+// ── Old books (2026-11-25) ────────────────────────────────────────────────────
+
+/** One payment on finance's old books, counted for its salesperson here (in rupees; `aed` as finance has it). */
+export interface OldBooksRow {
+  invoiceNumber: string; customerName: string; course: string; userId: string; name: string;
+  amount: number; aed: number; paidAt: string; paidInFull: boolean;
+}
+export interface OldBooksReport { total: number; totalAed: number; currency: string; count: number; rows: OldBooksRow[] }
+
+/** Finance's old books counted here in the range — already inside the revenue figures; this lists them. */
+export function useOldBooks(dateFrom: string, dateTo: string) {
+  return useQuery<OldBooksReport>({
+    queryKey: ["reports", "old-books", dateFrom, dateTo],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (dateFrom) params.set("dateFrom", dateFrom);
+      if (dateTo)   params.set("dateTo",   dateTo);
+      const { data } = await api.get<ApiResponse<OldBooksReport>>(`/reports/old-books?${params}`);
+      return data.data;
+    },
+    staleTime: 60_000,
+  });
+}
+
 // ── Revenue Timeline ──────────────────────────────────────────────────────────
 
 export function useRevenueTimeline(
