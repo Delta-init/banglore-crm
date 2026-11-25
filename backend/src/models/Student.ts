@@ -53,6 +53,8 @@ const studentSchema = new Schema<IStudent>(
     totalFee:     { type: Number, default: 0, min: 0 },
     paidAmount:   { type: Number, default: 0, min: 0 },
     pendingAmount:{ type: Number, default: 0, min: 0 },
+    /** Finance's ids of the approved balance payments already added to `paidAmount` (leadPaymentDecisions.ts) — each once. */
+    balanceApplied: { type: [String], default: undefined },
 
     status: {
       type: String,

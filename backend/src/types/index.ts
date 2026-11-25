@@ -501,6 +501,8 @@ export interface IStudent extends Document {
   totalFee: number;
   paidAmount: number;
   pendingAmount: number;
+  /** Finance's ids of the approved balance payments already added to `paidAmount` — each once. */
+  balanceApplied?: string[];
   status: "active" | "inactive" | "graduated" | "dropped";
   notes?: string;
   /** What the course is taught in, taken at the close. */
