@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 import { User } from "../models/User.js";
 import { Team } from "../models/Team.js";
 import { Lead } from "../models/Lead.js";
+import { COUNTED_PAYMENT } from "../utils/countedPayments.js";
 
 /*
  * Gift rewards (the user, 2026-11-04): a salesperson who closes AED 50,000 in a month takes home a gift worth up to
@@ -89,6 +90,8 @@ export async function closedBy(people: Types.ObjectId[], month: string): Promise
   const [row] = await Lead.aggregate<{ n: number }>([
     { $match: { assignedTo: { $in: people }, "payments.paidAt": inMonth } },
     { $unwind: "$payments" },
+    // A balance payment sent to finance counts once finance approves it (2026-11-25).
+    { $match: COUNTED_PAYMENT },
     { $match: { "payments.paidAt": inMonth } },
     { $group: { _id: null, n: { $sum: "$payments.amount" } } },
   ]);

@@ -3,6 +3,7 @@ import type { AuthenticatedRequest } from "../types/index.js";
 import { ReportService } from "../services/reportService.js";
 import { sendSuccess, sendError } from "../utils/response.js";
 import { Lead } from "../models/Lead.js";
+import { COUNTED_PAYMENT } from "../utils/countedPayments.js";
 import { CallLog } from "../models/CallLog.js";
 
 const svc = new ReportService();
@@ -312,6 +313,7 @@ export const getLeaderboard = async (
       Lead.aggregate([
         { $match: { assignedTo: { $exists: true, $ne: null }, "payments.0": { $exists: true } } },
         { $unwind: "$payments" },
+        { $match: COUNTED_PAYMENT },
         { $match: { "payments.date": { $gte: monthStart, $lt: monthEnd } } },
         { $group: { _id: "$assignedTo", closingAmount: { $sum: "$payments.amount" } } },
       ]),

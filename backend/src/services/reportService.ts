@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Lead } from "../models/Lead.js";
 import { Team } from "../models/Team.js";
 import { User } from "../models/User.js";
+import { COUNTED_PAYMENT, COUNTED_TOTAL } from "../utils/countedPayments.js";
 
 const ALL_STATUSES = [
   "new", "assigned", "pending_response", "followup", "closed", "lost",
@@ -177,7 +178,7 @@ export class ReportService {
         $group: {
           _id:           "$assignedTo",
           total:         { $sum: 1 },
-          revenue:       { $sum: { $sum: "$payments.amount" } },
+          revenue:       { $sum: COUNTED_TOTAL },
           courseRevenue: {
             $sum: {
               $cond: [
@@ -249,7 +250,7 @@ export class ReportService {
           _id:           "$team",
           total:         { $sum: 1 },
           // Sum all payments[].amount across every lead in this team
-          totalPayments: { $sum: { $sum: "$payments.amount" } },
+          totalPayments: { $sum: COUNTED_TOTAL },
           ...this.statusSumFields(),
         },
       },
@@ -445,6 +446,7 @@ export class ReportService {
       // ── total revenue / payment count / paying leads
       Lead.aggregate([
         { $unwind: "$payments" },
+        { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
         {
           $group: {
@@ -459,6 +461,7 @@ export class ReportService {
       // ── top teams by revenue
       Lead.aggregate([
         { $unwind: "$payments" },
+        { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
         {
           $group: {
@@ -488,6 +491,7 @@ export class ReportService {
       // ── top agents by revenue (attributed to lead's assignedTo)
       Lead.aggregate([
         { $unwind: "$payments" },
+        { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
         {
           $group: {
@@ -532,7 +536,7 @@ export class ReportService {
           $group: {
             _id:                  null,
             totalEffectiveAmount: { $sum: "$effectiveAmount" },
-            totalPaid:            { $sum: { $sum: "$payments.amount" } },
+            totalPaid:            { $sum: COUNTED_TOTAL },
           },
         },
         {
@@ -545,7 +549,7 @@ export class ReportService {
       // ── overpaid leads (sellingAmount set AND totalPaid > sellingAmount)
       Lead.aggregate([
         { $match: { ...leadMatch, sellingAmount: { $exists: true, $ne: null } } },
-        { $addFields: { totalPaidCalc: { $sum: "$payments.amount" } } },
+        { $addFields: { totalPaidCalc: COUNTED_TOTAL } },
         { $match: { $expr: { $gt: ["$totalPaidCalc", "$sellingAmount"] } } },
         {
           $group: {
@@ -609,6 +613,7 @@ export class ReportService {
 
     const agg = await Lead.aggregate([
       { $unwind: "$payments" },
+      { $match: COUNTED_PAYMENT },
       { $match: paymentMatch },
       {
         $group: {
@@ -675,6 +680,7 @@ export class ReportService {
       // ── existing: revenue by team × member (payment-filtered)
       Lead.aggregate([
         { $unwind: "$payments" },
+        { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
         {
           $group: {
@@ -743,7 +749,7 @@ export class ReportService {
           $group: {
             _id:                  "$team",
             totalEffectiveAmount: { $sum: "$effectiveAmount" },
-            totalPaid:            { $sum: { $sum: "$payments.amount" } },
+            totalPaid:            { $sum: COUNTED_TOTAL },
           },
         },
         {
@@ -769,7 +775,7 @@ export class ReportService {
           $group: {
             _id:                  { team: "$team", member: "$assignedTo" },
             totalEffectiveAmount: { $sum: "$effectiveAmount" },
-            totalPaid:            { $sum: { $sum: "$payments.amount" } },
+            totalPaid:            { $sum: COUNTED_TOTAL },
           },
         },
         {
@@ -821,6 +827,7 @@ export class ReportService {
       Lead.aggregate([
         { $match: teamFilter },
         { $unwind: "$payments" },
+        { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
         {
           $group: {
@@ -835,6 +842,7 @@ export class ReportService {
       Lead.aggregate([
         { $match: teamFilter },
         { $unwind: "$payments" },
+        { $match: COUNTED_PAYMENT },
         { $match: paymentMatch },
         {
           $group: {
@@ -879,7 +887,7 @@ export class ReportService {
           $group: {
             _id:                  null,
             totalEffectiveAmount: { $sum: "$effectiveAmount" },
-            totalPaid:            { $sum: { $sum: "$payments.amount" } },
+            totalPaid:            { $sum: COUNTED_TOTAL },
           },
         },
         {
@@ -905,7 +913,7 @@ export class ReportService {
           $group: {
             _id:                  "$assignedTo",
             totalEffectiveAmount: { $sum: "$effectiveAmount" },
-            totalPaid:            { $sum: { $sum: "$payments.amount" } },
+            totalPaid:            { $sum: COUNTED_TOTAL },
           },
         },
         {
@@ -977,6 +985,7 @@ export class ReportService {
     const agg = await Lead.aggregate([
       { $match: { team: teamOid } },
       { $unwind: "$payments" },
+      { $match: COUNTED_PAYMENT },
       { $match: paymentMatch },
       {
         $group: {
@@ -1050,7 +1059,7 @@ export class ReportService {
         $group: {
           _id:            { $ifNull: ["$source", "other"] },
           total:          { $sum: 1 },
-          revenue:        { $sum: { $sum: "$payments.amount" } },
+          revenue:        { $sum: COUNTED_TOTAL },
           ...this.statusSumFields(),
         },
       },
@@ -1087,7 +1096,7 @@ export class ReportService {
         $group: {
           _id:            { $ifNull: ["$campaign", "(no campaign)"] },
           total:          { $sum: 1 },
-          revenue:        { $sum: { $sum: "$payments.amount" } },
+          revenue:        { $sum: COUNTED_TOTAL },
           ...this.statusSumFields(),
         },
       },

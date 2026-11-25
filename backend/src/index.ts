@@ -15,6 +15,7 @@ import { startReminderScheduler } from "./services/reminderScheduler.js";
 import { startSplitScheduler } from "./services/splitScheduler.js";
 import { startBackupScheduler } from "./services/backupService.js";
 import { startFinanceHandoverWorker } from "./services/financeHandoverWorker.js";
+import { startLeadPaymentDecisionScheduler } from "./services/leadPaymentDecisions.js";
 import { startWhatsApp } from "./services/whatsapp/service.js";
 
 // ─── Ensure upload directories exist ─────────────────────────────────────────
@@ -69,6 +70,8 @@ const start = async () => {
       startReminderScheduler();
       startSplitScheduler();
       startBackupScheduler();
+      // Finance's decision on each balance payment sent from a lead — only an approved one counts (2026-11-25).
+      startLeadPaymentDecisionScheduler();
     } else {
       console.log("⏸️  RUN_SCHEDULERS=false — the timed jobs are not running in this process");
     }

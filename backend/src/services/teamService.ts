@@ -7,6 +7,7 @@ import { buildPagination } from "../utils/response.js";
 import type { TeamFilters, ITeam, IUser } from "../types/index.js";
 import { emitToUser } from "../socket.js";
 import { notifyLeadAssignment, notifyBulkLeadAssignment } from "./pushService.js";
+import { COUNTED_TOTAL } from "../utils/countedPayments.js";
 
 // ─── Populated query helper ───────────────────────────────────────────────────
 
@@ -256,7 +257,7 @@ export class TeamService {
         $group: {
           _id:     "$assignedTo",
           total:   { $sum: 1 },
-          revenue: { $sum: { $sum: "$payments.amount" } },
+          revenue: { $sum: COUNTED_TOTAL },
           ...statusSumFields,
         },
       },
@@ -447,7 +448,7 @@ export class TeamService {
 
     const agg = await Lead.aggregate<{ _id: mongoose.Types.ObjectId; total: number; totalPayments: number } & Record<(typeof STATUS_KEYS)[number], number>>([
       { $match: { team: new mongoose.Types.ObjectId(teamId), assignedTo: { $in: memberIds } } },
-      { $group: { _id: "$assignedTo", total: { $sum: 1 }, totalPayments: { $sum: { $sum: "$payments.amount" } }, ...statusSums } },
+      { $group: { _id: "$assignedTo", total: { $sum: 1 }, totalPayments: { $sum: COUNTED_TOTAL }, ...statusSums } },
     ]);
 
     const byId = new Map(agg.map((a) => [a._id.toString(), a]));
@@ -831,7 +832,7 @@ export class TeamService {
               whatsapp:       { $sum: { $cond: [{ $eq: ["$status", "whatsapp"] },       1, 0] } },
               student:        { $sum: { $cond: [{ $eq: ["$status", "student"] },        1, 0] } },
               // Sum all payments collected across all leads assigned to this member
-              totalPayments:  { $sum: { $sum: "$payments.amount" } },
+              totalPayments:  { $sum: COUNTED_TOTAL },
             },
           },
         ]);
@@ -1238,7 +1239,7 @@ export class TeamService {
           callback:       { $sum: { $cond: [{ $eq: ["$status", "callback"] },       1, 0] } },
           whatsapp:       { $sum: { $cond: [{ $eq: ["$status", "whatsapp"] },       1, 0] } },
           student:        { $sum: { $cond: [{ $eq: ["$status", "student"] },        1, 0] } },
-          totalPayments:  { $sum: { $sum: "$payments.amount" } },
+          totalPayments:  { $sum: COUNTED_TOTAL },
         },
       },
     ]);

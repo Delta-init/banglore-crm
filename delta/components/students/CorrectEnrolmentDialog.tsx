@@ -53,7 +53,13 @@ function startingRows(s: Student, ownOnLead: number): PaymentRow[] {
   const listed = s.payments ?? [];
   const ownWas = listed.find((p) => p.collectedBefore);
   const rows: PaymentRow[] = [];
-  if (ownOnLead > 0) {
+  // The lead's own money as the close sent it — one row per payment that had its method and receipt (2026-11-25, as in
+  // the Remote CRM) — while it still comes to what the lead holds.
+  const ownWere = listed.filter((p) => p.collectedBefore);
+  const ownWereSum = Math.round(ownWere.reduce((sum, p) => sum + Number(p.amount), 0) * 100);
+  if (ownOnLead > 0 && ownWere.length > 1 && ownWereSum === Math.round(ownOnLead * 100)) {
+    rows.push(...ownWere.map((p) => newPaymentRow({ collectedBefore: true, amountInput: String(p.amount), method: p.method, receipt: p.receipt ?? null })));
+  } else if (ownOnLead > 0) {
     rows.push(newPaymentRow({ collectedBefore: true, amountInput: String(ownOnLead), method: ownWas?.method ?? "", receipt: ownWas?.receipt ?? null }));
   }
   const taken = listed.filter((p) => !p.collectedBefore);

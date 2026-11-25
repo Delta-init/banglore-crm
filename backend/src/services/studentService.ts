@@ -1249,16 +1249,18 @@ export class StudentService {
      */
     const own = await this.ownOnLead(student.leadId);
     const ownRows = payments.filter((p) => p.collectedBefore);
-    if (ownRows.length > 1) throw createError("Only one payment can be the money already on the lead.", 422);
+    // One row per lead payment with its method and receipt (2026-11-25, as in the Remote CRM), so there may be several —
+    // together, what the lead holds.
+    const ownGiven = ownRows.reduce((sum, p) => sum + p.amount, 0);
     if (own > 0 && !ownRows.length) {
       throw createError(
         `This lead already holds ${money(own / 100)} of its own — it stays as a payment of its own, with its method and receipt.`,
         422,
       );
     }
-    if (ownRows.length && minor(ownRows[0]!.amount) !== own) {
+    if (ownRows.length && minor(ownGiven) !== own) {
       throw createError(
-        `The lead's own payments come to ${money(own / 100)} now, not ${money(ownRows[0]!.amount)} — they changed while this was open. Close the correction and open it again.`,
+        `The lead's own payments come to ${money(own / 100)} now, not ${money(ownGiven)} — they changed while this was open. Close the correction and open it again.`,
         409,
       );
     }

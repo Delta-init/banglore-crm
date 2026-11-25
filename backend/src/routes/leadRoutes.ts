@@ -32,6 +32,8 @@ import {
   updateCallNotConnected,
   updateCallCount,
   getLeadSources,
+  getLeadPaymentFinance,
+  sendLeadPaymentToFinance,
 } from "../controllers/leadController.js";
 import { authenticate } from "../middleware/auth.js";
 import { checkPermission } from "../middleware/permissions.js";
@@ -99,6 +101,9 @@ router.delete("/:id/reminders/:reminderId",      checkPermission("reminders", "d
 
 // ─── Payments (nested under lead) ─────────────────────────────────────────────
 router.post("/:id/payments",                    checkPermission("leads", "edit"), addPayment);
+// A closed lead's payments go to finance as balance payments, with the receipt (2026-10-23).
+router.get("/:id/payments/finance",             checkPermission("leads", "view"), getLeadPaymentFinance);
+router.post("/:id/payments/finance",            checkPermission("leads", "edit"), checkPermission("balancePayments", "create"), sendLeadPaymentToFinance);
 router.put("/:id/payments/:paymentId",          checkPermission("leads", "edit"), updatePayment);
 router.delete("/:id/payments/:paymentId",       checkPermission("leads", "edit"), deletePayment);
 
